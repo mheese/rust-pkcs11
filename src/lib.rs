@@ -1,18 +1,25 @@
 extern crate libloading as lib;
-extern crate libc;
+//extern crate libc;
 
 use std::ptr;
-use libc::c_uchar;
+//use libc::c_uchar;
 
 #[allow(non_camel_case_types)]
 type CK_BYTE = u8;
+#[allow(non_camel_case_types)]
 type CK_CHAR = CK_BYTE;
+#[allow(non_camel_case_types)]
 type CK_UTF8CHAR = CK_BYTE;
+#[allow(non_camel_case_types)]
 type CK_BBOOL = CK_BYTE;
+#[allow(non_camel_case_types)]
 type CK_ULONG = usize;
+#[allow(non_camel_case_types)]
 type CK_LONG = isize;
 // TODO: enums here
+#[allow(non_camel_case_types)]
 type CK_FLAGS = CK_ULONG;
+#[allow(non_camel_case_types)]
 type CK_RV = CK_ULONG;
 
 #[allow(non_camel_case_types, non_snake_case)]
@@ -38,9 +45,13 @@ struct CK_VERSION {
   minor: CK_BYTE,   /* 1/100ths portion of version number */
 }
 
+#[allow(non_camel_case_types)]
 type CK_CREATEMUTEX = Option<extern "C" fn(CK_VOID_PTR_PTR) -> CK_RV>;
+#[allow(non_camel_case_types)]
 type CK_DESTROYMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
+#[allow(non_camel_case_types)]
 type CK_LOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
+#[allow(non_camel_case_types)]
 type CK_UNLOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
 
 #[allow(non_camel_case_types, non_snake_case)]
@@ -55,6 +66,20 @@ struct CK_C_INITIALIZE_ARGS {
   pReserved: CK_VOID_PTR,
 }
 
+impl CK_C_INITIALIZE_ARGS {
+    fn new() -> CK_C_INITIALIZE_ARGS {
+        CK_C_INITIALIZE_ARGS {
+            flags: 0,
+            CreateMutex: None,
+            DestroyMutex: None,
+            LockMutex: None,
+            UnlockMutex: None,
+            pReserved: ptr::null(),
+        }
+    }
+}
+
+#[allow(non_camel_case_types)]
 type CK_C_INITIALIZE_ARGS_PTR = *const CK_C_INITIALIZE_ARGS;
 
 #[allow(non_camel_case_types, non_snake_case)]
@@ -83,11 +108,15 @@ impl CK_INFO {
     }
 }
 
+#[allow(non_camel_case_types)]
 type CK_INFO_PTR = *const CK_INFO;
-
+#[allow(non_camel_case_types)]
 type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
 type C_Finalize = extern "C" fn(CK_VOID_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
 type C_GetInfo = extern "C" fn(CK_INFO_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
 type C_GetFunctionList = extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
 
 #[allow(non_camel_case_types, non_snake_case)]
@@ -106,12 +135,41 @@ struct CK_FUNCTION_LIST {
 
 }
 
+#[allow(non_camel_case_types)]
 type CK_FUNCTION_LIST_PTR = *const CK_FUNCTION_LIST;
+#[allow(non_camel_case_types)]
 type CK_FUNCTION_LIST_PTR_PTR = *const CK_FUNCTION_LIST_PTR;
 
 #[derive(Debug)]
+pub enum Error {
+    Io(std::io::Error),
+    Module(&'static str),
+    Pkcs11(CK_RV),
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Error {
+        Error::Io(err)
+    }
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            // Both underlying errors already impl `Display`, so we defer to
+            // their implementations.
+            Error::Io(ref err) => write!(f, "IO error: {}", err),
+            Error::Module(ref err) => write!(f, "PKCS#11 Module error: {}", err),
+            Error::Pkcs11(ref err) => write!(f, "PKCS#11 error: {}", err),
+        }
+    }
+}
+
+#[allow(non_camel_case_types, non_snake_case)]
+#[derive(Debug)]
 pub struct Ctx {
   lib: lib::Library,
+  _is_initialized: bool,
   C_Initialize: C_Initialize,
   C_Finalize: C_Finalize,
   C_GetInfo: C_GetInfo,
@@ -119,28 +177,76 @@ pub struct Ctx {
 }
 
 impl Ctx {
-    fn new(filename: &'static str) -> Ctx {
+    pub fn new(filename: &'static str) -> Result<Ctx, Error> {
         unsafe {
-            let lib = lib::Library::new(filename).unwrap();
-            let mut list: CK_FUNCTION_LIST_PTR;
-            let res: u32;
-            list = std::mem::uninitialized();
+            let lib = lib::Library::new(filename)?;
+            let mut list: CK_FUNCTION_LIST_PTR = std::mem::uninitialized();
             {
-                let func: lib::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> u32> = lib.get(b"C_GetFunctionList").unwrap();
-                res = func(&mut list);
+                let func: lib::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
+                match func(&mut list) {
+                    0 => (),
+                    err => return Err(Error::Pkcs11(err)),
+                }
             }
-            //println!("{:?}", res);
-            //println!("{:?}", *list);
-            let init_args = CK_C_INITIALIZE_ARGS { flags: 0,CreateMutex: None, DestroyMutex: None, LockMutex: None, UnlockMutex: None, pReserved: ptr::null_mut()};
-            let res = ((*list).C_Initialize).unwrap()(&init_args);
-            //println!("{}", res);
-            Ctx {
+
+            let c_initialize = match (*list).C_Initialize {
+                Some(func) => func,
+                None => return Err(Error::Module("C_Initialize function not found")),
+            };
+
+            let c_finalize = match (*list).C_Finalize {
+                Some(func) => func,
+                None => return Err(Error::Module("C_Finalize function not found")),
+            };
+
+            let c_getinfo = match (*list).C_GetInfo {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetInfo function not found")),
+            };
+
+            let c_getfunctionlist = match (*list).C_GetFunctionList {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetFunctionList not found")),
+            };
+
+            Ok(Ctx {
                 lib: lib,
-                C_Initialize: ((*list).C_Initialize).unwrap(),
-                C_Finalize: ((*list).C_Finalize).unwrap(),
-                C_GetInfo: ((*list).C_GetInfo).unwrap(),
-                C_GetFunctionList: ((*list).C_GetFunctionList).unwrap(),
-            }
+                _is_initialized: false,
+                C_Initialize: c_initialize,
+                C_Finalize: c_finalize,
+                C_GetInfo: c_getinfo,
+                C_GetFunctionList: c_getfunctionlist,
+            })
+        }
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self._is_initialized
+    }
+
+    pub fn initialize(&mut self) -> Result<(), Error> {
+        if self._is_initialized {
+            return Err(Error::Module("module already initialized"))
+        }
+        match (self.C_Initialize)(&CK_C_INITIALIZE_ARGS::new()) {
+            0 => {
+                self._is_initialized = true;
+                Ok(())
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn finalize(&mut self) -> Result<(), Error> {
+        if !self._is_initialized {
+            return Err(Error::Module("module not initialized"))
+        }
+        match (self.C_Finalize)(ptr::null()) {
+            0 => {
+                self._is_initialized = false;
+                Ok(())
+            },
+            err => Err(Error::Pkcs11(err)),
         }
     }
 
@@ -157,9 +263,11 @@ impl Ctx {
 
 impl Drop for Ctx {
     fn drop(&mut self) {
-        println!("Dropping Ctx!");
-        let rv = (self.C_Finalize)(ptr::null_mut::<CK_VOID>());
-        println!("C_Finalize: {:?}", rv);
+        if self.is_initialized() {
+            if let Err(err) = self.finalize() {
+                println!("ERROR: {}", err);
+            }
+        }
     }
 }
 
@@ -169,7 +277,8 @@ mod tests {
 
     #[test]
     fn can_open_context() {
-        let ctx = Ctx::new("/usr/local/lib/softhsm/libsofthsm2.so");
+        let mut ctx = Ctx::new("/usr/local/lib/softhsm/libsofthsm2.so").unwrap();
+        ctx.initialize().unwrap();
         ctx.get_info();
         //println!("{:?}", res);
         //assert_eq!(res.is_ok(), true);

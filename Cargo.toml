@@ -5,4 +5,4 @@ authors = ["Marcus Heese <marcus.heese@gmail.com>"]
 
 [dependencies]
 libloading = "0.4.2"
-libc = "0.2.33"
+#libc = "0.2.33"
