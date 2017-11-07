@@ -45,7 +45,7 @@ pub type CK_VOID_PTR = *const CK_VOID;
 pub type CK_VOID_PTR_PTR = *const CK_VOID_PTR;
 
 #[allow(non_camel_case_types, non_snake_case)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_VERSION {
   pub major: CK_BYTE,  /* integer portion of version number */
@@ -219,7 +219,7 @@ pub type C_GetMechanismList = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE_PTR, C
 pub type C_GetMechanismInfo = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE, CK_MECHANISM_INFO_PTR) -> CK_RV;
 
 #[allow(non_camel_case_types, non_snake_case)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_FUNCTION_LIST {
     pub version: CK_VERSION,
@@ -393,10 +393,23 @@ impl Ctx {
     }
 
     pub fn get_info(&self) -> Result<CK_INFO, Error> {
+        if !self._is_initialized {
+            return Err(Error::Module("module not initialized"))
+        }
         let mut info = Box::new(CK_INFO::new());
         match (self.C_GetInfo)(&mut *info) {
             0 => {
                 Ok(*info)
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn get_function_list(&self) -> Result<CK_FUNCTION_LIST, Error> {
+        let list: CK_FUNCTION_LIST_PTR = unsafe { std::mem::uninitialized() };
+        match (self.C_GetFunctionList)(&list) {
+            0 => {
+                unsafe { Ok((*list).clone()) }
             },
             err => Err(Error::Pkcs11(err)),
         }
@@ -415,13 +428,55 @@ impl Drop for Ctx {
 
 #[cfg(test)]
 mod tests {
+    /// Tests need to be run with `RUST_TEST_THREADS=1` currently to pass.
+
     use super::*;
 
+    const PKCS11_MODULE_FILENAME: &'static str = "/usr/local/lib/softhsm/libsofthsm2.so";
+
     #[test]
-    fn can_open_context() {
-        let ctx = Ctx::new_and_initialize("/usr/local/lib/softhsm/libsofthsm2.so").unwrap();
-        let info = ctx.get_info().unwrap();
-        println!("{:#?}", info);
-        //assert_eq!(res.is_ok(), true);
+    fn ctx_new() {
+        let res = Ctx::new(PKCS11_MODULE_FILENAME);
+        assert!(res.is_ok(), "failed to create new context: {:?}", res);
+    }
+
+    #[test]
+    fn ctx_initialize() {
+        let mut ctx = Ctx::new(PKCS11_MODULE_FILENAME).unwrap();
+        let res = ctx.initialize(None);
+        assert!(res.is_ok(), "failed to initialize context: {:?}", res);
+        assert!(ctx.is_initialized(), "internal state is not initialized");
+    }
+
+    #[test]
+    fn ctx_new_and_initialize() {
+        
+        let res = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME);
+        assert!(res.is_ok(), "failed to create or initialize new context: {:?}", res);
+    }
+
+    #[test]
+    fn ctx_finalize() {
+        let mut ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let res = ctx.finalize();
+        assert!(res.is_ok(), "failed to finalize context: {:?}", res);
+    }
+
+    #[test]
+    fn ctx_get_info() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let res = ctx.get_info();
+        assert!(res.is_ok(), "failed to call C_GetInfo: {:?}", res);
+        let info = res.unwrap();
+        println!("{:?}", info);
+    }
+
+    #[test]
+    fn ctx_get_function_list() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let res = ctx.get_function_list();
+        assert!(res.is_ok(), "failed to call C_GetFunctionList: {:?}", res);
+        let list = res.unwrap();
+        println!("{:?}", list);
     }
 }
