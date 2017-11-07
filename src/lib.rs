@@ -74,6 +74,15 @@ pub struct CK_VERSION {
   pub minor: CK_BYTE,   /* 1/100ths portion of version number */
 }
 
+impl CK_VERSION {
+    pub fn new() -> CK_VERSION {
+        CK_VERSION {
+            major: 0,
+            minor: 0,
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub type CK_CREATEMUTEX = Option<extern "C" fn(CK_VOID_PTR_PTR) -> CK_RV>;
 #[allow(non_camel_case_types)]
@@ -131,11 +140,11 @@ pub struct CK_INFO {
 impl CK_INFO {
     pub fn new() -> CK_INFO {
         CK_INFO {
-            cryptokiVersion: CK_VERSION { major: 0, minor: 0 },
+            cryptokiVersion: CK_VERSION::new(),
             manufacturerID: [0; 32],
             flags: 0,
             libraryDescription: [0; 32],
-            libraryVersion: CK_VERSION { major: 0, minor: 0 },
+            libraryVersion: CK_VERSION::new(),
         }
     }
 }
@@ -156,11 +165,21 @@ pub struct CK_SLOT_INFO {
   pub firmwareVersion: CK_VERSION,  /* version of firmware */
 }
 
+impl CK_SLOT_INFO {
+    pub fn new() -> CK_SLOT_INFO {
+        CK_SLOT_INFO {
+            slotDescription: [0; 64],
+            manufacturerID: [0; 32],
+            flags: 0,
+            hardwareVersion: CK_VERSION::new(),
+            firmwareVersion: CK_VERSION::new(),
+        }
+    }
+}
+
 impl std::fmt::Debug for CK_SLOT_INFO {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let sd = {
-            &self.slotDescription[..].fmt(fmt)
-        };
+        let sd = self.slotDescription.to_vec();
         fmt.debug_struct("CK_SLOT_INFO")
             .field("slotDescription", &sd)
             .field("manufacturerID", &self.manufacturerID)
@@ -172,7 +191,7 @@ impl std::fmt::Debug for CK_SLOT_INFO {
 }
 
 #[allow(non_camel_case_types)]
-pub type CK_SLOT_INFO_PTR = *const CK_INFO;
+pub type CK_SLOT_INFO_PTR = *const CK_SLOT_INFO;
 
 #[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
@@ -388,10 +407,24 @@ impl Ctx {
         self._is_initialized
     }
 
-    pub fn initialize(&mut self, init_args: Option<CK_C_INITIALIZE_ARGS>) -> Result<(), Error> {
-        if self._is_initialized {
-            return Err(Error::Module("module already initialized"))
+    fn initialized(&self) -> Result<(),Error> {
+        if !self._is_initialized {
+            Err(Error::Module("module not initialized"))
+        } else {
+            Ok(())
         }
+    }
+
+    fn not_initialized(&self) -> Result<(),Error> {
+        if self._is_initialized {
+            Err(Error::Module("module already initialized"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn initialize(&mut self, init_args: Option<CK_C_INITIALIZE_ARGS>) -> Result<(), Error> {
+        self.not_initialized()?;
         match (self.C_Initialize)(&init_args.unwrap_or(CK_C_INITIALIZE_ARGS::new())) {
             0 => {
                 self._is_initialized = true;
@@ -402,9 +435,7 @@ impl Ctx {
     }
 
     pub fn finalize(&mut self) -> Result<(), Error> {
-        if !self._is_initialized {
-            return Err(Error::Module("module not initialized"))
-        }
+        self.initialized()?;
         match (self.C_Finalize)(ptr::null()) {
             0 => {
                 self._is_initialized = false;
@@ -415,9 +446,7 @@ impl Ctx {
     }
 
     pub fn get_info(&self) -> Result<CK_INFO, Error> {
-        if !self._is_initialized {
-            return Err(Error::Module("module not initialized"))
-        }
+        self.initialized()?;
         let info = CK_INFO::new();
         match (self.C_GetInfo)(&info) {
             0 => {
@@ -438,9 +467,7 @@ impl Ctx {
     }
 
     pub fn get_slot_list(&self, token_present: bool) -> Result<Vec<CK_SLOT_ID>, Error> {
-        if !self._is_initialized {
-            return Err(Error::Module("module not initialized"))
-        }
+        self.initialized()?;
         let mut slots_len: CK_ULONG = 0;
         match (self.C_GetSlotList)(CkFrom::from(token_present), ptr::null(), &mut slots_len) {
             0 => {
@@ -458,6 +485,17 @@ impl Ctx {
                     },
                     err => Err(Error::Pkcs11(err)),
                 }
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn get_slot_info(&self, slot_id: CK_SLOT_ID) -> Result<CK_SLOT_INFO, Error> {
+        self.initialized()?;
+        let info = CK_SLOT_INFO::new();
+        match (self.C_GetSlotInfo)(slot_id, &info) {
+            0 => {
+                Ok(info)
             },
             err => Err(Error::Pkcs11(err)),
         }
@@ -535,5 +573,17 @@ mod tests {
         assert!(res.is_ok(), "failed to call C_GetSlotList: {}", res.unwrap_err());
         let slots = res.unwrap();
         println!("{:?}", slots);
+    }
+
+    #[test]
+    fn ctx_get_slot_infos() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        for slot in slots {
+            let res = ctx.get_slot_info(slot);
+            assert!(res.is_ok(), "failed to call C_GetSlotInfo({}): {}", slot, res.unwrap_err());
+            let info = res.unwrap();
+            println!("{:?}", info);
+        }
     }
 }
