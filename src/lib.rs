@@ -1,4 +1,4 @@
-extern crate libloading as lib;
+extern crate libloading;
 //extern crate libc;
 
 use std::ptr;
@@ -35,7 +35,7 @@ enum CK_VOID {
 type CK_VOID_PTR = *const CK_VOID;
 
 #[allow(non_camel_case_types, non_snake_case)]
-type CK_VOID_PTR_PTR = *const *const CK_VOID;
+type CK_VOID_PTR_PTR = *const CK_VOID_PTR;
 
 #[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
@@ -124,13 +124,9 @@ type C_GetFunctionList = extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
 #[repr(C)]
 struct CK_FUNCTION_LIST {
     version: CK_VERSION,
-    //C_Initialize: Option<extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV>,
     C_Initialize: Option<C_Initialize>,
-    //C_Finalize: Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>,
     C_Finalize: Option<C_Finalize>,
-    //C_GetInfo: Option<extern "C" fn(CK_INFO_PTR) -> CK_RV>,
     C_GetInfo: Option<C_GetInfo>,
-    //C_GetFunctionList: Option<extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV>,
     C_GetFunctionList: Option<C_GetFunctionList>,
 
 }
@@ -156,8 +152,6 @@ impl From<std::io::Error> for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            // Both underlying errors already impl `Display`, so we defer to
-            // their implementations.
             Error::Io(ref err) => write!(f, "IO error: {}", err),
             Error::Module(ref err) => write!(f, "PKCS#11 Module error: {}", err),
             Error::Pkcs11(ref err) => write!(f, "PKCS#11 error: {}", err),
@@ -168,7 +162,7 @@ impl std::fmt::Display for Error {
 #[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
 pub struct Ctx {
-  lib: lib::Library,
+  lib: libloading::Library,
   _is_initialized: bool,
   C_Initialize: C_Initialize,
   C_Finalize: C_Finalize,
@@ -179,10 +173,10 @@ pub struct Ctx {
 impl Ctx {
     pub fn new(filename: &'static str) -> Result<Ctx, Error> {
         unsafe {
-            let lib = lib::Library::new(filename)?;
+            let lib = libloading::Library::new(filename)?;
             let mut list: CK_FUNCTION_LIST_PTR = std::mem::uninitialized();
             {
-                let func: lib::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
+                let func: libloading::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
                 match func(&mut list) {
                     0 => (),
                     err => return Err(Error::Pkcs11(err)),
