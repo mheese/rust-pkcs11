@@ -27,6 +27,28 @@ pub type CK_SLOT_ID = CK_ULONG;
 #[allow(non_camel_case_types)]
 pub type CK_SLOT_ID_PTR = *const CK_SLOT_ID;
 
+trait CkFrom<T> {
+    fn from(T) -> Self;
+}
+
+impl CkFrom<bool> for CK_BBOOL {
+    fn from(b: bool) -> CK_BBOOL {
+        match b {
+            true => 1,
+            false => 0,
+        }
+    }
+}
+
+impl CkFrom<CK_BBOOL> for bool {
+    fn from(b: CK_BBOOL) -> bool {
+        match b {
+            0 => false,
+            _ => true,
+        }
+    }
+}
+
 #[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
 #[repr(u8)]
@@ -396,10 +418,10 @@ impl Ctx {
         if !self._is_initialized {
             return Err(Error::Module("module not initialized"))
         }
-        let mut info = Box::new(CK_INFO::new());
-        match (self.C_GetInfo)(&mut *info) {
+        let info = CK_INFO::new();
+        match (self.C_GetInfo)(&info) {
             0 => {
-                Ok(*info)
+                Ok(info)
             },
             err => Err(Error::Pkcs11(err)),
         }
@@ -410,6 +432,32 @@ impl Ctx {
         match (self.C_GetFunctionList)(&list) {
             0 => {
                 unsafe { Ok((*list).clone()) }
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn get_slot_list(&self, token_present: bool) -> Result<Vec<CK_SLOT_ID>, Error> {
+        if !self._is_initialized {
+            return Err(Error::Module("module not initialized"))
+        }
+        let mut slots_len: CK_ULONG = 0;
+        match (self.C_GetSlotList)(CkFrom::from(token_present), ptr::null(), &mut slots_len) {
+            0 => {
+                // now slots_len contains the number of slots,
+                // and we can generate a vector with the right capacity
+                // important is to pass slots_len **again** because in
+                // the 2nd call it is used to tell C how big the memory
+                // in slots is.
+                let mut slots = Vec::<CK_SLOT_ID>::with_capacity(slots_len);
+                let slots_ptr = slots.as_mut_ptr();
+                match (self.C_GetSlotList)(CkFrom::from(token_present), slots_ptr, &slots_len) {
+                    0 => {
+                        unsafe { slots.set_len(slots_len); }
+                        Ok(slots)
+                    },
+                    err => Err(Error::Pkcs11(err)),
+                }
             },
             err => Err(Error::Pkcs11(err)),
         }
@@ -437,14 +485,14 @@ mod tests {
     #[test]
     fn ctx_new() {
         let res = Ctx::new(PKCS11_MODULE_FILENAME);
-        assert!(res.is_ok(), "failed to create new context: {:?}", res);
+        assert!(res.is_ok(), "failed to create new context: {}", res.unwrap_err());
     }
 
     #[test]
     fn ctx_initialize() {
         let mut ctx = Ctx::new(PKCS11_MODULE_FILENAME).unwrap();
         let res = ctx.initialize(None);
-        assert!(res.is_ok(), "failed to initialize context: {:?}", res);
+        assert!(res.is_ok(), "failed to initialize context: {}", res.unwrap_err());
         assert!(ctx.is_initialized(), "internal state is not initialized");
     }
 
@@ -452,21 +500,21 @@ mod tests {
     fn ctx_new_and_initialize() {
         
         let res = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME);
-        assert!(res.is_ok(), "failed to create or initialize new context: {:?}", res);
+        assert!(res.is_ok(), "failed to create or initialize new context: {}", res.unwrap_err());
     }
 
     #[test]
     fn ctx_finalize() {
         let mut ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let res = ctx.finalize();
-        assert!(res.is_ok(), "failed to finalize context: {:?}", res);
+        assert!(res.is_ok(), "failed to finalize context: {}", res.unwrap_err());
     }
 
     #[test]
     fn ctx_get_info() {
         let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let res = ctx.get_info();
-        assert!(res.is_ok(), "failed to call C_GetInfo: {:?}", res);
+        assert!(res.is_ok(), "failed to call C_GetInfo: {}", res.unwrap_err());
         let info = res.unwrap();
         println!("{:?}", info);
     }
@@ -475,8 +523,17 @@ mod tests {
     fn ctx_get_function_list() {
         let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let res = ctx.get_function_list();
-        assert!(res.is_ok(), "failed to call C_GetFunctionList: {:?}", res);
+        assert!(res.is_ok(), "failed to call C_GetFunctionList: {}", res.unwrap_err());
         let list = res.unwrap();
         println!("{:?}", list);
+    }
+
+    #[test]
+    fn ctx_get_slot_list() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let res = ctx.get_slot_list(false);
+        assert!(res.is_ok(), "failed to call C_GetSlotList: {}", res.unwrap_err());
+        let slots = res.unwrap();
+        println!("{:?}", slots);
     }
 }
