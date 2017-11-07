@@ -15,12 +15,18 @@ type CK_BBOOL = CK_BYTE;
 #[allow(non_camel_case_types)]
 type CK_ULONG = usize;
 #[allow(non_camel_case_types)]
+type CK_ULONG_PTR = *const CK_ULONG;
+#[allow(non_camel_case_types)]
 type CK_LONG = isize;
 // TODO: enums here
 #[allow(non_camel_case_types)]
 type CK_FLAGS = CK_ULONG;
 #[allow(non_camel_case_types)]
 type CK_RV = CK_ULONG;
+#[allow(non_camel_case_types)]
+type CK_SLOT_ID = CK_ULONG;
+#[allow(non_camel_case_types)]
+type CK_SLOT_ID_PTR = *const CK_SLOT_ID;
 
 #[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
@@ -110,6 +116,70 @@ impl CK_INFO {
 
 #[allow(non_camel_case_types)]
 type CK_INFO_PTR = *const CK_INFO;
+
+#[allow(non_camel_case_types, non_snake_case)]
+#[repr(C)]
+struct CK_SLOT_INFO {
+  /* slotDescription and manufacturerID have been changed from
+   * CK_CHAR to CK_UTF8CHAR for v2.10 */
+  slotDescription: [CK_UTF8CHAR; 64],    /* blank padded */
+  manufacturerID: [CK_UTF8CHAR; 32],     /* blank padded */
+  flags: CK_FLAGS,
+
+  hardwareVersion: CK_VERSION,  /* version of hardware */
+  firmwareVersion: CK_VERSION,  /* version of firmware */
+}
+
+#[allow(non_camel_case_types)]
+type CK_SLOT_INFO_PTR = *const CK_INFO;
+
+#[allow(non_camel_case_types, non_snake_case)]
+#[derive(Debug)]
+#[repr(C)]
+struct CK_TOKEN_INFO {
+  /* label, manufacturerID, and model have been changed from
+   * CK_CHAR to CK_UTF8CHAR for v2.10 */
+  label: [CK_UTF8CHAR; 32],           /* blank padded */
+  manufacturerID: [CK_UTF8CHAR; 32],  /* blank padded */
+  model: [CK_UTF8CHAR; 16],           /* blank padded */
+  serialNumber: [CK_CHAR; 16],        /* blank padded */
+  flags: CK_FLAGS,                    /* see below */
+
+  ulMaxSessionCount: CK_ULONG,     /* max open sessions */
+  ulSessionCount: CK_ULONG,        /* sess. now open */
+  ulMaxRwSessionCount: CK_ULONG,   /* max R/W sessions */
+  ulRwSessionCount: CK_ULONG,      /* R/W sess. now open */
+  ulMaxPinLen: CK_ULONG,           /* in bytes */
+  ulMinPinLen: CK_ULONG,           /* in bytes */
+  ulTotalPublicMemory: CK_ULONG,   /* in bytes */
+  ulFreePublicMemory: CK_ULONG,    /* in bytes */
+  ulTotalPrivateMemory: CK_ULONG,  /* in bytes */
+  ulFreePrivateMemory: CK_ULONG,   /* in bytes */
+  hardwareVersion: CK_VERSION,     /* version of hardware */
+  firmwareVersion: CK_VERSION,     /* version of firmware */
+  utcTime: [CK_CHAR; 16],          /* time */
+}
+
+#[allow(non_camel_case_types)]
+type CK_TOKEN_INFO_PTR = *const CK_TOKEN_INFO;
+
+#[allow(non_camel_case_types)]
+type CK_MECHANISM_TYPE = CK_ULONG;
+#[allow(non_camel_case_types)]
+type CK_MECHANISM_TYPE_PTR = *const CK_MECHANISM_TYPE;
+
+#[allow(non_camel_case_types, non_snake_case)]
+#[derive(Debug)]
+#[repr(C)]
+struct CK_MECHANISM_INFO {
+    ulMinKeySize: CK_ULONG,
+    ulMaxKeySize: CK_ULONG,
+    flags: CK_FLAGS,
+}
+
+#[allow(non_camel_case_types)]
+type CK_MECHANISM_INFO_PTR = *const CK_MECHANISM_INFO;
+
 #[allow(non_camel_case_types)]
 type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
 #[allow(non_camel_case_types)]
@@ -118,6 +188,16 @@ type C_Finalize = extern "C" fn(CK_VOID_PTR) -> CK_RV;
 type C_GetInfo = extern "C" fn(CK_INFO_PTR) -> CK_RV;
 #[allow(non_camel_case_types)]
 type C_GetFunctionList = extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
+type C_GetSlotList = extern "C" fn(CK_BBOOL, CK_SLOT_ID_PTR, CK_ULONG_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
+type C_GetSlotInfo = extern "C" fn(CK_SLOT_ID, CK_SLOT_INFO_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
+type C_GetTokenInfo = extern "C" fn(CK_SLOT_ID, CK_TOKEN_INFO_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
+type C_GetMechanismList = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE_PTR, CK_ULONG_PTR) -> CK_RV;
+#[allow(non_camel_case_types)]
+type C_GetMechanismInfo = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE, CK_MECHANISM_INFO_PTR) -> CK_RV;
 
 #[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
@@ -128,7 +208,11 @@ struct CK_FUNCTION_LIST {
     C_Finalize: Option<C_Finalize>,
     C_GetInfo: Option<C_GetInfo>,
     C_GetFunctionList: Option<C_GetFunctionList>,
-
+    C_GetSlotList: Option<C_GetSlotList>,
+    C_GetSlotInfo: Option<C_GetSlotInfo>,
+    C_GetTokenInfo: Option<C_GetTokenInfo>,
+    C_GetMechanismList: Option<C_GetMechanismList>,
+    C_GetMechanismInfo: Option<C_GetMechanismInfo>,
 }
 
 #[allow(non_camel_case_types)]
@@ -168,6 +252,11 @@ pub struct Ctx {
   C_Finalize: C_Finalize,
   C_GetInfo: C_GetInfo,
   C_GetFunctionList: C_GetFunctionList,
+  C_GetSlotList: C_GetSlotList,
+  C_GetSlotInfo: C_GetSlotInfo,
+  C_GetTokenInfo: C_GetTokenInfo,
+  C_GetMechanismList: C_GetMechanismList,
+  C_GetMechanismInfo: C_GetMechanismInfo,
 }
 
 impl Ctx {
@@ -200,7 +289,32 @@ impl Ctx {
 
             let c_getfunctionlist = match (*list).C_GetFunctionList {
                 Some(func) => func,
-                None => return Err(Error::Module("C_GetFunctionList not found")),
+                None => return Err(Error::Module("C_GetFunctionList function not found")),
+            };
+
+            let c_getslotlist = match (*list).C_GetSlotList {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetSlotList function not found")),
+            };
+
+            let c_getslotinfo = match (*list).C_GetSlotInfo {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetSlotInfo function not found")),
+            };
+
+            let c_gettokeninfo = match (*list).C_GetTokenInfo {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetTokenInfo function not found")),
+            };
+
+            let c_getmechanismlist = match (*list).C_GetMechanismList {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetMechanismList function not found")),
+            };
+
+            let c_getmechanisminfo = match (*list).C_GetMechanismInfo {
+                Some(func) => func,
+                None => return Err(Error::Module("C_GetMechanismInfo function not found")),
             };
 
             Ok(Ctx {
@@ -210,6 +324,11 @@ impl Ctx {
                 C_Finalize: c_finalize,
                 C_GetInfo: c_getinfo,
                 C_GetFunctionList: c_getfunctionlist,
+                C_GetSlotList: c_getslotlist,
+                C_GetSlotInfo: c_getslotinfo,
+                C_GetTokenInfo: c_gettokeninfo,
+                C_GetMechanismList: c_getmechanismlist,
+                C_GetMechanismInfo: c_getmechanisminfo,
             })
         }
     }
