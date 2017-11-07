@@ -220,6 +220,31 @@ pub struct CK_TOKEN_INFO {
   pub utcTime: [CK_CHAR; 16],          /* time */
 }
 
+impl CK_TOKEN_INFO {
+    pub fn new() -> CK_TOKEN_INFO {
+        CK_TOKEN_INFO {
+            label: [0; 32],
+            manufacturerID: [0; 32],
+            model: [0; 16],
+            serialNumber: [0; 16],
+            flags: 0,
+            ulMaxSessionCount: 0,
+            ulSessionCount: 0,
+            ulMaxRwSessionCount: 0,
+            ulRwSessionCount: 0,
+            ulMaxPinLen: 0,
+            ulMinPinLen: 0,
+            ulTotalPublicMemory: 0,
+            ulFreePublicMemory: 0,
+            ulTotalPrivateMemory: 0,
+            ulFreePrivateMemory: 0,
+            hardwareVersion: CK_VERSION::new(),
+            firmwareVersion: CK_VERSION::new(),
+            utcTime: [0; 16],
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub type CK_TOKEN_INFO_PTR = *const CK_TOKEN_INFO;
 
@@ -500,6 +525,17 @@ impl Ctx {
             err => Err(Error::Pkcs11(err)),
         }
     }
+
+    pub fn get_token_info(&self, slot_id: CK_SLOT_ID) -> Result<CK_TOKEN_INFO, Error> {
+        self.initialized()?;
+        let info = CK_TOKEN_INFO::new();
+        match (self.C_GetTokenInfo)(slot_id, &info) {
+            0 => {
+                Ok(info)
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
 }
 
 impl Drop for Ctx {
@@ -582,6 +618,18 @@ mod tests {
         for slot in slots {
             let res = ctx.get_slot_info(slot);
             assert!(res.is_ok(), "failed to call C_GetSlotInfo({}): {}", slot, res.unwrap_err());
+            let info = res.unwrap();
+            println!("{:?}", info);
+        }
+    }
+
+    #[test]
+    fn ctx_get_token_infos() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        for slot in slots {
+            let res = ctx.get_token_info(slot);
+            assert!(res.is_ok(), "failed to call C_GetTokenInfo({}): {}", slot, res.unwrap_err());
             let info = res.unwrap();
             println!("{:?}", info);
         }
