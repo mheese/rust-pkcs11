@@ -505,7 +505,9 @@ impl Ctx {
                 let slots_ptr = slots.as_mut_ptr();
                 match (self.C_GetSlotList)(CkFrom::from(token_present), slots_ptr, &slots_len) {
                     0 => {
-                        unsafe { slots.set_len(slots_len); }
+                        unsafe { 
+                            slots.set_len(slots_len);
+                        }
                         Ok(slots)
                     },
                     err => Err(Error::Pkcs11(err)),
@@ -532,6 +534,28 @@ impl Ctx {
         match (self.C_GetTokenInfo)(slot_id, &info) {
             0 => {
                 Ok(info)
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn get_mechanism_list(&self, slot_id: CK_SLOT_ID) -> Result<Vec<CK_MECHANISM_TYPE>, Error> {
+        self.initialized()?;
+        let mut count: CK_ULONG = 0;
+        match (self.C_GetMechanismList)(slot_id, ptr::null(), &mut count) {
+            0 => {
+                // see get_slot_list() for an explanation - it works the same way 
+                let mut list = Vec::<CK_MECHANISM_TYPE>::with_capacity(count);
+                let list_ptr = list.as_mut_ptr();
+                match (self.C_GetMechanismList)(slot_id, list_ptr, &count) {
+                    0 => {
+                        unsafe {
+                            list.set_len(count);
+                        }
+                        Ok(list)
+                    },
+                    err => Err(Error::Pkcs11(err))
+                }
             },
             err => Err(Error::Pkcs11(err)),
         }
@@ -608,7 +632,7 @@ mod tests {
         let res = ctx.get_slot_list(false);
         assert!(res.is_ok(), "failed to call C_GetSlotList: {}", res.unwrap_err());
         let slots = res.unwrap();
-        println!("{:?}", slots);
+        println!("Slots: {:?}", slots);
     }
 
     #[test]
@@ -632,6 +656,18 @@ mod tests {
             assert!(res.is_ok(), "failed to call C_GetTokenInfo({}): {}", slot, res.unwrap_err());
             let info = res.unwrap();
             println!("{:?}", info);
+        }
+    }
+
+    #[test]
+    fn ctx_get_mechanism_lists() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        for slot in slots {
+            let res = ctx.get_mechanism_list(slot);
+            assert!(res.is_ok(), "failed to call C_GetMechanismList({}): {}", slot, res.unwrap_err());
+            let mechs = res.unwrap();
+            println!("Mechanisms: {:?}", mechs);
         }
     }
 }
