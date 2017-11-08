@@ -24,6 +24,108 @@ pub type CK_SESSION_HANDLE_PTR = *const CK_SESSION_HANDLE;
 pub type CK_NOTIFICATION = CK_ULONG;
 pub type CK_USER_TYPE = CK_ULONG;
 
+pub const CKU_SO: CK_USER_TYPE = 0;
+/* Normal user */
+pub const CKU_USER: CK_USER_TYPE = 1;
+/* Context specific */
+pub const CKU_CONTEXT_SPECIFIC: CK_USER_TYPE = 2;
+
+pub const CKR_OK                               : CK_RV = 0x00000000;
+pub const CKR_CANCEL                           : CK_RV = 0x00000001;
+pub const CKR_HOST_MEMORY                      : CK_RV = 0x00000002;
+pub const CKR_SLOT_ID_INVALID                  : CK_RV = 0x00000003;
+pub const CKR_GENERAL_ERROR                    : CK_RV = 0x00000005;
+pub const CKR_FUNCTION_FAILED                  : CK_RV = 0x00000006;
+pub const CKR_ARGUMENTS_BAD                    : CK_RV = 0x00000007;
+pub const CKR_NO_EVENT                         : CK_RV = 0x00000008;
+pub const CKR_NEED_TO_CREATE_THREADS           : CK_RV = 0x00000009;
+pub const CKR_CANT_LOCK                        : CK_RV = 0x0000000A;
+pub const CKR_ATTRIBUTE_READ_ONLY              : CK_RV = 0x00000010;
+pub const CKR_ATTRIBUTE_SENSITIVE              : CK_RV = 0x00000011;
+pub const CKR_ATTRIBUTE_TYPE_INVALID           : CK_RV = 0x00000012;
+pub const CKR_ATTRIBUTE_VALUE_INVALID          : CK_RV = 0x00000013;
+pub const CKR_ACTION_PROHIBITED                : CK_RV = 0x0000001B;
+pub const CKR_DATA_INVALID                     : CK_RV = 0x00000020;
+pub const CKR_DATA_LEN_RANGE                   : CK_RV = 0x00000021;
+pub const CKR_DEVICE_ERROR                     : CK_RV = 0x00000030;
+pub const CKR_DEVICE_MEMORY                    : CK_RV = 0x00000031;
+pub const CKR_DEVICE_REMOVED                   : CK_RV = 0x00000032;
+pub const CKR_ENCRYPTED_DATA_INVALID           : CK_RV = 0x00000040;
+pub const CKR_ENCRYPTED_DATA_LEN_RANGE         : CK_RV = 0x00000041;
+pub const CKR_FUNCTION_CANCELED                : CK_RV = 0x00000050;
+pub const CKR_FUNCTION_NOT_PARALLEL            : CK_RV = 0x00000051;
+pub const CKR_FUNCTION_NOT_SUPPORTED           : CK_RV = 0x00000054;
+pub const CKR_KEY_HANDLE_INVALID               : CK_RV = 0x00000060;
+pub const CKR_KEY_SIZE_RANGE                   : CK_RV = 0x00000062;
+pub const CKR_KEY_TYPE_INCONSISTENT            : CK_RV = 0x00000063;
+pub const CKR_KEY_NOT_NEEDED                   : CK_RV = 0x00000064;
+pub const CKR_KEY_CHANGED                      : CK_RV = 0x00000065;
+pub const CKR_KEY_NEEDED                       : CK_RV = 0x00000066;
+pub const CKR_KEY_INDIGESTIBLE                 : CK_RV = 0x00000067;
+pub const CKR_KEY_FUNCTION_NOT_PERMITTED       : CK_RV = 0x00000068;
+pub const CKR_KEY_NOT_WRAPPABLE                : CK_RV = 0x00000069;
+pub const CKR_KEY_UNEXTRACTABLE                : CK_RV = 0x0000006A;
+pub const CKR_MECHANISM_INVALID                : CK_RV = 0x00000070;
+pub const CKR_MECHANISM_PARAM_INVALID          : CK_RV = 0x00000071;
+pub const CKR_OBJECT_HANDLE_INVALID            : CK_RV = 0x00000082;
+pub const CKR_OPERATION_ACTIVE                 : CK_RV = 0x00000090;
+pub const CKR_OPERATION_NOT_INITIALIZED        : CK_RV = 0x00000091;
+pub const CKR_PIN_INCORRECT                    : CK_RV = 0x000000A0;
+pub const CKR_PIN_INVALID                      : CK_RV = 0x000000A1;
+pub const CKR_PIN_LEN_RANGE                    : CK_RV = 0x000000A2;
+pub const CKR_PIN_EXPIRED                      : CK_RV = 0x000000A3;
+pub const CKR_PIN_LOCKED                       : CK_RV = 0x000000A4;
+pub const CKR_SESSION_CLOSED                   : CK_RV = 0x000000B0;
+pub const CKR_SESSION_COUNT                    : CK_RV = 0x000000B1;
+pub const CKR_SESSION_HANDLE_INVALID           : CK_RV = 0x000000B3;
+pub const CKR_SESSION_PARALLEL_NOT_SUPPORTED   : CK_RV = 0x000000B4;
+pub const CKR_SESSION_READ_ONLY                : CK_RV = 0x000000B5;
+pub const CKR_SESSION_EXISTS                   : CK_RV = 0x000000B6;
+pub const CKR_SESSION_READ_ONLY_EXISTS         : CK_RV = 0x000000B7;
+pub const CKR_SESSION_READ_WRITE_SO_EXISTS     : CK_RV = 0x000000B8;
+pub const CKR_SIGNATURE_INVALID                : CK_RV = 0x000000C0;
+pub const CKR_SIGNATURE_LEN_RANGE              : CK_RV = 0x000000C1;
+pub const CKR_TEMPLATE_INCOMPLETE              : CK_RV = 0x000000D0;
+pub const CKR_TEMPLATE_INCONSISTENT            : CK_RV = 0x000000D1;
+pub const CKR_TOKEN_NOT_PRESENT                : CK_RV = 0x000000E0;
+pub const CKR_TOKEN_NOT_RECOGNIZED             : CK_RV = 0x000000E1;
+pub const CKR_TOKEN_WRITE_PROTECTED            : CK_RV = 0x000000E2;
+pub const CKR_UNWRAPPING_KEY_HANDLE_INVALID    : CK_RV = 0x000000F0;
+pub const CKR_UNWRAPPING_KEY_SIZE_RANGE        : CK_RV = 0x000000F1;
+pub const CKR_UNWRAPPING_KEY_TYPE_INCONSISTENT : CK_RV = 0x000000F2;
+pub const CKR_USER_ALREADY_LOGGED_IN           : CK_RV = 0x00000100;
+pub const CKR_USER_NOT_LOGGED_IN               : CK_RV = 0x00000101;
+pub const CKR_USER_PIN_NOT_INITIALIZED         : CK_RV = 0x00000102;
+pub const CKR_USER_TYPE_INVALID                : CK_RV = 0x00000103;
+pub const CKR_USER_ANOTHER_ALREADY_LOGGED_IN   : CK_RV = 0x00000104;
+pub const CKR_USER_TOO_MANY_TYPES              : CK_RV = 0x00000105;
+pub const CKR_WRAPPED_KEY_INVALID              : CK_RV = 0x00000110;
+pub const CKR_WRAPPED_KEY_LEN_RANGE            : CK_RV = 0x00000112;
+pub const CKR_WRAPPING_KEY_HANDLE_INVALID      : CK_RV = 0x00000113;
+pub const CKR_WRAPPING_KEY_SIZE_RANGE          : CK_RV = 0x00000114;
+pub const CKR_WRAPPING_KEY_TYPE_INCONSISTENT   : CK_RV = 0x00000115;
+pub const CKR_RANDOM_SEED_NOT_SUPPORTED        : CK_RV = 0x00000120;
+pub const CKR_RANDOM_NO_RNG                    : CK_RV = 0x00000121;
+pub const CKR_DOMAIN_PARAMS_INVALID            : CK_RV = 0x00000130;
+pub const CKR_CURVE_NOT_SUPPORTED              : CK_RV = 0x00000140;
+pub const CKR_BUFFER_TOO_SMALL                 : CK_RV = 0x00000150;
+pub const CKR_SAVED_STATE_INVALID              : CK_RV = 0x00000160;
+pub const CKR_INFORMATION_SENSITIVE            : CK_RV = 0x00000170;
+pub const CKR_STATE_UNSAVEABLE                 : CK_RV = 0x00000180;
+pub const CKR_CRYPTOKI_NOT_INITIALIZED         : CK_RV = 0x00000190;
+pub const CKR_CRYPTOKI_ALREADY_INITIALIZED     : CK_RV = 0x00000191;
+pub const CKR_MUTEX_BAD                        : CK_RV = 0x000001A0;
+pub const CKR_MUTEX_NOT_LOCKED                 : CK_RV = 0x000001A1;
+pub const CKR_NEW_PIN_MODE                     : CK_RV = 0x000001B0;
+pub const CKR_NEXT_OTP                         : CK_RV = 0x000001B1;
+pub const CKR_EXCEEDED_MAX_ITERATIONS          : CK_RV = 0x000001B5;
+pub const CKR_FIPS_SELF_TEST_FAILED            : CK_RV = 0x000001B6;
+pub const CKR_LIBRARY_LOAD_FAILED              : CK_RV = 0x000001B7;
+pub const CKR_PIN_TOO_WEAK                     : CK_RV = 0x000001B8;
+pub const CKR_PUBLIC_KEY_INVALID               : CK_RV = 0x000001B9;
+pub const CKR_FUNCTION_REJECTED                : CK_RV = 0x00000200;
+pub const CKR_VENDOR_DEFINED                   : CK_RV = 0x80000000;
+
 trait CkFrom<T> {
     fn from(T) -> Self;
 }
@@ -252,6 +354,9 @@ pub struct CK_SESSION_INFO {
   pub ulDeviceError: CK_ULONG,  /* device-dependent error code */
 }
 
+pub const CKF_RW_SESSION: CK_FLAGS = 0x00000002; /* session is r/w */
+pub const CKF_SERIAL_SESSION: CK_FLAGS = 0x00000004; /* no parallel    */
+
 pub type CK_SESSION_INFO_PTR = *const CK_SESSION_INFO;
 
 pub type CK_OBJECT_HANDLE = CK_ULONG;
@@ -276,7 +381,7 @@ pub type C_GetSessionInfo = extern "C" fn(CK_SESSION_HANDLE, CK_SESSION_INFO_PTR
 pub type C_GetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG_PTR) -> CK_RV;
 pub type C_SetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE);
 pub type C_Login = extern "C" fn(CK_SESSION_HANDLE, CK_USER_TYPE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
-pub type C_Logout = extern "C" fn() -> CK_RV;
+pub type C_Logout = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
 
 #[derive(Debug,Clone)]
 #[repr(C)]
@@ -384,7 +489,7 @@ impl Ctx {
             {
                 let func: libloading::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
                 match func(&mut list) {
-                    0 => (),
+                    CKR_OK => (),
                     err => return Err(Error::Pkcs11(err)),
                 }
             }
@@ -445,7 +550,7 @@ impl Ctx {
     pub fn initialize(&mut self, init_args: Option<CK_C_INITIALIZE_ARGS>) -> Result<(), Error> {
         self.not_initialized()?;
         match (self.C_Initialize)(&init_args.unwrap_or(CK_C_INITIALIZE_ARGS::new())) {
-            0 => {
+            CKR_OK => {
                 self._is_initialized = true;
                 Ok(())
             },
@@ -456,7 +561,7 @@ impl Ctx {
     pub fn finalize(&mut self) -> Result<(), Error> {
         self.initialized()?;
         match (self.C_Finalize)(ptr::null()) {
-            0 => {
+            CKR_OK => {
                 self._is_initialized = false;
                 Ok(())
             },
@@ -468,7 +573,7 @@ impl Ctx {
         self.initialized()?;
         let info = CK_INFO::new();
         match (self.C_GetInfo)(&info) {
-            0 => {
+            CKR_OK => {
                 Ok(info)
             },
             err => Err(Error::Pkcs11(err)),
@@ -478,7 +583,7 @@ impl Ctx {
     pub fn get_function_list(&self) -> Result<CK_FUNCTION_LIST, Error> {
         let list: CK_FUNCTION_LIST_PTR = unsafe { std::mem::uninitialized() };
         match (self.C_GetFunctionList)(&list) {
-            0 => {
+            CKR_OK => {
                 unsafe { Ok((*list).clone()) }
             },
             err => Err(Error::Pkcs11(err)),
@@ -489,7 +594,7 @@ impl Ctx {
         self.initialized()?;
         let mut slots_len: CK_ULONG = 0;
         match (self.C_GetSlotList)(CkFrom::from(token_present), ptr::null(), &mut slots_len) {
-            0 => {
+            CKR_OK => {
                 // now slots_len contains the number of slots,
                 // and we can generate a vector with the right capacity
                 // important is to pass slots_len **again** because in
@@ -498,7 +603,7 @@ impl Ctx {
                 let mut slots = Vec::<CK_SLOT_ID>::with_capacity(slots_len);
                 let slots_ptr = slots.as_mut_ptr();
                 match (self.C_GetSlotList)(CkFrom::from(token_present), slots_ptr, &slots_len) {
-                    0 => {
+                    CKR_OK => {
                         unsafe { 
                             slots.set_len(slots_len);
                         }
@@ -515,7 +620,7 @@ impl Ctx {
         self.initialized()?;
         let info = CK_SLOT_INFO::new();
         match (self.C_GetSlotInfo)(slot_id, &info) {
-            0 => {
+            CKR_OK => {
                 Ok(info)
             },
             err => Err(Error::Pkcs11(err)),
@@ -526,7 +631,7 @@ impl Ctx {
         self.initialized()?;
         let info = CK_TOKEN_INFO::new();
         match (self.C_GetTokenInfo)(slot_id, &info) {
-            0 => {
+            CKR_OK => {
                 Ok(info)
             },
             err => Err(Error::Pkcs11(err)),
@@ -537,12 +642,12 @@ impl Ctx {
         self.initialized()?;
         let mut count: CK_ULONG = 0;
         match (self.C_GetMechanismList)(slot_id, ptr::null(), &mut count) {
-            0 => {
+            CKR_OK => {
                 // see get_slot_list() for an explanation - it works the same way 
                 let mut list = Vec::<CK_MECHANISM_TYPE>::with_capacity(count);
                 let list_ptr = list.as_mut_ptr();
                 match (self.C_GetMechanismList)(slot_id, list_ptr, &count) {
-                    0 => {
+                    CKR_OK => {
                         unsafe {
                             list.set_len(count);
                         }
@@ -559,7 +664,7 @@ impl Ctx {
         self.initialized()?;
         let info: CK_MECHANISM_INFO = Default::default();
         match (self.C_GetMechanismInfo)(slot_id, mechanism_type, &info) {
-            0 => {
+            CKR_OK => {
                 Ok(info)
             },
             err => Err(Error::Pkcs11(err)),
@@ -567,26 +672,145 @@ impl Ctx {
     }
 
     pub fn init_token<'a, 'b>(&self, slot_id: CK_SLOT_ID, pin: Option<&'a str>, label: &'b str) -> Result<(), Error> {
+        self.initialized()?;
         let formatted_label = label_from_str(label).to_vec().as_ptr();
         match pin {
             Some(pin) => {
                 if let Ok(cpin) = CString::new(pin) {
                     let cpin_bytes = cpin.into_bytes();
                     match (self.C_InitToken)(slot_id, cpin_bytes.as_ptr(), cpin_bytes.len(), formatted_label) {
-                        0 => Ok(()),
+                        CKR_OK => Ok(()),
                         err => Err(Error::Pkcs11(err)),
                     }
                 } else {
-                    Err(Error::InvalidInput("PIN contains a 0 byte"))
+                    Err(Error::InvalidInput("PIN contains a nul byte"))
                 }
             },
             None => {
                 // CKF_PROTECTED_AUTHENTICATION_PATH requires a NULL pointer
                 match (self.C_InitToken)(slot_id, ptr::null(), 0, formatted_label) {
-                    0 => Ok(()),
+                    CKR_OK => Ok(()),
                     err => Err(Error::Pkcs11(err)),
                 }
             }
+        }
+    }
+
+    pub fn init_pin<'a>(&self, session: CK_SESSION_HANDLE, pin: Option<&'a str>) -> Result<(), Error> {
+        self.initialized()?;
+        match pin {
+            Some(pin) => {
+                if let Ok(cpin) = CString::new(pin) {
+                    let cpin_bytes = cpin.into_bytes();
+                    match (self.C_InitPIN)(session, cpin_bytes.as_ptr(), cpin_bytes.len()) {
+                        CKR_OK => Ok(()),
+                        err => Err(Error::Pkcs11(err)),
+                    }
+                } else {
+                    Err(Error::InvalidInput("PIN contains a nul byte"))
+                }
+            },
+            None => {
+                match (self.C_InitPIN)(session, ptr::null(), 0) {
+                    CKR_OK => Ok(()),
+                    err => Err(Error::Pkcs11(err)),
+                }
+            }
+        }
+    }
+
+    pub fn set_pin<'a, 'b>(&self, session: CK_SESSION_HANDLE, old_pin: Option<&'a str>, new_pin: Option<&'b str>) -> Result<(), Error> {
+        self.initialized()?;
+        if old_pin.is_none() && new_pin.is_none() {
+            match (self.C_SetPIN)(session, ptr::null(), 0, ptr::null(), 0) {
+                CKR_OK => Ok(()),
+                err => Err(Error::Pkcs11(err)),
+            }
+        } else if old_pin.is_some() && new_pin.is_some() {
+            let old_cpin_res = CString::new(old_pin.unwrap());
+            let new_cpin_res = CString::new(new_pin.unwrap());
+            if old_cpin_res.is_err() {
+                return Err(Error::InvalidInput("Old PIN contains a nul byte"));
+            }
+            if new_cpin_res.is_err() {
+                return Err(Error::InvalidInput("New PIN contains a nul byte"));
+            }
+            let old_cpin = old_cpin_res.unwrap().into_bytes();
+            let new_cpin = new_cpin_res.unwrap().into_bytes();
+            match (self.C_SetPIN)(session, old_cpin.as_ptr(), old_cpin.len(), new_cpin.as_ptr(), new_cpin.len()) {
+                CKR_OK => Ok(()),
+                err => Err(Error::Pkcs11(err)),
+            }
+        } else {
+            Err(Error::InvalidInput("both PINs must be either set or unset"))
+        }
+    }
+
+    pub fn open_session(&self, slot_id: CK_SLOT_ID, flags: CK_FLAGS, application: Option<CK_VOID_PTR>, notify: CK_NOTIFY) -> Result<CK_SESSION_HANDLE, Error> {
+        self.initialized()?;
+        let mut session: CK_SESSION_HANDLE = 0;
+        match (self.C_OpenSession)(slot_id, flags, application.unwrap_or(ptr::null()), notify, &mut session) {
+            CKR_OK => Ok(session),
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn close_session(&self, session: CK_SESSION_HANDLE) -> Result<(), Error> {
+        self.initialized()?;
+        match (self.C_CloseSession)(session) {
+            CKR_OK => Ok(()),
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn close_all_sessions(&self, slot_id: CK_SLOT_ID) -> Result<(), Error> {
+        self.initialized()?;
+        match (self.C_CloseAllSessions)(slot_id) {
+            CKR_OK => Ok(()),
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn get_session_info(&self, session: CK_SESSION_HANDLE) -> Result<CK_SESSION_INFO, Error> {
+        self.initialized()?;
+        let info: CK_SESSION_INFO = Default::default();
+        match (self.C_GetSessionInfo)(session, &info) {
+            CKR_OK => Ok(info),
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    //C_GetOperationState: C_GetOperationState,
+    //C_SetOperationState: C_SetOperationState,
+
+    pub fn login<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&'a str>) -> Result<(), Error> {
+        self.initialized()?;
+        match pin {
+            Some(pin) => {
+                if let Ok(cpin) = CString::new(pin) {
+                    let cpin_bytes = cpin.into_bytes();
+                    match (self.C_Login)(session, user_type, cpin_bytes.as_ptr(), cpin_bytes.len()) {
+                        CKR_OK => Ok(()),
+                        err => Err(Error::Pkcs11(err)),
+                    }
+                } else {
+                    Err(Error::InvalidInput("PIN contains a nul byte"))
+                }
+            },
+            None => {
+                match (self.C_Login)(session, user_type, ptr::null(), 0) {
+                    CKR_OK => Ok(()),
+                    err => Err(Error::Pkcs11(err)),
+                }
+            }
+        }
+    }
+
+    pub fn logout(&self, session: CK_SESSION_HANDLE) -> Result<(), Error> {
+        self.initialized()?;
+        match (self.C_Logout)(session) {
+            CKR_OK => Ok(()),
+            err => Err(Error::Pkcs11(err)),
         }
     }
 }
@@ -754,6 +978,131 @@ mod tests {
             let res = ctx.init_token(slot, pin, LABEL);
             assert!(res.is_ok(), "failed to call C_InitToken({}, {}, {}): {}", slot, pin.unwrap(), LABEL, res.unwrap_err());
             println!("Slot {} C_InitToken successful, PIN: {}", slot, pin.unwrap());
+        }
+    }
+
+    #[test]
+    fn ctx_init_pin() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+            ctx.login(sh, CKU_SO, pin).unwrap();
+            let res = ctx.init_pin(sh, pin);
+            assert!(res.is_ok(), "failed to call C_InitPIN({}, {}): {}", sh, pin.unwrap(), res.unwrap_err());
+            println!("InitPIN successful");
+        }
+    }
+
+    #[test]
+    fn ctx_set_pin() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        let new_pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+            ctx.login(sh, CKU_SO, pin).unwrap();
+            let res = ctx.set_pin(sh, pin, new_pin);
+            assert!(res.is_ok(), "failed to call C_SetPIN({}, {}, {}): {}", sh, pin.unwrap(), new_pin.unwrap(), res.unwrap_err());
+            println!("SetPIN successful");
+        }
+    }
+
+    #[test]
+    fn ctx_open_session() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let res = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None);
+            assert!(res.is_ok(), "failed to call C_OpenSession({}, CKF_SERIAL_SESSION, None, None): {}", slot, res.unwrap_err());
+            let sh = res.unwrap();
+            println!("Opened Session on Slot {}: CK_SESSION_HANDLE {}", slot, sh);
+        }
+    }
+
+    #[test]
+    fn ctx_close_session() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
+            let res = ctx.close_session(sh);
+            assert!(res.is_ok(), "failed to call C_CloseSession({}): {}", sh, res.unwrap_err());
+            println!("Closed Session with CK_SESSION_HANDLE {}", sh);
+        } 
+    }
+
+    #[test]
+    fn ctx_close_all_sessions() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
+            let res = ctx.close_all_sessions(slot);
+            assert!(res.is_ok(), "failed to call C_CloseAllSessions({}): {}", slot, res.unwrap_err());
+            println!("Closed All Sessions on Slot {}", slot);
+        } 
+    }
+
+    #[test]
+    fn ctx_get_session_info() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
+            let res = ctx.get_session_info(sh);
+            assert!(res.is_ok(), "failed to call C_GetSessionInfo({}): {}", sh, res.unwrap_err());
+            let info = res.unwrap();
+            println!("{:?}", info);
+        }
+    }
+
+    #[test]
+    fn ctx_login() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+            let res = ctx.login(sh, CKU_SO, pin);
+            assert!(res.is_ok(), "failed to call C_Login({}, CKU_SO, {}): {}", sh, pin.unwrap(), res.unwrap_err());
+            println!("Login successful");
+        }
+    }
+
+    #[test]
+    fn ctx_logout() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            ctx.init_token(slot, pin, LABEL).unwrap();
+            let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+            ctx.login(sh, CKU_SO, pin).unwrap();
+            let res = ctx.logout(sh);
+            assert!(res.is_ok(), "failed to call C_Logout({}): {}", sh, res.unwrap_err());
+            println!("Logout successful");
         }
     }
 }
