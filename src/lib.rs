@@ -3,6 +3,7 @@ extern crate libloading;
 //extern crate libc;
 
 use std::ptr;
+use std::ffi::CString;
 //use libc::c_uchar;
 
 pub type CK_BYTE = u8;
@@ -309,6 +310,7 @@ pub type CK_FUNCTION_LIST_PTR_PTR = *const CK_FUNCTION_LIST_PTR;
 pub enum Error {
     Io(std::io::Error),
     Module(&'static str),
+    InvalidInput(&'static str),
     Pkcs11(CK_RV),
 }
 
@@ -323,9 +325,29 @@ impl std::fmt::Display for Error {
         match *self {
             Error::Io(ref err) => write!(f, "IO error: {}", err),
             Error::Module(ref err) => write!(f, "PKCS#11 Module error: {}", err),
+            Error::InvalidInput(ref err) => write!(f, "Invalid Input for PKCS#11: {}", err),
             Error::Pkcs11(ref err) => write!(f, "PKCS#11 error: 0x{:x}", err),
         }
     }
+}
+
+fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {
+    // initialize a fixed-size array with whitespace characters
+    let mut lab: [CK_UTF8CHAR; 32] = [32; 32];
+    let mut i = 0;
+    for c in label.chars() {
+        if i + c.len_utf8() <= 32 {
+            let mut buf = [0; 4];
+            let bytes = c.encode_utf8(&mut buf).as_bytes();
+            for b in bytes {
+                lab[i] = b.clone();
+                i += 1;
+            }
+        } else {
+            break
+        }
+    }
+    lab
 }
 
 #[derive(Debug)]
@@ -543,6 +565,30 @@ impl Ctx {
             err => Err(Error::Pkcs11(err)),
         }
     }
+
+    pub fn init_token<'a, 'b>(&self, slot_id: CK_SLOT_ID, pin: Option<&'a str>, label: &'b str) -> Result<(), Error> {
+        let formatted_label = label_from_str(label).to_vec().as_ptr();
+        match pin {
+            Some(pin) => {
+                if let Ok(cpin) = CString::new(pin) {
+                    let cpin_bytes = cpin.into_bytes();
+                    match (self.C_InitToken)(slot_id, cpin_bytes.as_ptr(), cpin_bytes.len(), formatted_label) {
+                        0 => Ok(()),
+                        err => Err(Error::Pkcs11(err)),
+                    }
+                } else {
+                    Err(Error::InvalidInput("PIN contains a 0 byte"))
+                }
+            },
+            None => {
+                // CKF_PROTECTED_AUTHENTICATION_PATH requires a NULL pointer
+                match (self.C_InitToken)(slot_id, ptr::null(), 0, formatted_label) {
+                    0 => Ok(()),
+                    err => Err(Error::Pkcs11(err)),
+                }
+            }
+        }
+    }
 }
 
 impl Drop for Ctx {
@@ -563,6 +609,35 @@ mod tests {
 
     const PKCS11_MODULE_FILENAME: &'static str = "/usr/local/lib/softhsm/libsofthsm2.so";
 
+    #[test]
+    fn test_label_from_str() {
+        let s30 = "Löwe 老虎 Léopar虎d虎aaa";
+        let s32 = "Löwe 老虎 Léopar虎d虎aaaö";
+        let s33 = "Löwe 老虎 Léopar虎d虎aaa虎";
+        let s34 = "Löwe 老虎 Léopar虎d虎aaab虎";
+        let l30 = label_from_str(s30);
+        let l32 = label_from_str(s32);
+        let l33 = label_from_str(s33);
+        let l34 = label_from_str(s34);
+        println!("Label l30: {:?}", l30);
+        println!("Label l32: {:?}", l32);
+        println!("Label l33: {:?}", l33);
+        println!("Label l34: {:?}", l34);
+        // now the assertions:
+        // - l30 must have the last 2 as byte 32
+        // - l32 must not have any byte 32 at the end
+        // - l33 must have the last 2 as byte 32 because the trailing '虎' is three bytes
+        // - l34 must have hte last 1 as byte 32
+        assert_ne!(l30[29], 32);
+        assert_eq!(l30[30], 32);
+        assert_eq!(l30[31], 32);
+        assert_ne!(l32[31], 32);
+        assert_ne!(l33[29], 32);
+        assert_eq!(l33[30], 32);
+        assert_eq!(l33[31], 32);
+        assert_ne!(l34[30], 32);
+        assert_eq!(l34[31], 32);
+    }
     #[test]
     fn ctx_new() {
         let res = Ctx::new(PKCS11_MODULE_FILENAME);
@@ -666,6 +741,19 @@ mod tests {
                 let info = res.unwrap();
                 println!("Slot {} Mechanism {}: {:?}", slot, mechanism, info);
             }
+        }
+    }
+
+    #[test]
+    fn ctx_init_token() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        for slot in slots {
+            let res = ctx.init_token(slot, pin, LABEL);
+            assert!(res.is_ok(), "failed to call C_InitToken({}, {}, {}): {}", slot, pin.unwrap(), LABEL, res.unwrap_err());
+            println!("Slot {} C_InitToken successful, PIN: {}", slot, pin.unwrap());
         }
     }
 }
