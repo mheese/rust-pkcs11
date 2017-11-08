@@ -379,7 +379,7 @@ pub type C_CloseSession = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
 pub type C_CloseAllSessions = extern "C" fn(CK_SLOT_ID) -> CK_RV;
 pub type C_GetSessionInfo = extern "C" fn(CK_SESSION_HANDLE, CK_SESSION_INFO_PTR) -> CK_RV;
 pub type C_GetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG_PTR) -> CK_RV;
-pub type C_SetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE);
+pub type C_SetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE) -> CK_RV;
 pub type C_Login = extern "C" fn(CK_SESSION_HANDLE, CK_USER_TYPE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
 pub type C_Logout = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
 
@@ -780,8 +780,34 @@ impl Ctx {
         }
     }
 
-    //C_GetOperationState: C_GetOperationState,
-    //C_SetOperationState: C_SetOperationState,
+    pub fn get_operation_state(&self, session: CK_SESSION_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
+        self.initialized()?;
+        let mut state_length: CK_ULONG = 0;
+        match (self.C_GetOperationState)(session, ptr::null(), &mut state_length) {
+            CKR_OK => {
+                let mut state: Vec<CK_BYTE> = Vec::with_capacity(state_length);
+                let state_ptr = state.as_mut_ptr();
+                match (self.C_GetOperationState)(session, state_ptr, &state_length) {
+                    CKR_OK => {
+                        unsafe {
+                            state.set_len(state_length);
+                        }
+                        Ok(state)
+                    },
+                    err => Err(Error::Pkcs11(err)),
+                }
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
+
+    pub fn set_operation_state(&self, session: CK_SESSION_HANDLE, operation_state: Vec<CK_BYTE>, encryption_key: Option<CK_OBJECT_HANDLE>, authentication_key: Option<CK_OBJECT_HANDLE>) -> Result<(), Error> {
+        self.initialized()?;
+        match (self.C_SetOperationState)(session, operation_state.as_ptr(), operation_state.len(), encryption_key.unwrap_or(0), authentication_key.unwrap_or(0)) {
+            CKR_OK => Ok(()),
+            err => Err(Error::Pkcs11(err)), 
+        }
+    }
 
     pub fn login<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&'a str>) -> Result<(), Error> {
         self.initialized()?;
