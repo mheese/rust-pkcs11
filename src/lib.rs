@@ -254,7 +254,7 @@ pub type CK_MECHANISM_TYPE = CK_ULONG;
 pub type CK_MECHANISM_TYPE_PTR = *const CK_MECHANISM_TYPE;
 
 #[allow(non_camel_case_types, non_snake_case)]
-#[derive(Debug)]
+#[derive(Debug,Default,Clone)]
 #[repr(C)]
 pub struct CK_MECHANISM_INFO {
     pub ulMinKeySize: CK_ULONG,
@@ -560,6 +560,17 @@ impl Ctx {
             err => Err(Error::Pkcs11(err)),
         }
     }
+
+    pub fn get_mechanism_info(&self, slot_id: CK_SLOT_ID, mechanism_type: CK_MECHANISM_TYPE) -> Result<CK_MECHANISM_INFO, Error> {
+        self.initialized()?;
+        let info: CK_MECHANISM_INFO = Default::default();
+        match (self.C_GetMechanismInfo)(slot_id, mechanism_type, &info) {
+            0 => {
+                Ok(info)
+            },
+            err => Err(Error::Pkcs11(err)),
+        }
+    }
 }
 
 impl Drop for Ctx {
@@ -643,7 +654,7 @@ mod tests {
             let res = ctx.get_slot_info(slot);
             assert!(res.is_ok(), "failed to call C_GetSlotInfo({}): {}", slot, res.unwrap_err());
             let info = res.unwrap();
-            println!("{:?}", info);
+            println!("Slot {} {:?}", slot, info);
         }
     }
 
@@ -655,7 +666,7 @@ mod tests {
             let res = ctx.get_token_info(slot);
             assert!(res.is_ok(), "failed to call C_GetTokenInfo({}): {}", slot, res.unwrap_err());
             let info = res.unwrap();
-            println!("{:?}", info);
+            println!("Slot {} {:?}", slot, info);
         }
     }
 
@@ -667,7 +678,22 @@ mod tests {
             let res = ctx.get_mechanism_list(slot);
             assert!(res.is_ok(), "failed to call C_GetMechanismList({}): {}", slot, res.unwrap_err());
             let mechs = res.unwrap();
-            println!("Mechanisms: {:?}", mechs);
+            println!("Slot {} Mechanisms: {:?}", slot, mechs);
+        }
+    }
+
+    #[test]
+    fn ctx_get_mechanism_infos() {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        for slot in slots {
+            let mechanisms = ctx.get_mechanism_list(slot).unwrap();
+            for mechanism in mechanisms {
+                let res = ctx.get_mechanism_info(slot, mechanism);
+                assert!(res.is_ok(), "failed to call C_GetMechanismInfo({}, {}): {}", slot, mechanism, res.unwrap_err());
+                let info = res.unwrap();
+                println!("Slot {} Mechanism {}: {:?}", slot, mechanism, info);
+            }
         }
     }
 }
