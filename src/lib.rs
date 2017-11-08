@@ -1,31 +1,27 @@
+#![allow(non_camel_case_types, non_snake_case)]
 extern crate libloading;
 //extern crate libc;
 
 use std::ptr;
 //use libc::c_uchar;
 
-#[allow(non_camel_case_types)]
 pub type CK_BYTE = u8;
-#[allow(non_camel_case_types)]
+pub type CK_BYTE_PTR = *const CK_BYTE;
 pub type CK_CHAR = CK_BYTE;
-#[allow(non_camel_case_types)]
 pub type CK_UTF8CHAR = CK_BYTE;
-#[allow(non_camel_case_types)]
+pub type CK_UTF8CHAR_PTR = *const CK_UTF8CHAR;
 pub type CK_BBOOL = CK_BYTE;
-#[allow(non_camel_case_types)]
 pub type CK_ULONG = usize;
-#[allow(non_camel_case_types)]
 pub type CK_ULONG_PTR = *const CK_ULONG;
-#[allow(non_camel_case_types)]
 pub type CK_LONG = isize;
-#[allow(non_camel_case_types)]
 pub type CK_FLAGS = CK_ULONG;
-#[allow(non_camel_case_types)]
 pub type CK_RV = CK_ULONG;
-#[allow(non_camel_case_types)]
 pub type CK_SLOT_ID = CK_ULONG;
-#[allow(non_camel_case_types)]
 pub type CK_SLOT_ID_PTR = *const CK_SLOT_ID;
+pub type CK_SESSION_HANDLE = CK_ULONG;
+pub type CK_SESSION_HANDLE_PTR = *const CK_SESSION_HANDLE;
+pub type CK_NOTIFICATION = CK_ULONG;
+pub type CK_USER_TYPE = CK_ULONG;
 
 trait CkFrom<T> {
     fn from(T) -> Self;
@@ -49,7 +45,6 @@ impl CkFrom<CK_BBOOL> for bool {
     }
 }
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
 #[repr(u8)]
 pub enum CK_VOID {
@@ -59,14 +54,10 @@ pub enum CK_VOID {
     __Variant2,
 }
 
-// TODO: in rust we could protect more with *const in a lot of cases
-#[allow(non_camel_case_types, non_snake_case)]
-pub type CK_VOID_PTR = *const CK_VOID;
 
-#[allow(non_camel_case_types, non_snake_case)]
+pub type CK_VOID_PTR = *const CK_VOID;
 pub type CK_VOID_PTR_PTR = *const CK_VOID_PTR;
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_VERSION {
@@ -83,16 +74,13 @@ impl CK_VERSION {
     }
 }
 
-#[allow(non_camel_case_types)]
 pub type CK_CREATEMUTEX = Option<extern "C" fn(CK_VOID_PTR_PTR) -> CK_RV>;
-#[allow(non_camel_case_types)]
 pub type CK_DESTROYMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
-#[allow(non_camel_case_types)]
 pub type CK_LOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
-#[allow(non_camel_case_types)]
 pub type CK_UNLOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
 
-#[allow(non_camel_case_types, non_snake_case)]
+pub type CK_NOTIFY = Option<extern "C" fn(CK_SESSION_HANDLE, CK_NOTIFICATION, CK_VOID_PTR) -> CK_RV>;
+
 #[derive(Debug)]
 #[repr(C)]
 pub struct CK_C_INITIALIZE_ARGS {
@@ -120,10 +108,8 @@ impl CK_C_INITIALIZE_ARGS {
 pub const CKF_LIBRARY_CANT_CREATE_OS_THREADS: CK_FLAGS = 0x00000001;
 pub const CKF_OS_LOCKING_OK: CK_FLAGS                  = 0x00000002;
 
-#[allow(non_camel_case_types)]
 pub type CK_C_INITIALIZE_ARGS_PTR = *const CK_C_INITIALIZE_ARGS;
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
 #[repr(C)]
 pub struct CK_INFO {
@@ -132,7 +118,6 @@ pub struct CK_INFO {
   pub cryptokiVersion: CK_VERSION,              /* Cryptoki interface ver */
   pub manufacturerID: [CK_UTF8CHAR; 32],        /* blank padded */
   pub flags: CK_FLAGS,                          /* must be zero */
-
   pub libraryDescription: [CK_UTF8CHAR; 32],    /* blank padded */
   pub libraryVersion: CK_VERSION,               /* version of library */
 }
@@ -149,10 +134,8 @@ impl CK_INFO {
     }
 }
 
-#[allow(non_camel_case_types)]
 pub type CK_INFO_PTR = *const CK_INFO;
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[repr(C)]
 pub struct CK_SLOT_INFO {
   /* slotDescription and manufacturerID have been changed from
@@ -190,10 +173,8 @@ impl std::fmt::Debug for CK_SLOT_INFO {
     }
 }
 
-#[allow(non_camel_case_types)]
 pub type CK_SLOT_INFO_PTR = *const CK_SLOT_INFO;
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
 #[repr(C)]
 pub struct CK_TOKEN_INFO {
@@ -204,7 +185,6 @@ pub struct CK_TOKEN_INFO {
   pub model: [CK_UTF8CHAR; 16],           /* blank padded */
   pub serialNumber: [CK_CHAR; 16],        /* blank padded */
   pub flags: CK_FLAGS,                    /* see below */
-
   pub ulMaxSessionCount: CK_ULONG,     /* max open sessions */
   pub ulSessionCount: CK_ULONG,        /* sess. now open */
   pub ulMaxRwSessionCount: CK_ULONG,   /* max R/W sessions */
@@ -245,15 +225,11 @@ impl CK_TOKEN_INFO {
     }
 }
 
-#[allow(non_camel_case_types)]
 pub type CK_TOKEN_INFO_PTR = *const CK_TOKEN_INFO;
 
-#[allow(non_camel_case_types)]
 pub type CK_MECHANISM_TYPE = CK_ULONG;
-#[allow(non_camel_case_types)]
 pub type CK_MECHANISM_TYPE_PTR = *const CK_MECHANISM_TYPE;
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug,Default,Clone)]
 #[repr(C)]
 pub struct CK_MECHANISM_INFO {
@@ -262,29 +238,45 @@ pub struct CK_MECHANISM_INFO {
     pub flags: CK_FLAGS,
 }
 
-#[allow(non_camel_case_types)]
 pub type CK_MECHANISM_INFO_PTR = *const CK_MECHANISM_INFO;
 
-#[allow(non_camel_case_types)]
-pub type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_Finalize = extern "C" fn(CK_VOID_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetInfo = extern "C" fn(CK_INFO_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetFunctionList = extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetSlotList = extern "C" fn(CK_BBOOL, CK_SLOT_ID_PTR, CK_ULONG_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetSlotInfo = extern "C" fn(CK_SLOT_ID, CK_SLOT_INFO_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetTokenInfo = extern "C" fn(CK_SLOT_ID, CK_TOKEN_INFO_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetMechanismList = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE_PTR, CK_ULONG_PTR) -> CK_RV;
-#[allow(non_camel_case_types)]
-pub type C_GetMechanismInfo = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE, CK_MECHANISM_INFO_PTR) -> CK_RV;
+pub type CK_STATE = CK_ULONG;
 
-#[allow(non_camel_case_types, non_snake_case)]
+#[derive(Debug,Default,Clone)]
+#[repr(C)]
+pub struct CK_SESSION_INFO {
+  pub slotID: CK_SLOT_ID,
+  pub state: CK_STATE,
+  pub flags: CK_FLAGS,
+  pub ulDeviceError: CK_ULONG,  /* device-dependent error code */
+}
+
+pub type CK_SESSION_INFO_PTR = *const CK_SESSION_INFO;
+
+pub type CK_OBJECT_HANDLE = CK_ULONG;
+
+
+pub type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
+pub type C_Finalize = extern "C" fn(CK_VOID_PTR) -> CK_RV;
+pub type C_GetInfo = extern "C" fn(CK_INFO_PTR) -> CK_RV;
+pub type C_GetFunctionList = extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
+pub type C_GetSlotList = extern "C" fn(CK_BBOOL, CK_SLOT_ID_PTR, CK_ULONG_PTR) -> CK_RV;
+pub type C_GetSlotInfo = extern "C" fn(CK_SLOT_ID, CK_SLOT_INFO_PTR) -> CK_RV;
+pub type C_GetTokenInfo = extern "C" fn(CK_SLOT_ID, CK_TOKEN_INFO_PTR) -> CK_RV;
+pub type C_GetMechanismList = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE_PTR, CK_ULONG_PTR) -> CK_RV;
+pub type C_GetMechanismInfo = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE, CK_MECHANISM_INFO_PTR) -> CK_RV;
+pub type C_InitToken = extern "C" fn(CK_SLOT_ID, CK_UTF8CHAR_PTR, CK_ULONG, CK_UTF8CHAR_PTR) -> CK_RV;
+pub type C_InitPIN = extern "C" fn(CK_SESSION_HANDLE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
+pub type C_SetPIN = extern "C" fn(CK_SESSION_HANDLE, CK_UTF8CHAR_PTR, CK_ULONG, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
+pub type C_OpenSession = extern "C" fn(CK_SLOT_ID, CK_FLAGS, CK_VOID_PTR, CK_NOTIFY, CK_SESSION_HANDLE_PTR) -> CK_RV;
+pub type C_CloseSession = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
+pub type C_CloseAllSessions = extern "C" fn(CK_SLOT_ID) -> CK_RV;
+pub type C_GetSessionInfo = extern "C" fn(CK_SESSION_HANDLE, CK_SESSION_INFO_PTR) -> CK_RV;
+pub type C_GetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG_PTR) -> CK_RV;
+pub type C_SetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE);
+pub type C_Login = extern "C" fn(CK_SESSION_HANDLE, CK_USER_TYPE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
+pub type C_Logout = extern "C" fn() -> CK_RV;
+
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_FUNCTION_LIST {
@@ -298,11 +290,19 @@ pub struct CK_FUNCTION_LIST {
     pub C_GetTokenInfo: Option<C_GetTokenInfo>,
     pub C_GetMechanismList: Option<C_GetMechanismList>,
     pub C_GetMechanismInfo: Option<C_GetMechanismInfo>,
+    pub C_InitToken: Option<C_InitToken>,
+    pub C_InitPIN: Option<C_InitPIN>,
+    pub C_SetPIN: Option<C_SetPIN>,
+    pub C_OpenSession: Option<C_OpenSession>,
+    pub C_CloseSession: Option<C_CloseSession>,
+    pub C_CloseAllSessions: Option<C_CloseAllSessions>,
+    pub C_GetSessionInfo: Option<C_GetSessionInfo>,
+    pub C_GetOperationState: Option<C_GetOperationState>,
+    pub C_SetOperationState: Option<C_SetOperationState>,
+    pub C_Login: Option<C_Login>,
+    pub C_Logout: Option<C_Logout>,
 }
-
-#[allow(non_camel_case_types)]
 pub type CK_FUNCTION_LIST_PTR = *const CK_FUNCTION_LIST;
-#[allow(non_camel_case_types)]
 pub type CK_FUNCTION_LIST_PTR_PTR = *const CK_FUNCTION_LIST_PTR;
 
 #[derive(Debug)]
@@ -328,7 +328,6 @@ impl std::fmt::Display for Error {
     }
 }
 
-#[allow(non_camel_case_types, non_snake_case)]
 #[derive(Debug)]
 pub struct Ctx {
   lib: libloading::Library,
@@ -342,6 +341,17 @@ pub struct Ctx {
   C_GetTokenInfo: C_GetTokenInfo,
   C_GetMechanismList: C_GetMechanismList,
   C_GetMechanismInfo: C_GetMechanismInfo,
+  C_InitToken: C_InitToken,
+  C_InitPIN: C_InitPIN,
+  C_SetPIN: C_SetPIN,
+  C_OpenSession: C_OpenSession,
+  C_CloseSession: C_CloseSession,
+  C_CloseAllSessions: C_CloseAllSessions,
+  C_GetSessionInfo: C_GetSessionInfo,
+  C_GetOperationState: C_GetOperationState,
+  C_SetOperationState: C_SetOperationState,
+  C_Login: C_Login,
+  C_Logout: C_Logout,
 }
 
 impl Ctx {
@@ -357,67 +367,29 @@ impl Ctx {
                 }
             }
 
-            // TODO: The following part is a bit awkward: we want to ensure that every pointer was indeed set,
-            // so instead of matching in the function calls, we do it now, and add them explicitly to the Ctx
-            // There is an interesting nightly feature for '?' support on Option (std::option::NoneError).
-
-            let c_initialize = match (*list).C_Initialize {
-                Some(func) => func,
-                None => return Err(Error::Module("C_Initialize function not found")),
-            };
-
-            let c_finalize = match (*list).C_Finalize {
-                Some(func) => func,
-                None => return Err(Error::Module("C_Finalize function not found")),
-            };
-
-            let c_getinfo = match (*list).C_GetInfo {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetInfo function not found")),
-            };
-
-            let c_getfunctionlist = match (*list).C_GetFunctionList {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetFunctionList function not found")),
-            };
-
-            let c_getslotlist = match (*list).C_GetSlotList {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetSlotList function not found")),
-            };
-
-            let c_getslotinfo = match (*list).C_GetSlotInfo {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetSlotInfo function not found")),
-            };
-
-            let c_gettokeninfo = match (*list).C_GetTokenInfo {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetTokenInfo function not found")),
-            };
-
-            let c_getmechanismlist = match (*list).C_GetMechanismList {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetMechanismList function not found")),
-            };
-
-            let c_getmechanisminfo = match (*list).C_GetMechanismInfo {
-                Some(func) => func,
-                None => return Err(Error::Module("C_GetMechanismInfo function not found")),
-            };
-
             Ok(Ctx {
                 lib: lib,
                 _is_initialized: false,
-                C_Initialize: c_initialize,
-                C_Finalize: c_finalize,
-                C_GetInfo: c_getinfo,
-                C_GetFunctionList: c_getfunctionlist,
-                C_GetSlotList: c_getslotlist,
-                C_GetSlotInfo: c_getslotinfo,
-                C_GetTokenInfo: c_gettokeninfo,
-                C_GetMechanismList: c_getmechanismlist,
-                C_GetMechanismInfo: c_getmechanisminfo,
+                C_Initialize: (*list).C_Initialize.ok_or(Error::Module("C_Initialize function not found"))?,
+                C_Finalize: (*list).C_Finalize.ok_or(Error::Module("C_Finalize function not found"))?,
+                C_GetInfo: (*list).C_GetInfo.ok_or(Error::Module("C_GetInfo function not found"))?,
+                C_GetFunctionList: (*list).C_GetFunctionList.ok_or(Error::Module("C_GetFunctionList function not found"))?,
+                C_GetSlotList: (*list).C_GetSlotList.ok_or(Error::Module("C_GetSlotList function not found"))?,
+                C_GetSlotInfo: (*list).C_GetSlotInfo.ok_or(Error::Module("C_GetSlotInfo function not found"))?,
+                C_GetTokenInfo: (*list).C_GetTokenInfo.ok_or(Error::Module("C_GetTokenInfo function not found"))?,
+                C_GetMechanismList: (*list).C_GetMechanismList.ok_or(Error::Module("C_GetMechanismList function not found"))?,
+                C_GetMechanismInfo: (*list).C_GetMechanismInfo.ok_or(Error::Module("C_GetMechanismInfo function not found"))?,
+                C_InitToken: (*list).C_InitToken.ok_or(Error::Module("C_InitToken function not found"))?,
+                C_InitPIN: (*list).C_InitPIN.ok_or(Error::Module("C_InitPIN function not found"))?,
+                C_SetPIN: (*list).C_SetPIN.ok_or(Error::Module("C_SetPIN function not found"))?,
+                C_OpenSession: (*list).C_OpenSession.ok_or(Error::Module("C_OpenSession function not found"))?,
+                C_CloseSession: (*list).C_CloseSession.ok_or(Error::Module("C_CloseSession function not found"))?,
+                C_CloseAllSessions: (*list).C_CloseAllSessions.ok_or(Error::Module("C_CloseAllSessions function not found"))?,
+                C_GetSessionInfo: (*list).C_GetSessionInfo.ok_or(Error::Module("C_GetSessionInfo function not found"))?,
+                C_GetOperationState: (*list).C_GetOperationState.ok_or(Error::Module("C_GetOperationState function not found"))?,
+                C_SetOperationState: (*list).C_SetOperationState.ok_or(Error::Module("C_SetOperationState function not found"))?,
+                C_Login: (*list).C_Login.ok_or(Error::Module("C_Login function not found"))?,
+                C_Logout: (*list).C_Logout.ok_or(Error::Module("C_Logout function not found"))?,
             })
         }
     }
