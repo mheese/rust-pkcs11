@@ -23,7 +23,9 @@ repository = "https://github.com/mheese/rust-pkcs11"
 keywords = ["pkcs11", "cryptoki"]
 categories = ["external-ffi-bindings", "cryptography", "hardware-support"]
 license = "Apache-2.0"
-license-file = "LICENSE"
+exclude = [
+    "pkcs11-docs/**",
+]
 
 [dependencies]
 libloading = "0.4.2"
