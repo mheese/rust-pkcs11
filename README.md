@@ -19,7 +19,7 @@ This is a library which brings support for PKCS#11 to Rust. It is aiming at havi
 
 ## Testing
 
-Testing is currently been done with [SoftHSM2](https://github.com/opendnssec/SoftHSMv2 "SoftHSM2 Repo"). A trillion thanks to the people at OpenDNSSEC for writing SoftHSM. This makes it possible to develop applications that need to support PKCS#11. I would have no idea what to do without it. (Suggestions are always welcome.)
+Testing is currently done with [SoftHSM2](https://github.com/opendnssec/SoftHSMv2 "SoftHSM2 Repo"). A trillion thanks to the people at OpenDNSSEC for writing SoftHSM. This makes it possible to develop applications that need to support PKCS#11. I would have no idea what to do without it. (Suggestions are always welcome.)
 
 ### Status
 
@@ -38,6 +38,6 @@ Here is a list of the implementation status and plans on what to do next:
 - [ ] Implementing Legacy PKCS#11 functions
 - [ ] Reorganize code of low-level API (too bloated, which we all know is what PKCS#11 is like)
 - [ ] Design and implement high-level API
-- [ ] Publish on crates.io
+- [x] Publish on crates.io (wow, that was easy)
 - [ ] Write and Generate Documentation for Rust docs
 - [ ] Better Testing (lots of repetitive code + we need a testing framework and different SoftHSM versions for different platforms)

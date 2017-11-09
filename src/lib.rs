@@ -1059,6 +1059,51 @@ impl Ctx {
             err => Err(Error::Pkcs11(err)),
         }
     }
+
+    pub fn create_object(&self, session: CK_SESSION_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn copy_object(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn destroy_object(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE) -> Result<(), Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn get_object_size(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE) -> Result<CK_ULONG, Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn get_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<Vec<CK_ATTRIBUTE>, Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn set_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn find_objects_init(&self, session: CK_SESSION_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn find_objects(&self, session: CK_SESSION_HANDLE, max_object_count: CK_ULONG) -> Result<Vec<CK_OBJECT_HANDLE>, Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
+
+    pub fn find_objects_final(&self, session: CK_SESSION_HANDLE) -> Result<(), Error> {
+        self.initialized()?;
+        unimplemented!()
+    }
 }
 
 impl Drop for Ctx {
@@ -1350,5 +1395,50 @@ mod tests {
             assert!(res.is_ok(), "failed to call C_Logout({}): {}", sh, res.unwrap_err());
             println!("Logout successful");
         }
+    }
+
+    #[test]
+    fn ctx_create_object() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_copy_object() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_destroy_object() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_get_object_size() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_get_attribute_value() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_set_attribute_value() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_find_objects_init() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_find_objects() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn ctx_find_objects_final() {
+        unimplemented!()
     }
 }
