@@ -24,7 +24,7 @@ Testing is currently done with [SoftHSM2](https://github.com/opendnssec/SoftHSMv
 ### Status
 
 Here is a list of the implementation status and plans on what to do next:
-- [x] Dynamic loading of PKCS#11 module (thanks to [libloading](https://github.com/nagisa/rust_libloading "libloading Repo")
+- [x] Dynamic loading of PKCS#11 module (thanks to [libloading](https://github.com/nagisa/rust_libloading "libloading Repo"))
 - [x] Initializing and Dropping PKCS#11 context
 - [x] Implementing Token and PIN Management functions
 - [x] Implementing Session Management functions
