@@ -1410,9 +1410,28 @@ mod tests {
         }
     }
 
+    /// This will create and initialize a context, set a SO and USER PIN, and login as the USER.
+    /// This is the starting point for all tests that are acting on the token.
+    /// If you look at the tests here in a "serial" manner, if all the tests are working up until
+    /// here, this will always succeed.
+    fn fixture_token() -> Result<(Ctx, CK_SESSION_HANDLE), Error> {
+        let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
+        let slots = ctx.get_slot_list(false).unwrap();
+        let pin = Some("1234");
+        const LABEL: &str = "rust-unit-test";
+        let slot = *slots.first().ok_or(Error::Module("no slot available"))?;
+        ctx.init_token(slot, pin, LABEL)?;
+        let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)?;
+        ctx.login(sh, CKU_SO, pin)?;
+        ctx.init_pin(sh, pin)?;
+        ctx.logout(sh)?;
+        ctx.login(sh, CKU_USER, pin)?;
+        Ok((ctx, sh))
+    }
+
     #[test]
     fn ctx_create_object() {
-        unimplemented!()
+        let (ctx, sh) = fixture_token().unwrap();
     }
 
     #[test]
