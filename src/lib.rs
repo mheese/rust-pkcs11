@@ -1212,7 +1212,8 @@ mod tests {
     fn ctx_get_slot_infos() {
         let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let slots = ctx.get_slot_list(false).unwrap();
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             let res = ctx.get_slot_info(slot);
             assert!(res.is_ok(), "failed to call C_GetSlotInfo({}): {}", slot, res.unwrap_err());
             let info = res.unwrap();
@@ -1224,7 +1225,8 @@ mod tests {
     fn ctx_get_token_infos() {
         let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let slots = ctx.get_slot_list(false).unwrap();
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             let res = ctx.get_token_info(slot);
             assert!(res.is_ok(), "failed to call C_GetTokenInfo({}): {}", slot, res.unwrap_err());
             let info = res.unwrap();
@@ -1236,7 +1238,8 @@ mod tests {
     fn ctx_get_mechanism_lists() {
         let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let slots = ctx.get_slot_list(false).unwrap();
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             let res = ctx.get_mechanism_list(slot);
             assert!(res.is_ok(), "failed to call C_GetMechanismList({}): {}", slot, res.unwrap_err());
             let mechs = res.unwrap();
@@ -1248,7 +1251,8 @@ mod tests {
     fn ctx_get_mechanism_infos() {
         let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
         let slots = ctx.get_slot_list(false).unwrap();
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             let mechanisms = ctx.get_mechanism_list(slot).unwrap();
             for mechanism in mechanisms {
                 let res = ctx.get_mechanism_info(slot, mechanism);
@@ -1265,7 +1269,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             let res = ctx.init_token(slot, pin, LABEL);
             assert!(res.is_ok(), "failed to call C_InitToken({}, {}, {}): {}", slot, pin.unwrap(), LABEL, res.unwrap_err());
             println!("Slot {} C_InitToken successful, PIN: {}", slot, pin.unwrap());
@@ -1278,7 +1283,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
             ctx.login(sh, CKU_SO, pin).unwrap();
@@ -1295,7 +1301,8 @@ mod tests {
         let pin = Some("1234");
         let new_pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
             ctx.login(sh, CKU_SO, pin).unwrap();
@@ -1311,7 +1318,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let res = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None);
             assert!(res.is_ok(), "failed to call C_OpenSession({}, CKF_SERIAL_SESSION, None, None): {}", slot, res.unwrap_err());
@@ -1326,7 +1334,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
             let res = ctx.close_session(sh);
@@ -1341,7 +1350,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
             let res = ctx.close_all_sessions(slot);
@@ -1356,7 +1366,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
             let res = ctx.get_session_info(sh);
@@ -1372,7 +1383,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
             let res = ctx.login(sh, CKU_SO, pin);
@@ -1387,7 +1399,8 @@ mod tests {
         let slots = ctx.get_slot_list(false).unwrap();
         let pin = Some("1234");
         const LABEL: &str = "rust-unit-test";
-        for slot in slots {
+        for slot in slots[..1].into_iter() {
+            let slot = *slot;
             ctx.init_token(slot, pin, LABEL).unwrap();
             let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
             ctx.login(sh, CKU_SO, pin).unwrap();
