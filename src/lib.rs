@@ -368,13 +368,183 @@ pub struct CK_SESSION_INFO {
   pub ulDeviceError: CK_ULONG,  /* device-dependent error code */
 }
 
+pub type CK_SESSION_INFO_PTR = *const CK_SESSION_INFO;
+
 pub const CKF_RW_SESSION: CK_FLAGS = 0x00000002; /* session is r/w */
 pub const CKF_SERIAL_SESSION: CK_FLAGS = 0x00000004; /* no parallel    */
 
-pub type CK_SESSION_INFO_PTR = *const CK_SESSION_INFO;
-
 pub type CK_OBJECT_HANDLE = CK_ULONG;
+pub type CK_OBJECT_HANDLE_PTR = *const CK_OBJECT_HANDLE;
 
+/* CK_ATTRIBUTE_TYPE is a value that identifies an attribute
+ * type
+ */
+pub type CK_ATTRIBUTE_TYPE = CK_ULONG;
+
+/* The CKF_ARRAY_ATTRIBUTE flag identifies an attribute which
+ * consists of an array of values.
+ */
+pub const CKF_ARRAY_ATTRIBUTE: CK_FLAGS = 0x40000000;
+
+/* The following OTP-related defines relate to the CKA_OTP_FORMAT attribute */
+pub const CK_OTP_FORMAT_DECIMAL         : CK_ULONG = 0;
+pub const CK_OTP_FORMAT_HEXADECIMAL     : CK_ULONG = 1;
+pub const CK_OTP_FORMAT_ALPHANUMERIC    : CK_ULONG = 2;
+pub const CK_OTP_FORMAT_BINARY          : CK_ULONG = 3;
+
+/* The following OTP-related defines relate to the CKA_OTP_..._REQUIREMENT
+ * attributes
+ */
+pub const CK_OTP_PARAM_IGNORED          : CK_ULONG = 0;
+pub const CK_OTP_PARAM_OPTIONAL         : CK_ULONG = 1;
+pub const CK_OTP_PARAM_MANDATORY        : CK_ULONG = 2;
+
+/* The following attribute types are defined: */
+pub const CKA_CLASS            : CK_ATTRIBUTE_TYPE = 0x00000000;
+pub const CKA_TOKEN            : CK_ATTRIBUTE_TYPE = 0x00000001;
+pub const CKA_PRIVATE          : CK_ATTRIBUTE_TYPE = 0x00000002;
+pub const CKA_LABEL            : CK_ATTRIBUTE_TYPE = 0x00000003;
+pub const CKA_APPLICATION      : CK_ATTRIBUTE_TYPE = 0x00000010;
+pub const CKA_VALUE            : CK_ATTRIBUTE_TYPE = 0x00000011;
+pub const CKA_OBJECT_ID        : CK_ATTRIBUTE_TYPE = 0x00000012;
+pub const CKA_CERTIFICATE_TYPE : CK_ATTRIBUTE_TYPE = 0x00000080;
+pub const CKA_ISSUER           : CK_ATTRIBUTE_TYPE = 0x00000081;
+pub const CKA_SERIAL_NUMBER    : CK_ATTRIBUTE_TYPE = 0x00000082;
+pub const CKA_AC_ISSUER        : CK_ATTRIBUTE_TYPE = 0x00000083;
+pub const CKA_OWNER            : CK_ATTRIBUTE_TYPE = 0x00000084;
+pub const CKA_ATTR_TYPES       : CK_ATTRIBUTE_TYPE = 0x00000085;
+pub const CKA_TRUSTED          : CK_ATTRIBUTE_TYPE = 0x00000086;
+pub const CKA_CERTIFICATE_CATEGORY        : CK_ATTRIBUTE_TYPE = 0x00000087;
+pub const CKA_JAVA_MIDP_SECURITY_DOMAIN   : CK_ATTRIBUTE_TYPE = 0x00000088;
+pub const CKA_URL                         : CK_ATTRIBUTE_TYPE = 0x00000089;
+pub const CKA_HASH_OF_SUBJECT_PUBLIC_KEY  : CK_ATTRIBUTE_TYPE = 0x0000008A;
+pub const CKA_HASH_OF_ISSUER_PUBLIC_KEY   : CK_ATTRIBUTE_TYPE = 0x0000008B;
+pub const CKA_NAME_HASH_ALGORITHM         : CK_ATTRIBUTE_TYPE = 0x0000008C;
+pub const CKA_CHECK_VALUE                 : CK_ATTRIBUTE_TYPE = 0x00000090;
+
+pub const CKA_KEY_TYPE           : CK_ATTRIBUTE_TYPE = 0x00000100;
+pub const CKA_SUBJECT            : CK_ATTRIBUTE_TYPE = 0x00000101;
+pub const CKA_ID                 : CK_ATTRIBUTE_TYPE = 0x00000102;
+pub const CKA_SENSITIVE          : CK_ATTRIBUTE_TYPE = 0x00000103;
+pub const CKA_ENCRYPT            : CK_ATTRIBUTE_TYPE = 0x00000104;
+pub const CKA_DECRYPT            : CK_ATTRIBUTE_TYPE = 0x00000105;
+pub const CKA_WRAP               : CK_ATTRIBUTE_TYPE = 0x00000106;
+pub const CKA_UNWRAP             : CK_ATTRIBUTE_TYPE = 0x00000107;
+pub const CKA_SIGN               : CK_ATTRIBUTE_TYPE = 0x00000108;
+pub const CKA_SIGN_RECOVER       : CK_ATTRIBUTE_TYPE = 0x00000109;
+pub const CKA_VERIFY             : CK_ATTRIBUTE_TYPE = 0x0000010A;
+pub const CKA_VERIFY_RECOVER     : CK_ATTRIBUTE_TYPE = 0x0000010B;
+pub const CKA_DERIVE             : CK_ATTRIBUTE_TYPE = 0x0000010C;
+pub const CKA_START_DATE         : CK_ATTRIBUTE_TYPE = 0x00000110;
+pub const CKA_END_DATE           : CK_ATTRIBUTE_TYPE = 0x00000111;
+pub const CKA_MODULUS            : CK_ATTRIBUTE_TYPE = 0x00000120;
+pub const CKA_MODULUS_BITS       : CK_ATTRIBUTE_TYPE = 0x00000121;
+pub const CKA_PUBLIC_EXPONENT    : CK_ATTRIBUTE_TYPE = 0x00000122;
+pub const CKA_PRIVATE_EXPONENT   : CK_ATTRIBUTE_TYPE = 0x00000123;
+pub const CKA_PRIME_1            : CK_ATTRIBUTE_TYPE = 0x00000124;
+pub const CKA_PRIME_2            : CK_ATTRIBUTE_TYPE = 0x00000125;
+pub const CKA_EXPONENT_1         : CK_ATTRIBUTE_TYPE = 0x00000126;
+pub const CKA_EXPONENT_2         : CK_ATTRIBUTE_TYPE = 0x00000127;
+pub const CKA_COEFFICIENT        : CK_ATTRIBUTE_TYPE = 0x00000128;
+pub const CKA_PUBLIC_KEY_INFO    : CK_ATTRIBUTE_TYPE = 0x00000129;
+pub const CKA_PRIME              : CK_ATTRIBUTE_TYPE = 0x00000130;
+pub const CKA_SUBPRIME           : CK_ATTRIBUTE_TYPE = 0x00000131;
+pub const CKA_BASE               : CK_ATTRIBUTE_TYPE = 0x00000132;
+
+pub const CKA_PRIME_BITS         : CK_ATTRIBUTE_TYPE = 0x00000133;
+pub const CKA_SUBPRIME_BITS      : CK_ATTRIBUTE_TYPE = 0x00000134;
+pub const CKA_SUB_PRIME_BITS     : CK_ATTRIBUTE_TYPE = CKA_SUBPRIME_BITS;
+
+pub const CKA_VALUE_BITS         : CK_ATTRIBUTE_TYPE = 0x00000160;
+pub const CKA_VALUE_LEN          : CK_ATTRIBUTE_TYPE = 0x00000161;
+pub const CKA_EXTRACTABLE        : CK_ATTRIBUTE_TYPE = 0x00000162;
+pub const CKA_LOCAL              : CK_ATTRIBUTE_TYPE = 0x00000163;
+pub const CKA_NEVER_EXTRACTABLE  : CK_ATTRIBUTE_TYPE = 0x00000164;
+pub const CKA_ALWAYS_SENSITIVE   : CK_ATTRIBUTE_TYPE = 0x00000165;
+pub const CKA_KEY_GEN_MECHANISM  : CK_ATTRIBUTE_TYPE = 0x00000166;
+
+pub const CKA_MODIFIABLE         : CK_ATTRIBUTE_TYPE = 0x00000170;
+pub const CKA_COPYABLE           : CK_ATTRIBUTE_TYPE = 0x00000171;
+
+pub const CKA_DESTROYABLE          : CK_ATTRIBUTE_TYPE = 0x00000172;
+
+pub const CKA_ECDSA_PARAMS      : CK_ATTRIBUTE_TYPE = 0x00000180; /* Deprecated */
+pub const CKA_EC_PARAMS         : CK_ATTRIBUTE_TYPE = 0x00000180;
+
+pub const CKA_EC_POINT          : CK_ATTRIBUTE_TYPE = 0x00000181;
+
+pub const CKA_SECONDARY_AUTH    : CK_ATTRIBUTE_TYPE = 0x00000200; /* Deprecated */
+pub const CKA_AUTH_PIN_FLAGS    : CK_ATTRIBUTE_TYPE = 0x00000201; /* Deprecated */
+
+pub const CKA_ALWAYS_AUTHENTICATE : CK_ATTRIBUTE_TYPE = 0x00000202;
+
+pub const CKA_WRAP_WITH_TRUSTED   : CK_ATTRIBUTE_TYPE = 0x00000210;
+pub const CKA_WRAP_TEMPLATE       : CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE|0x00000211);
+pub const CKA_UNWRAP_TEMPLATE     : CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE|0x00000212);
+pub const CKA_DERIVE_TEMPLATE     : CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE|0x00000213);
+
+pub const CKA_OTP_FORMAT                : CK_ATTRIBUTE_TYPE = 0x00000220;
+pub const CKA_OTP_LENGTH                : CK_ATTRIBUTE_TYPE = 0x00000221;
+pub const CKA_OTP_TIME_INTERVAL         : CK_ATTRIBUTE_TYPE = 0x00000222;
+pub const CKA_OTP_USER_FRIENDLY_MODE    : CK_ATTRIBUTE_TYPE = 0x00000223;
+pub const CKA_OTP_CHALLENGE_REQUIREMENT : CK_ATTRIBUTE_TYPE = 0x00000224;
+pub const CKA_OTP_TIME_REQUIREMENT      : CK_ATTRIBUTE_TYPE = 0x00000225;
+pub const CKA_OTP_COUNTER_REQUIREMENT   : CK_ATTRIBUTE_TYPE = 0x00000226;
+pub const CKA_OTP_PIN_REQUIREMENT       : CK_ATTRIBUTE_TYPE = 0x00000227;
+pub const CKA_OTP_COUNTER               : CK_ATTRIBUTE_TYPE = 0x0000022E;
+pub const CKA_OTP_TIME                  : CK_ATTRIBUTE_TYPE = 0x0000022F;
+pub const CKA_OTP_USER_IDENTIFIER       : CK_ATTRIBUTE_TYPE = 0x0000022A;
+pub const CKA_OTP_SERVICE_IDENTIFIER    : CK_ATTRIBUTE_TYPE = 0x0000022B;
+pub const CKA_OTP_SERVICE_LOGO          : CK_ATTRIBUTE_TYPE = 0x0000022C;
+pub const CKA_OTP_SERVICE_LOGO_TYPE     : CK_ATTRIBUTE_TYPE = 0x0000022D;
+
+pub const CKA_GOSTR3410_PARAMS          : CK_ATTRIBUTE_TYPE = 0x00000250;
+pub const CKA_GOSTR3411_PARAMS          : CK_ATTRIBUTE_TYPE = 0x00000251;
+pub const CKA_GOST28147_PARAMS          : CK_ATTRIBUTE_TYPE = 0x00000252;
+
+pub const CKA_HW_FEATURE_TYPE           : CK_ATTRIBUTE_TYPE = 0x00000300;
+pub const CKA_RESET_ON_INIT             : CK_ATTRIBUTE_TYPE = 0x00000301;
+pub const CKA_HAS_RESET                 : CK_ATTRIBUTE_TYPE = 0x00000302;
+
+pub const CKA_PIXEL_X                     : CK_ATTRIBUTE_TYPE = 0x00000400;
+pub const CKA_PIXEL_Y                     : CK_ATTRIBUTE_TYPE = 0x00000401;
+pub const CKA_RESOLUTION                  : CK_ATTRIBUTE_TYPE = 0x00000402;
+pub const CKA_CHAR_ROWS                   : CK_ATTRIBUTE_TYPE = 0x00000403;
+pub const CKA_CHAR_COLUMNS                : CK_ATTRIBUTE_TYPE = 0x00000404;
+pub const CKA_COLOR                       : CK_ATTRIBUTE_TYPE = 0x00000405;
+pub const CKA_BITS_PER_PIXEL              : CK_ATTRIBUTE_TYPE = 0x00000406;
+pub const CKA_CHAR_SETS                   : CK_ATTRIBUTE_TYPE = 0x00000480;
+pub const CKA_ENCODING_METHODS            : CK_ATTRIBUTE_TYPE = 0x00000481;
+pub const CKA_MIME_TYPES                  : CK_ATTRIBUTE_TYPE = 0x00000482;
+pub const CKA_MECHANISM_TYPE              : CK_ATTRIBUTE_TYPE = 0x00000500;
+pub const CKA_REQUIRED_CMS_ATTRIBUTES     : CK_ATTRIBUTE_TYPE = 0x00000501;
+pub const CKA_DEFAULT_CMS_ATTRIBUTES      : CK_ATTRIBUTE_TYPE = 0x00000502;
+pub const CKA_SUPPORTED_CMS_ATTRIBUTES    : CK_ATTRIBUTE_TYPE = 0x00000503;
+pub const CKA_ALLOWED_MECHANISMS          : CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE|0x00000600);
+
+pub const CKA_VENDOR_DEFINED              : CK_ATTRIBUTE_TYPE = 0x80000000;
+
+/* CK_ATTRIBUTE is a structure that includes the type, length
+ * and value of an attribute
+ */
+#[derive(Debug,Clone)]
+#[repr(C)]
+pub struct CK_ATTRIBUTE {
+  ulType: CK_ATTRIBUTE_TYPE,
+  pValue: CK_VOID_PTR,
+  ulValueLen: CK_ULONG,  /* in bytes */
+}
+
+pub type CK_ATTRIBUTE_PTR = *const CK_ATTRIBUTE;
+
+/* CK_DATE is a structure that defines a date */
+#[derive(Debug,Default,Clone)]
+#[repr(C)]
+pub struct CK_DATE{
+  year: [CK_CHAR; 4],   /* the year ("1900" - "9999") */
+  month: [CK_CHAR; 2],  /* the month ("01" - "12") */
+  day: [CK_CHAR; 2],    /* the day   ("01" - "31") */
+}
 
 pub type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
 pub type C_Finalize = extern "C" fn(CK_VOID_PTR) -> CK_RV;
@@ -396,6 +566,15 @@ pub type C_GetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_
 pub type C_SetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE) -> CK_RV;
 pub type C_Login = extern "C" fn(CK_SESSION_HANDLE, CK_USER_TYPE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
 pub type C_Logout = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
+pub type C_CreateObject = extern "C" fn(CK_SESSION_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG, CK_OBJECT_HANDLE_PTR) -> CK_RV;
+pub type C_CopyObject = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG, CK_OBJECT_HANDLE_PTR) -> CK_RV;
+pub type C_DestroyObject = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_GetObjectSize = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ULONG_PTR) -> CK_RV;
+pub type C_GetAttributeValue = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG) -> CK_RV;
+pub type C_SetAttributeValue = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG) -> CK_RV;
+pub type C_FindObjectsInit = extern "C" fn(CK_SESSION_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG) -> CK_RV;
+pub type C_FindObjects = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE_PTR, CK_ULONG, CK_ULONG_PTR) -> CK_RV;
+pub type C_FindObjectsFinal = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
 
 #[derive(Debug,Clone)]
 #[repr(C)]
@@ -421,6 +600,15 @@ pub struct CK_FUNCTION_LIST {
     pub C_SetOperationState: Option<C_SetOperationState>,
     pub C_Login: Option<C_Login>,
     pub C_Logout: Option<C_Logout>,
+    pub C_CreateObject: Option<C_CreateObject>,
+    pub C_CopyObject: Option<C_CopyObject>,
+    pub C_DestroyObject: Option<C_DestroyObject>,
+    pub C_GetObjectSize: Option<C_GetObjectSize>,
+    pub C_GetAttributeValue: Option<C_GetAttributeValue>,
+    pub C_SetAttributeValue: Option<C_SetAttributeValue>,
+    pub C_FindObjectsInit: Option<C_FindObjectsInit>,
+    pub C_FindObjects: Option<C_FindObjects>,
+    pub C_FindObjectsFinal: Option<C_FindObjectsFinal>,
 }
 pub type CK_FUNCTION_LIST_PTR = *const CK_FUNCTION_LIST;
 pub type CK_FUNCTION_LIST_PTR_PTR = *const CK_FUNCTION_LIST_PTR;
@@ -493,6 +681,15 @@ pub struct Ctx {
   C_SetOperationState: C_SetOperationState,
   C_Login: C_Login,
   C_Logout: C_Logout,
+  C_CreateObject: C_CreateObject,
+  C_CopyObject: C_CopyObject,
+  C_DestroyObject: C_DestroyObject,
+  C_GetObjectSize: C_GetObjectSize,
+  C_GetAttributeValue: C_GetAttributeValue,
+  C_SetAttributeValue: C_SetAttributeValue,
+  C_FindObjectsInit: C_FindObjectsInit,
+  C_FindObjects: C_FindObjects,
+  C_FindObjectsFinal: C_FindObjectsFinal,
 }
 
 impl Ctx {
@@ -531,6 +728,15 @@ impl Ctx {
                 C_SetOperationState: (*list).C_SetOperationState.ok_or(Error::Module("C_SetOperationState function not found"))?,
                 C_Login: (*list).C_Login.ok_or(Error::Module("C_Login function not found"))?,
                 C_Logout: (*list).C_Logout.ok_or(Error::Module("C_Logout function not found"))?,
+                C_CreateObject: (*list).C_CreateObject.ok_or(Error::Module("C_CreateObject function not found"))?,
+                C_CopyObject: (*list).C_CopyObject.ok_or(Error::Module("C_CopyObject function not found"))?,
+                C_DestroyObject: (*list).C_DestroyObject.ok_or(Error::Module("C_DestroyObject function not found"))?,
+                C_GetObjectSize: (*list).C_GetObjectSize.ok_or(Error::Module("C_GetObjectSize function not found"))?,
+                C_GetAttributeValue: (*list).C_GetAttributeValue.ok_or(Error::Module("C_GetAttributeValue function not found"))?,
+                C_SetAttributeValue: (*list).C_SetAttributeValue.ok_or(Error::Module("C_SetAttributeValue function not found"))?,
+                C_FindObjectsInit: (*list).C_FindObjectsInit.ok_or(Error::Module("C_FindObjectsInit function not found"))?,
+                C_FindObjects: (*list).C_FindObjects.ok_or(Error::Module("C_FindObjects function not found"))?,
+                C_FindObjectsFinal: (*list).C_FindObjectsFinal.ok_or(Error::Module("C_FindObjectsFinal function not found"))?,
             })
         }
     }
