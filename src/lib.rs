@@ -145,7 +145,7 @@ trait CkFrom<T> {
 }
 
 impl CkFrom<bool> for CK_BBOOL {
-    fn from(b: bool) -> CK_BBOOL {
+    fn from(b: bool) -> Self {
         match b {
             true => 1,
             false => 0,
@@ -527,15 +527,105 @@ pub const CKA_VENDOR_DEFINED              : CK_ATTRIBUTE_TYPE = 0x80000000;
 /* CK_ATTRIBUTE is a structure that includes the type, length
  * and value of an attribute
  */
-#[derive(Debug,Clone)]
+#[derive(Clone)]
 #[repr(C)]
 pub struct CK_ATTRIBUTE {
-  ulType: CK_ATTRIBUTE_TYPE,
+  attrType: CK_ATTRIBUTE_TYPE,
   pValue: CK_VOID_PTR,
   ulValueLen: CK_ULONG,  /* in bytes */
 }
 
 pub type CK_ATTRIBUTE_PTR = *const CK_ATTRIBUTE;
+
+impl Default for CK_ATTRIBUTE {
+    fn default() -> Self {
+        Self {
+            attrType: CKA_VENDOR_DEFINED,
+            pValue: ptr::null(),
+            ulValueLen: 0,
+        }
+    }
+}
+
+impl std::fmt::Debug for CK_ATTRIBUTE {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let attrType = format!("0x{:x}", self.attrType);
+        let data = unsafe { std::slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen) };
+        fmt.debug_struct("CK_ATTRIBUTE")
+            .field("attrType", &attrType)
+            .field("pValue", &data)
+            .field("ulValueLen", &self.ulValueLen)
+            .finish()
+    }
+}
+
+impl CK_ATTRIBUTE {
+    fn new(attrType: CK_ATTRIBUTE_TYPE) -> Self {
+        Self {
+            attrType: attrType,
+            pValue: ptr::null(),
+            ulValueLen: 0,
+        }
+    }
+
+    fn is_boolean(&self) -> Result<(), Error> {
+        // TODO: check all attributes here 
+        Ok(())
+    }
+
+    fn set_bool(mut self, b: &CK_BBOOL) -> Result<Self, Error> {
+        self.is_boolean()?;
+        self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
+        self.ulValueLen = 1;
+        Ok(self)
+    }
+
+    fn get_bool(&self) -> Result<bool, Error> {
+        self.is_boolean()?;
+        if self.ulValueLen > 1 {
+            return Err(Error::InvalidInput("CK_ATTRIBUTE data invalid for conversion to bool"))
+        }
+        unsafe {
+             let data = std::slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen);
+             Ok(CkFrom::from(data[0]))
+        }
+    }
+}
+
+//trait CkAttributeFrom<T> {
+//    fn from_ck(T, CK_ATTRIBUTE_TYPE) -> Self;
+//}
+//
+//trait CkAttributeInto<T> {
+//    fn into_attribute(self, CK_ATTRIBUTE_TYPE) -> CK_ATTRIBUTE;
+//}
+//
+//impl<T> CkAttributeInto<T> for T where CK_ATTRIBUTE: CkAttributeFrom<T> {
+//    fn into_attribute(self, attrType: CK_ATTRIBUTE_TYPE) -> CK_ATTRIBUTE {
+//        CkAttributeFrom::from_ck(self, attrType)
+//    }
+//}
+//
+//impl CkAttributeFrom<bool> for CK_ATTRIBUTE {
+//    fn from_ck(b: bool, attrType: CK_ATTRIBUTE_TYPE) -> CK_ATTRIBUTE {
+//        let val: CK_BBOOL = if b { 1 } else { 0 };
+//        let ret = Self {
+//            attrType: attrType,
+//            pValue: &val as *const u8 as *const CK_VOID,
+//            ulValueLen: 1,
+//        };
+//        println!("{:?}", ret);
+//        ret
+//    }
+//}
+
+fn test() {
+    let b: CK_BBOOL = 1;
+    let blah = CK_ATTRIBUTE::new(CKA_OTP_USER_IDENTIFIER).set_bool(&b).unwrap();
+    println!("{:?}", blah);
+    let a: bool = blah.get_bool().unwrap();
+    println!("{}", a);
+}
 
 /* CK_DATE is a structure that defines a date */
 #[derive(Debug,Default,Clone)]
@@ -1410,6 +1500,11 @@ mod tests {
         }
     }
 
+    #[test]
+    fn attr_bool() {
+        test();
+    }
+
     /// This will create and initialize a context, set a SO and USER PIN, and login as the USER.
     /// This is the starting point for all tests that are acting on the token.
     /// If you look at the tests here in a "serial" manner, if all the tests are working up until
@@ -1429,10 +1524,16 @@ mod tests {
         Ok((ctx, sh))
     }
 
-    #[test]
-    fn ctx_create_object() {
-        let (ctx, sh) = fixture_token().unwrap();
-    }
+    //#[test]
+    //fn ctx_create_object() {
+    //    let (ctx, sh) = fixture_token().unwrap();
+    //    let b = (true).into_ck(CKA_CLASS);
+    //    let template = vec![
+    //        CK_ATTRIBUTE { ulType: CKA_CLASS, },
+    //    ];
+    //    let res = ctx.create_object(sh, template);
+    //    assert!(res.is_ok(), "failed to call C_CreateObject({}, {:?}): {}", sh, template, res.is_err());
+    //}
 
     #[test]
     fn ctx_copy_object() {
