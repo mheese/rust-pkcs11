@@ -14,12 +14,15 @@
 
 #![allow(non_camel_case_types, non_snake_case)]
 extern crate libloading;
-//extern crate libc;
+extern crate num_traits;
+extern crate num_bigint;
 
 use std::mem;
 use std::slice;
 use std::ptr;
 use std::ffi::{CString};
+use num_bigint::BigUint;
+use num_traits::Num;
 //use libc::c_uchar;
 
 pub type CK_BYTE = u8;
@@ -602,6 +605,17 @@ impl CK_ATTRIBUTE {
 
     pub fn get_ck_long(&self) -> CK_LONG {
         unsafe { mem::transmute_copy(&*self.pValue) }
+    }
+
+    pub fn set_biginteger(mut self, val: &Vec<u8>) -> Self {
+        self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
+        self.ulValueLen = val.len();
+        self
+    }
+
+    pub fn get_biginteger(&self) -> BigUint {
+        let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen) };
+        BigUint::from_bytes_le(slice)
     }
 
     pub fn set_bytes(mut self, val: &[CK_BYTE]) -> Self {
@@ -1604,6 +1618,19 @@ mod tests {
         assert_eq!(val.day, ret.day, "attr.get_date() should have been {:?}", val);
         assert_eq!(val.month, ret.month, "attr.get_date() should have been {:?}", val);
         assert_eq!(val.year, ret.year, "attr.get_date() should have been {:?}", val);
+    }
+
+    #[test]
+    fn attr_biginteger() {
+        let num_str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
+        let val = BigUint::from_str_radix(num_str, 10).unwrap();
+        let slice = val.to_bytes_le();
+        let attr = CK_ATTRIBUTE::new(CKA_LABEL).set_biginteger(&slice);
+        println!("{:?}", attr);
+        let ret = attr.get_biginteger();
+        println!("{:?}", ret);
+        assert_eq!(ret, val, "attr.get_biginteger() should have been {:?}", val);
+        assert_eq!(ret.to_str_radix(10), num_str, "attr.get_biginteger() should have been {:?}", num_str);
     }
 
     /// This will create and initialize a context, set a SO and USER PIN, and login as the USER.
