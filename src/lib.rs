@@ -16,8 +16,10 @@
 extern crate libloading;
 //extern crate libc;
 
+use std::mem;
+use std::slice;
 use std::ptr;
-use std::ffi::CString;
+use std::ffi::{CString};
 //use libc::c_uchar;
 
 pub type CK_BYTE = u8;
@@ -37,6 +39,9 @@ pub type CK_SESSION_HANDLE = CK_ULONG;
 pub type CK_SESSION_HANDLE_PTR = *const CK_SESSION_HANDLE;
 pub type CK_NOTIFICATION = CK_ULONG;
 pub type CK_USER_TYPE = CK_ULONG;
+
+pub const CK_TRUE: CK_BBOOL = 1;
+pub const CK_FALSE: CK_BBOOL = 0;
 
 pub const CKU_SO: CK_USER_TYPE = 0;
 /* Normal user */
@@ -530,9 +535,9 @@ pub const CKA_VENDOR_DEFINED              : CK_ATTRIBUTE_TYPE = 0x80000000;
 #[derive(Clone)]
 #[repr(C)]
 pub struct CK_ATTRIBUTE {
-  attrType: CK_ATTRIBUTE_TYPE,
-  pValue: CK_VOID_PTR,
-  ulValueLen: CK_ULONG,  /* in bytes */
+  pub attrType: CK_ATTRIBUTE_TYPE,
+  pub pValue: CK_VOID_PTR,
+  pub ulValueLen: CK_ULONG,  /* in bytes */
 }
 
 pub type CK_ATTRIBUTE_PTR = *const CK_ATTRIBUTE;
@@ -550,7 +555,7 @@ impl Default for CK_ATTRIBUTE {
 impl std::fmt::Debug for CK_ATTRIBUTE {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         let attrType = format!("0x{:x}", self.attrType);
-        let data = unsafe { std::slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen) };
+        let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen) };
         fmt.debug_struct("CK_ATTRIBUTE")
             .field("attrType", &attrType)
             .field("pValue", &data)
@@ -560,7 +565,7 @@ impl std::fmt::Debug for CK_ATTRIBUTE {
 }
 
 impl CK_ATTRIBUTE {
-    fn new(attrType: CK_ATTRIBUTE_TYPE) -> Self {
+    pub fn new(attrType: CK_ATTRIBUTE_TYPE) -> Self {
         Self {
             attrType: attrType,
             pValue: ptr::null(),
@@ -568,27 +573,67 @@ impl CK_ATTRIBUTE {
         }
     }
 
-    fn is_boolean(&self) -> Result<(), Error> {
-        // TODO: check all attributes here 
-        Ok(())
-    }
-
-    fn set_bool(mut self, b: &CK_BBOOL) -> Result<Self, Error> {
-        self.is_boolean()?;
+    pub fn set_bool(mut self, b: &CK_BBOOL) -> Self {
         self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
         self.ulValueLen = 1;
-        Ok(self)
+        self
     }
 
-    fn get_bool(&self) -> Result<bool, Error> {
-        self.is_boolean()?;
-        if self.ulValueLen > 1 {
-            return Err(Error::InvalidInput("CK_ATTRIBUTE data invalid for conversion to bool"))
-        }
-        unsafe {
-             let data = std::slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen);
-             Ok(CkFrom::from(data[0]))
-        }
+    pub fn get_bool(&self) -> bool {
+        let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
+        CkFrom::from(data)
+    }
+
+    pub fn set_ck_ulong(mut self, val: &CK_ULONG) -> Self {
+        self.pValue = val as *const _ as CK_VOID_PTR;
+        self.ulValueLen = std::mem::size_of::<CK_ULONG>();
+        self
+    }
+
+    pub fn get_ck_ulong(&self) -> CK_ULONG {
+        unsafe { mem::transmute_copy(&*self.pValue) }
+    }
+
+    pub fn set_ck_long(mut self, val: &CK_LONG) -> Self {
+        self.pValue = val as *const _ as CK_VOID_PTR;
+        self.ulValueLen = std::mem::size_of::<CK_LONG>();
+        self
+    }
+
+    pub fn get_ck_long(&self) -> CK_LONG {
+        unsafe { mem::transmute_copy(&*self.pValue) }
+    }
+
+    pub fn set_bytes(mut self, val: &[CK_BYTE]) -> Self {
+        self.pValue = val.as_ptr() as CK_VOID_PTR;
+        self.ulValueLen = val.len();
+        self
+    }
+
+    pub fn get_bytes(&self) -> Vec<CK_BYTE> {
+        let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen) };
+        Vec::from(slice).clone()
+    }
+
+    pub fn set_string(mut self, str: &String) -> Self {
+        self.pValue = str.as_ptr() as CK_VOID_PTR;
+        self.ulValueLen = str.len();
+        self
+    }
+
+    pub fn get_string(&self) -> String {
+        let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen) };
+        String::from_utf8_lossy(slice).into_owned().clone()
+    }
+
+    pub fn set_date(mut self, date: &CK_DATE) -> Self {
+        self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
+        self.ulValueLen = mem::size_of::<CK_DATE>();
+        self
+    }
+
+    pub fn get_date(&self) -> CK_DATE {
+        unsafe { mem::transmute_copy(&*self.pValue) }
     }
 }
 
@@ -619,21 +664,13 @@ impl CK_ATTRIBUTE {
 //    }
 //}
 
-fn test() {
-    let b: CK_BBOOL = 1;
-    let blah = CK_ATTRIBUTE::new(CKA_OTP_USER_IDENTIFIER).set_bool(&b).unwrap();
-    println!("{:?}", blah);
-    let a: bool = blah.get_bool().unwrap();
-    println!("{}", a);
-}
-
 /* CK_DATE is a structure that defines a date */
 #[derive(Debug,Default,Clone)]
 #[repr(C)]
 pub struct CK_DATE{
-  year: [CK_CHAR; 4],   /* the year ("1900" - "9999") */
-  month: [CK_CHAR; 2],  /* the month ("01" - "12") */
-  day: [CK_CHAR; 2],    /* the day   ("01" - "31") */
+  pub year: [CK_CHAR; 4],   /* the year ("1900" - "9999") */
+  pub month: [CK_CHAR; 2],  /* the month ("01" - "12") */
+  pub day: [CK_CHAR; 2],    /* the day   ("01" - "31") */
 }
 
 pub type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
@@ -786,7 +823,7 @@ impl Ctx {
     pub fn new(filename: &'static str) -> Result<Ctx, Error> {
         unsafe {
             let lib = libloading::Library::new(filename)?;
-            let mut list: CK_FUNCTION_LIST_PTR = std::mem::uninitialized();
+            let mut list: CK_FUNCTION_LIST_PTR = mem::uninitialized();
             {
                 let func: libloading::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
                 match func(&mut list) {
@@ -891,7 +928,7 @@ impl Ctx {
     }
 
     pub fn get_function_list(&self) -> Result<CK_FUNCTION_LIST, Error> {
-        let list: CK_FUNCTION_LIST_PTR = unsafe { std::mem::uninitialized() };
+        let list: CK_FUNCTION_LIST_PTR = unsafe { mem::uninitialized() };
         match (self.C_GetFunctionList)(&list) {
             CKR_OK => {
                 unsafe { Ok((*list).clone()) }
@@ -1502,7 +1539,71 @@ mod tests {
 
     #[test]
     fn attr_bool() {
-        test();
+        let b: CK_BBOOL = CK_FALSE;
+        let attr = CK_ATTRIBUTE::new(CKA_OTP_USER_IDENTIFIER).set_bool(&b);
+        println!("{:?}", attr);
+        let ret: bool = attr.get_bool();
+        println!("{}", ret);
+        assert_eq!(false, ret, "attr.get_bool() should have been false");
+
+        let b: CK_BBOOL = CK_TRUE;
+        let attr = CK_ATTRIBUTE::new(CKA_OTP_USER_IDENTIFIER).set_bool(&b);
+        println!("{:?}", attr);
+        let ret: bool = attr.get_bool();
+        println!("{}", ret);
+        assert_eq!(true, ret, "attr.get_bool() should have been true");
+    }
+
+    #[test]
+    fn attr_ck_ulong() {
+        let val: CK_ULONG = 42;
+        let attr = CK_ATTRIBUTE::new(CKA_RESOLUTION).set_ck_ulong(&val);
+        println!("{:?}", attr);
+        let ret: CK_ULONG = attr.get_ck_ulong();
+        println!("{}", ret);
+        assert_eq!(val, ret, "attr.get_ck_ulong() shouls have been {}", val);
+    }
+
+    #[test]
+    fn attr_ck_long() {
+        let val: CK_LONG = -42;
+        let attr = CK_ATTRIBUTE::new(CKA_RESOLUTION).set_ck_long(&val);
+        println!("{:?}", attr);
+        let ret: CK_LONG = attr.get_ck_long();
+        println!("{}", ret);
+        assert_eq!(val, ret, "attr.get_ck_long() shouls have been {}", val);
+    }
+
+    #[test]
+    fn attr_bytes() {
+        let val = vec![0,1,2,3,3,4,5];
+        let attr = CK_ATTRIBUTE::new(CKA_VALUE).set_bytes(val.as_slice());
+        println!("{:?}", attr);
+        let ret: Vec<CK_BYTE> = attr.get_bytes();
+        println!("{:?}", ret);
+        assert_eq!(val, ret.as_slice(), "attr.get_bytes() shouls have been {:?}", val);
+    }
+
+    #[test]
+    fn attr_string() {
+        let val = String::from("Löwe 老虎");
+        let attr = CK_ATTRIBUTE::new(CKA_LABEL).set_string(&val);
+        println!("{:?}", attr);
+        let ret = attr.get_string();
+        println!("{:?}", ret);
+        assert_eq!(val, ret, "attr.get_string() shouls have been {}", val);
+    }
+
+    #[test]
+    fn attr_date() {
+        let val: CK_DATE = Default::default();
+        let attr = CK_ATTRIBUTE::new(CKA_LABEL).set_date(&val);
+        println!("{:?}", attr);
+        let ret = attr.get_date();
+        println!("{:?}", ret);
+        assert_eq!(val.day, ret.day, "attr.get_date() should have been {:?}", val);
+        assert_eq!(val.month, ret.month, "attr.get_date() should have been {:?}", val);
+        assert_eq!(val.year, ret.year, "attr.get_date() should have been {:?}", val);
     }
 
     /// This will create and initialize a context, set a SO and USER PIN, and login as the USER.
