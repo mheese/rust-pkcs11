@@ -557,27 +557,149 @@ fn ctx_create_object() {
         CKA_VALUE       bytes     SGVsbG8gV29ybGQh
         */
     let (ctx, sh) = fixture_token().unwrap();
-    //let b = (true).into_ck(CKA_CLASS);
-    //let template = vec![
-    //    CK_ATTRIBUTE { ulType: CKA_CLASS, },
-    //];
-    //let res = ctx.create_object(sh, template);
-    //assert!(res.is_ok(), "failed C_CreateObject({}, {:?}): {}", sh, template, res.is_err());
+
+    let class = CKO_DATA;
+    let token: CK_BBOOL = CK_TRUE;
+    let private: CK_BBOOL = CK_TRUE;
+    let modifiable: CK_BBOOL = CK_TRUE;
+    let copyable: CK_BBOOL = CK_TRUE;
+    let label = String::from("rust-unit-test");
+    let value = b"Hello World!";
+
+    let template = vec![
+        CK_ATTRIBUTE::new(CKA_CLASS).set_ck_ulong(&class),
+        CK_ATTRIBUTE::new(CKA_TOKEN).set_bool(&token),
+        CK_ATTRIBUTE::new(CKA_PRIVATE).set_bool(&private),
+        CK_ATTRIBUTE::new(CKA_MODIFIABLE).set_bool(&modifiable),
+        CK_ATTRIBUTE::new(CKA_COPYABLE).set_bool(&copyable),
+        CK_ATTRIBUTE::new(CKA_LABEL).set_string(&label),
+        CK_ATTRIBUTE::new(CKA_VALUE).set_bytes(&value[..]),
+    ];
+    println!("Template: {:?}", template);
+    let res = ctx.create_object(sh, &template);
+    assert!(
+        res.is_ok(),
+        "failed to call C_CreateObject({}, {:?}): {}",
+        sh,
+        &template,
+        res.is_err()
+    );
+    let oh = res.unwrap();
+    println!("Object Handle: {}", oh);
 }
 
 #[test]
 fn ctx_copy_object() {
-    unimplemented!()
+    let (ctx, sh) = fixture_token().unwrap();
+
+    let class = CKO_DATA;
+    let token: CK_BBOOL = CK_TRUE;
+    let private: CK_BBOOL = CK_TRUE;
+    let modifiable: CK_BBOOL = CK_TRUE;
+    let copyable: CK_BBOOL = CK_TRUE;
+    let label = String::from("rust-unit-test");
+    let value = b"Hello World!";
+
+    let template = vec![
+        CK_ATTRIBUTE::new(CKA_CLASS).set_ck_ulong(&class),
+        CK_ATTRIBUTE::new(CKA_TOKEN).set_bool(&token),
+        CK_ATTRIBUTE::new(CKA_PRIVATE).set_bool(&private),
+        CK_ATTRIBUTE::new(CKA_MODIFIABLE).set_bool(&modifiable),
+        CK_ATTRIBUTE::new(CKA_COPYABLE).set_bool(&copyable),
+        CK_ATTRIBUTE::new(CKA_LABEL).set_string(&label),
+        CK_ATTRIBUTE::new(CKA_VALUE).set_bytes(&value[..]),
+    ];
+    println!("Template: {:?}", template);
+    let oh = ctx.create_object(sh, &template).unwrap();
+    println!("Object Handle: {}", oh);
+
+    let label2 = String::from("rust-unit-test2");
+    let template2 = vec![CK_ATTRIBUTE::new(CKA_LABEL).set_string(&label2)];
+    println!("Template2: {:?}", template2);
+
+    let res = ctx.copy_object(sh, oh, &template2);
+    assert!(
+        res.is_ok(),
+        "failed to call C_CopyObject({}, {}, {:?}): {}",
+        sh,
+        oh,
+        &template2,
+        res.unwrap_err(),
+    );
+    let oh2 = res.unwrap();
+    println!("Object Handle2: {}", oh2);
 }
 
 #[test]
 fn ctx_destroy_object() {
-    unimplemented!()
+    let (ctx, sh) = fixture_token().unwrap();
+
+    let class = CKO_DATA;
+    let token: CK_BBOOL = CK_TRUE;
+    let private: CK_BBOOL = CK_TRUE;
+    let modifiable: CK_BBOOL = CK_TRUE;
+    let copyable: CK_BBOOL = CK_TRUE;
+    let label = String::from("rust-unit-test");
+    let value = b"Hello World!";
+
+    let template = vec![
+        CK_ATTRIBUTE::new(CKA_CLASS).set_ck_ulong(&class),
+        CK_ATTRIBUTE::new(CKA_TOKEN).set_bool(&token),
+        CK_ATTRIBUTE::new(CKA_PRIVATE).set_bool(&private),
+        CK_ATTRIBUTE::new(CKA_MODIFIABLE).set_bool(&modifiable),
+        CK_ATTRIBUTE::new(CKA_COPYABLE).set_bool(&copyable),
+        CK_ATTRIBUTE::new(CKA_LABEL).set_string(&label),
+        CK_ATTRIBUTE::new(CKA_VALUE).set_bytes(&value[..]),
+    ];
+    println!("Template: {:?}", template);
+    let oh = ctx.create_object(sh, &template).unwrap();
+    println!("Object Handle: {}", oh);
+
+    let res = ctx.destroy_object(sh, oh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DestroyObject({}, {}): {})",
+        sh,
+        oh,
+        res.unwrap_err()
+    );
 }
 
 #[test]
 fn ctx_get_object_size() {
-    unimplemented!()
+    let (ctx, sh) = fixture_token().unwrap();
+
+    let class = CKO_DATA;
+    let token: CK_BBOOL = CK_TRUE;
+    let private: CK_BBOOL = CK_TRUE;
+    let modifiable: CK_BBOOL = CK_TRUE;
+    let copyable: CK_BBOOL = CK_TRUE;
+    let label = String::from("rust-unit-test");
+    let value = b"Hello World!";
+
+    let template = vec![
+        CK_ATTRIBUTE::new(CKA_CLASS).set_ck_ulong(&class),
+        CK_ATTRIBUTE::new(CKA_TOKEN).set_bool(&token),
+        CK_ATTRIBUTE::new(CKA_PRIVATE).set_bool(&private),
+        CK_ATTRIBUTE::new(CKA_MODIFIABLE).set_bool(&modifiable),
+        CK_ATTRIBUTE::new(CKA_COPYABLE).set_bool(&copyable),
+        CK_ATTRIBUTE::new(CKA_LABEL).set_string(&label),
+        CK_ATTRIBUTE::new(CKA_VALUE).set_bytes(&value[..]),
+    ];
+    println!("Template: {:?}", template);
+    let oh = ctx.create_object(sh, &template).unwrap();
+    println!("Object Handle: {}", oh);
+
+    let res = ctx.get_object_size(sh, oh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_GetObjectSize({}, {}): {}",
+        sh,
+        oh,
+        res.unwrap_err()
+    );
+    let size = res.unwrap();
+    println!("Object Size: {}", size);
 }
 
 #[test]

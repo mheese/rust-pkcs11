@@ -602,20 +602,39 @@ impl Ctx {
     pub fn create_object(
         &self,
         session: CK_SESSION_HANDLE,
-        template: Vec<CK_ATTRIBUTE>,
+        template: &Vec<CK_ATTRIBUTE>,
     ) -> Result<CK_OBJECT_HANDLE, Error> {
         self.initialized()?;
-        unimplemented!()
+        let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+        match (self.C_CreateObject)(
+            session,
+            template.as_slice().as_ptr(),
+            template.len(),
+            &mut oh,
+        ) {
+            CKR_OK => Ok(oh),
+            err => Err(Error::Pkcs11(err)),
+        }
     }
 
     pub fn copy_object(
         &self,
         session: CK_SESSION_HANDLE,
         object: CK_OBJECT_HANDLE,
-        template: Vec<CK_ATTRIBUTE>,
+        template: &Vec<CK_ATTRIBUTE>,
     ) -> Result<CK_OBJECT_HANDLE, Error> {
         self.initialized()?;
-        unimplemented!()
+        let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+        match (self.C_CopyObject)(
+            session,
+            object,
+            template.as_slice().as_ptr(),
+            template.len(),
+            &mut oh,
+        ) {
+            CKR_OK => Ok(oh),
+            err => Err(Error::Pkcs11(err)),
+        }
     }
 
     pub fn destroy_object(
@@ -624,7 +643,10 @@ impl Ctx {
         object: CK_OBJECT_HANDLE,
     ) -> Result<(), Error> {
         self.initialized()?;
-        unimplemented!()
+        match (self.C_DestroyObject)(session, object) {
+            CKR_OK => Ok(()),
+            err => Err(Error::Pkcs11(err)),
+        }
     }
 
     pub fn get_object_size(
@@ -633,7 +655,11 @@ impl Ctx {
         object: CK_OBJECT_HANDLE,
     ) -> Result<CK_ULONG, Error> {
         self.initialized()?;
-        unimplemented!()
+        let mut size: CK_ULONG = 0;
+        match (self.C_GetObjectSize)(session, object, &mut size) {
+            CKR_OK => Ok(size),
+            err => Err(Error::Pkcs11(err)),
+        }
     }
 
     pub fn get_attribute_value(
