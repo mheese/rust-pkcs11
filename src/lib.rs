@@ -582,29 +582,61 @@ impl Ctx {
     }
   }
 
-  pub fn get_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<Vec<CK_ATTRIBUTE>, Error> {
+  pub fn get_attribute_value<'a>(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &'a Vec<CK_ATTRIBUTE>) -> Result<(CK_RV, &'a Vec<CK_ATTRIBUTE>), Error> {
     self.initialized()?;
-    unimplemented!()
+    /*
+      Note that the error codes CKR_ATTRIBUTE_SENSITIVE, CKR_ATTRIBUTE_TYPE_INVALID, and CKR_BUFFER_TOO_SMALL
+      do not denote true errors for C_GetAttributeValue.  If a call to C_GetAttributeValue returns any of these three
+      values, then the call MUST nonetheless have processed every attribute in the template supplied to
+      C_GetAttributeValue.  Each attribute in the template whose value can be returned by the call to
+      C_GetAttributeValue will be returned by the call to C_GetAttributeValue.
+    */
+    match (self.C_GetAttributeValue)(session, object, template.as_slice().as_ptr(), template.len()) {
+      CKR_OK => Ok((CKR_OK, template)),
+      CKR_ATTRIBUTE_SENSITIVE => Ok((CKR_ATTRIBUTE_SENSITIVE, template)),
+      CKR_ATTRIBUTE_TYPE_INVALID => Ok((CKR_ATTRIBUTE_TYPE_INVALID, template)),
+      CKR_BUFFER_TOO_SMALL => Ok((CKR_BUFFER_TOO_SMALL, template)),
+      err => Err(Error::Pkcs11(err)),
+    }
   }
 
-  pub fn set_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
+  pub fn set_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
     self.initialized()?;
-    unimplemented!()
+    match (self.C_SetAttributeValue)(session, object, template.as_slice().as_ptr(), template.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
   }
 
-  pub fn find_objects_init(&self, session: CK_SESSION_HANDLE, template: Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
+  pub fn find_objects_init(&self, session: CK_SESSION_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
     self.initialized()?;
-    unimplemented!()
+    match (self.C_FindObjectsInit)(session, template.as_slice().as_ptr(), template.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
   }
 
   pub fn find_objects(&self, session: CK_SESSION_HANDLE, max_object_count: CK_ULONG) -> Result<Vec<CK_OBJECT_HANDLE>, Error> {
     self.initialized()?;
-    unimplemented!()
+    let mut list: Vec<CK_OBJECT_HANDLE> = Vec::with_capacity(max_object_count);
+    let mut count: CK_ULONG = 0;
+    match (self.C_FindObjects)(session, list.as_ptr(), max_object_count, &mut count) {
+      CKR_OK => {
+        unsafe {
+          list.set_len(count);
+        }
+        Ok(list)
+      }
+      err => Err(Error::Pkcs11(err)),
+    }
   }
 
   pub fn find_objects_final(&self, session: CK_SESSION_HANDLE) -> Result<(), Error> {
     self.initialized()?;
-    unimplemented!()
+    match (self.C_FindObjectsFinal)(session) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
   }
 }
 

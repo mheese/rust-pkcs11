@@ -638,10 +638,17 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn set_bool(mut self, b: &CK_BBOOL) -> Self {
+  pub fn with_bool(mut self, b: &CK_BBOOL) -> Self {
     self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
     self.ulValueLen = 1;
     self
+  }
+
+  pub fn set_bool(&mut self, b: &CK_BBOOL) {
+    self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = 1;
+    }
   }
 
   pub fn get_bool(&self) -> bool {
@@ -649,30 +656,51 @@ impl CK_ATTRIBUTE {
     CkFrom::from(data)
   }
 
-  pub fn set_ck_ulong(mut self, val: &CK_ULONG) -> Self {
+  pub fn with_ck_ulong(mut self, val: &CK_ULONG) -> Self {
     self.pValue = val as *const _ as CK_VOID_PTR;
     self.ulValueLen = std::mem::size_of::<CK_ULONG>();
     self
+  }
+
+  pub fn set_ck_ulong(&mut self, val: &CK_ULONG) {
+    self.pValue = val as *const _ as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = std::mem::size_of::<CK_ULONG>();
+    }
   }
 
   pub fn get_ck_ulong(&self) -> CK_ULONG {
     unsafe { mem::transmute_copy(&*self.pValue) }
   }
 
-  pub fn set_ck_long(mut self, val: &CK_LONG) -> Self {
+  pub fn with_ck_long(mut self, val: &CK_LONG) -> Self {
     self.pValue = val as *const _ as CK_VOID_PTR;
     self.ulValueLen = std::mem::size_of::<CK_LONG>();
     self
+  }
+
+  pub fn set_ck_long(&mut self, val: &CK_LONG) {
+    self.pValue = val as *const _ as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = std::mem::size_of::<CK_LONG>();
+    }
   }
 
   pub fn get_ck_long(&self) -> CK_LONG {
     unsafe { mem::transmute_copy(&*self.pValue) }
   }
 
-  pub fn set_biginteger(mut self, val: &Vec<u8>) -> Self {
+  pub fn with_biginteger(mut self, val: &Vec<u8>) -> Self {
     self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
     self.ulValueLen = val.len();
     self
+  }
+
+  pub fn set_biginteger(&mut self, val: &Vec<u8>) {
+    self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = val.len();
+    }
   }
 
   pub fn get_biginteger(&self) -> BigUint {
@@ -680,10 +708,17 @@ impl CK_ATTRIBUTE {
     BigUint::from_bytes_le(slice)
   }
 
-  pub fn set_bytes(mut self, val: &[CK_BYTE]) -> Self {
+  pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
     self.pValue = val.as_ptr() as CK_VOID_PTR;
     self.ulValueLen = val.len();
     self
+  }
+
+  pub fn set_bytes(&mut self, val: &[CK_BYTE]) {
+    self.pValue = val.as_ptr() as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = val.len();
+    }
   }
 
   pub fn get_bytes(&self) -> Vec<CK_BYTE> {
@@ -691,10 +726,17 @@ impl CK_ATTRIBUTE {
     Vec::from(slice).clone()
   }
 
-  pub fn set_string(mut self, str: &String) -> Self {
+  pub fn with_string(mut self, str: &String) -> Self {
     self.pValue = str.as_ptr() as CK_VOID_PTR;
     self.ulValueLen = str.len();
     self
+  }
+
+  pub fn set_string(&mut self, str: &String) {
+    self.pValue = str.as_ptr() as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = str.len();
+    }
   }
 
   pub fn get_string(&self) -> String {
@@ -702,15 +744,27 @@ impl CK_ATTRIBUTE {
     String::from_utf8_lossy(slice).into_owned().clone()
   }
 
-  pub fn set_date(mut self, date: &CK_DATE) -> Self {
+  pub fn with_date(mut self, date: &CK_DATE) -> Self {
     self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
     self.ulValueLen = mem::size_of::<CK_DATE>();
     self
   }
 
+  pub fn set_date(&mut self, date: &CK_DATE) {
+    self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
+    if self.ulValueLen == 0 {
+      self.ulValueLen = mem::size_of::<CK_DATE>();
+    }
+  }
+
   pub fn get_date(&self) -> CK_DATE {
     unsafe { mem::transmute_copy(&*self.pValue) }
   }
+
+  // this works for C structs and primitives, but not for vectors, slices, strings
+  //pub fn set_ptr<T>(&mut self, val: &T) {
+  //  self.pValue = (val as *const T) as CK_VOID_PTR;
+  //}
 }
 
 //trait CkAttributeFrom<T> {
