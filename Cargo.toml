@@ -30,5 +30,7 @@ exclude = [
 [dependencies]
 libloading = "^0.4"
 num-bigint = "^0.1"
-num-traits = "^0.1"
 #libc = "0.2.33"
+
+[dev-dependencies]
+num-traits = "^0.1"
