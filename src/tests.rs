@@ -1,8 +1,25 @@
+// Copyright 2017 Marcus Heese
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Tests need to be run with `RUST_TEST_THREADS=1` currently to pass.
 extern crate num_traits;
+
 use tests::num_traits::Num;
 
 use super::*;
+use super::types::*;
+use num_bigint::BigUint;
 
 const PKCS11_MODULE_FILENAME: &'static str = "/usr/local/lib/softhsm/libsofthsm2.so";
 
@@ -539,7 +556,7 @@ fn ctx_create_object() {
         CKA_LABEL       string    e4-example
         CKA_VALUE       bytes     SGVsbG8gV29ybGQh
         */
-    //let (ctx, sh) = fixture_token().unwrap();
+    let (ctx, sh) = fixture_token().unwrap();
     //let b = (true).into_ck(CKA_CLASS);
     //let template = vec![
     //    CK_ATTRIBUTE { ulType: CKA_CLASS, },
