@@ -79,6 +79,8 @@ pub struct CK_VERSION {
   pub minor: CK_BYTE,   /* 1/100ths portion of version number */
 }
 
+pub type CK_VERSION_PTR = *const CK_VERSION;
+
 #[derive(Debug,Clone,Default)]
 #[repr(C)]
 pub struct CK_INFO {
@@ -1595,7 +1597,7 @@ pub struct CK_RC2_CBC_PARAMS {
     /// effective bits (1-1024)
     pub ulEffectiveBits: CK_ULONG,
      /// IV for CBC mode
-    pub iv[8]: CK_BYTE,
+    pub iv: [CK_BYTE; 8],
 }
 
 pub type CK_RC2_CBC_PARAMS_PTR = *const CK_RC2_CBC_PARAMS;
@@ -1609,7 +1611,7 @@ pub struct CK_RC2_MAC_GENERAL_PARAMS {
     /// effective bits (1-1024)
     pub ulEffectiveBits: CK_ULONG,
     /// Length of MAC in bytes
-    pub ulMacLength: CK_ULONG;
+    pub ulMacLength: CK_ULONG,
 }
 
 pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *const CK_RC2_MAC_GENERAL_PARAMS;
@@ -1619,7 +1621,7 @@ pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *const CK_RC2_MAC_GENERAL_PARAMS;
 /// CKM_RC5_MAC mechanisms
 #[derive(Debug,Clone)]
 #[repr(C)]
-typedef struct CK_RC5_PARAMS {
+pub struct CK_RC5_PARAMS {
     /// wordsize in bits
     pub ulWordsize: CK_ULONG,
     /// number of rounds
@@ -1641,7 +1643,7 @@ pub struct CK_RC5_CBC_PARAMS {
     /// pointer to IV
     pub pIv: CK_BYTE_PTR,
     /// length of IV in bytes
-    pub ulIvLen: CK_ULONG;
+    pub ulIvLen: CK_ULONG,
 }
 
 pub type CK_RC5_CBC_PARAMS_PTR = *const CK_RC5_CBC_PARAMS;
@@ -1672,7 +1674,7 @@ pub type CK_MAC_GENERAL_PARAMS_PTR = *const CK_MAC_GENERAL_PARAMS;
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_DES_CBC_ENCRYPT_DATA_PARAMS {
-    pub iv[8]: CK_BYTE,
+    pub iv: [CK_BYTE; 8],
     pub pData: CK_BYTE_PTR,
     pub length: CK_ULONG,
 }
@@ -1682,7 +1684,7 @@ pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_DES_CBC_ENCRYPT_DATA_PAR
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_AES_CBC_ENCRYPT_DATA_PARAMS {
-    pub iv[16]: CK_BYTE,
+    pub iv: [CK_BYTE; 16],
     pub pData: CK_BYTE_PTR,
     pub length: CK_ULONG,
 }
@@ -1821,7 +1823,7 @@ pub type CK_TLS_PRF_PARAMS_PTR = *const CK_TLS_PRF_PARAMS;
 
 #[derive(Debug,Clone)]
 #[repr(C)]
-typedef struct CK_WTLS_RANDOM_DATA {
+pub struct CK_WTLS_RANDOM_DATA {
     pub pClientRandom: CK_BYTE_PTR,
     pub ulClientRandomLen: CK_ULONG,
     pub pServerRandom: CK_BYTE_PTR,
@@ -1871,7 +1873,7 @@ pub struct CK_WTLS_KEY_MAT_PARAMS {
     pub ulMacSizeInBits: CK_ULONG,
     pub ulKeySizeInBits: CK_ULONG,
     pub ulIVSizeInBits: CK_ULONG,
-    pub ulSequenceNumber: CK_ULONG
+    pub ulSequenceNumber: CK_ULONG,
     pub bIsExport: CK_BBOOL,
     pub RandomInfo: CK_WTLS_RANDOM_DATA,
     pub pReturnedKeyMaterial: CK_WTLS_KEY_MAT_OUT_PTR,
@@ -1991,8 +1993,8 @@ pub type CK_OTP_PARAM_PTR = *const CK_OTP_PARAM;
 
 #[derive(Debug,Clone)]
 #[repr(C)]
-typedef struct CK_OTP_PARAMS {
-    pub pParams: CK_OTP_PARAM_PTR
+pub struct CK_OTP_PARAMS {
+    pub pParams: CK_OTP_PARAM_PTR,
     pub ulCount: CK_ULONG,
 }
 
@@ -2025,7 +2027,7 @@ pub const CKF_USER_FRIENDLY_OTP : CK_FLAGS = 0x00000020;
 
 #[derive(Debug,Clone)]
 #[repr(C)]
-typedef struct CK_KIP_PARAMS {
+pub struct CK_KIP_PARAMS {
     pub pMechanism: CK_MECHANISM_PTR,
     pub hKey: CK_OBJECT_HANDLE,
     pub pSeed: CK_BYTE_PTR,
@@ -2038,7 +2040,7 @@ pub type CK_KIP_PARAMS_PTR = *const CK_KIP_PARAMS;
 #[repr(C)]
 pub struct CK_AES_CTR_PARAMS {
     pub ulCounterBits: CK_ULONG,
-    pub cb[16]: CK_BYTE,
+    pub cb: [CK_BYTE; 16],
 }
 
 pub type CK_AES_CTR_PARAMS_PTR = *const CK_AES_CTR_PARAMS;
@@ -2101,7 +2103,7 @@ pub type CK_AES_CCM_PARAMS_PTR = *const CK_AES_CCM_PARAMS;
 #[repr(C)]
 pub struct CK_CAMELLIA_CTR_PARAMS {
     pub ulCounterBits: CK_ULONG,
-    pub cb[16]: CK_BYTE,
+    pub cb: [CK_BYTE; 16],
 }
 
 pub type CK_CAMELLIA_CTR_PARAMS_PTR = *const CK_CAMELLIA_CTR_PARAMS;
@@ -2109,7 +2111,7 @@ pub type CK_CAMELLIA_CTR_PARAMS_PTR = *const CK_CAMELLIA_CTR_PARAMS;
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS {
-    pub iv[16]: CK_BYTE,
+    pub iv: [CK_BYTE; 16],
     pub pData: CK_BYTE_PTR,
     pub length: CK_ULONG,
 }
@@ -2119,7 +2121,7 @@ pub type CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_CAMELLIA_CBC_ENCRYP
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_ARIA_CBC_ENCRYPT_DATA_PARAMS {
-    pub iv[16]: CK_BYTE,
+    pub iv: [CK_BYTE; 16],
     pub pData: CK_BYTE_PTR,
     pub length: CK_ULONG,
 }
@@ -2235,7 +2237,7 @@ pub type CK_GOSTR3410_KEY_WRAP_PARAMS_PTR = *const CK_GOSTR3410_KEY_WRAP_PARAMS;
 #[derive(Debug,Clone)]
 #[repr(C)]
 pub struct CK_SEED_CBC_ENCRYPT_DATA_PARAMS {
-    pub iv[16]: CK_BYTE,
+    pub iv: [CK_BYTE; 16],
     pub pData: CK_BYTE_PTR,
     pub length: CK_ULONG,
 }
