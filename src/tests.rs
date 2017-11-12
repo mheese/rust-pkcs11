@@ -19,6 +19,7 @@ use tests::num_traits::Num;
 
 use super::*;
 use super::types::*;
+use super::errors::Error;
 use num_bigint::BigUint;
 
 const PKCS11_MODULE_FILENAME: &'static str = "/usr/local/lib/softhsm/libsofthsm2.so";

@@ -28,7 +28,7 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Initializing and Dropping PKCS#11 context
 - [x] Implementing Token and PIN Management functions
 - [x] Implementing Session Management functions
-- [ ] Implementing Object Management functions
+- [x] Implementing Object Management functions
 - [ ] Implementing Key Management functions
 - [ ] Implementing Encryption/Decryption functions
 - [ ] Implementing Message Digest functions
@@ -39,6 +39,7 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Reorganize code of low-level API (too bloated, which we all know is what PKCS#11 is like)
 - [x] Import the rest of the C header `pkcs11t.h` types into rust
 - [ ] Import the rust of the C header `pkcs11f.h` functions into rust
+- [ ] C type constants to string converter functions, and the reverse
 - [ ] Design and implement high-level API
 - [x] Publish on crates.io (wow, that was easy)
 - [ ] Write and Generate Documentation for Rust docs

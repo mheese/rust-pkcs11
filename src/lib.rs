@@ -23,9 +23,12 @@ mod tests;
 pub mod types;
 /// This module is basically a full conversion of the `pkcs11f.h` C header file.
 pub mod functions;
+/// The error types are defined here - they are used throughout the crate.
+pub mod errors;
 
 use types::*;
 use functions::*;
+use errors::Error;
 
 
 use std::mem;
@@ -52,31 +55,6 @@ impl CkFrom<CK_BBOOL> for bool {
     match b {
       0 => false,
       _ => true,
-    }
-  }
-}
-
-#[derive(Debug)]
-pub enum Error {
-  Io(std::io::Error),
-  Module(&'static str),
-  InvalidInput(&'static str),
-  Pkcs11(CK_RV),
-}
-
-impl From<std::io::Error> for Error {
-  fn from(err: std::io::Error) -> Error {
-    Error::Io(err)
-  }
-}
-
-impl std::fmt::Display for Error {
-  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    match *self {
-      Error::Io(ref err) => write!(f, "IO error: {}", err),
-      Error::Module(ref err) => write!(f, "PKCS#11 Module error: {}", err),
-      Error::InvalidInput(ref err) => write!(f, "Invalid Input for PKCS#11: {}", err),
-      Error::Pkcs11(ref err) => write!(f, "PKCS#11 error: 0x{:x}", err),
     }
   }
 }
