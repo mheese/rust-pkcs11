@@ -15,35 +15,294 @@
 
 use types::*;
 
-pub type C_Initialize = extern "C" fn(CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
-pub type C_Finalize = extern "C" fn(CK_VOID_PTR) -> CK_RV;
-pub type C_GetInfo = extern "C" fn(CK_INFO_PTR) -> CK_RV;
-pub type C_GetFunctionList = extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
-pub type C_GetSlotList = extern "C" fn(CK_BBOOL, CK_SLOT_ID_PTR, CK_ULONG_PTR) -> CK_RV;
-pub type C_GetSlotInfo = extern "C" fn(CK_SLOT_ID, CK_SLOT_INFO_PTR) -> CK_RV;
-pub type C_GetTokenInfo = extern "C" fn(CK_SLOT_ID, CK_TOKEN_INFO_PTR) -> CK_RV;
-pub type C_GetMechanismList = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE_PTR, CK_ULONG_PTR) -> CK_RV;
-pub type C_GetMechanismInfo = extern "C" fn(CK_SLOT_ID, CK_MECHANISM_TYPE, CK_MECHANISM_INFO_PTR) -> CK_RV;
-pub type C_InitToken = extern "C" fn(CK_SLOT_ID, CK_UTF8CHAR_PTR, CK_ULONG, CK_UTF8CHAR_PTR) -> CK_RV;
-pub type C_InitPIN = extern "C" fn(CK_SESSION_HANDLE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
-pub type C_SetPIN = extern "C" fn(CK_SESSION_HANDLE, CK_UTF8CHAR_PTR, CK_ULONG, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
-pub type C_OpenSession = extern "C" fn(CK_SLOT_ID, CK_FLAGS, CK_VOID_PTR, CK_NOTIFY, CK_SESSION_HANDLE_PTR) -> CK_RV;
-pub type C_CloseSession = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
-pub type C_CloseAllSessions = extern "C" fn(CK_SLOT_ID) -> CK_RV;
-pub type C_GetSessionInfo = extern "C" fn(CK_SESSION_HANDLE, CK_SESSION_INFO_PTR) -> CK_RV;
-pub type C_GetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG_PTR) -> CK_RV;
-pub type C_SetOperationState = extern "C" fn(CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE) -> CK_RV;
-pub type C_Login = extern "C" fn(CK_SESSION_HANDLE, CK_USER_TYPE, CK_UTF8CHAR_PTR, CK_ULONG) -> CK_RV;
-pub type C_Logout = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
-pub type C_CreateObject = extern "C" fn(CK_SESSION_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG, CK_OBJECT_HANDLE_PTR) -> CK_RV;
-pub type C_CopyObject = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG, CK_OBJECT_HANDLE_PTR) -> CK_RV;
-pub type C_DestroyObject = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE) -> CK_RV;
-pub type C_GetObjectSize = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ULONG_PTR) -> CK_RV;
-pub type C_GetAttributeValue = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG) -> CK_RV;
-pub type C_SetAttributeValue = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG) -> CK_RV;
-pub type C_FindObjectsInit = extern "C" fn(CK_SESSION_HANDLE, CK_ATTRIBUTE_PTR, CK_ULONG) -> CK_RV;
-pub type C_FindObjects = extern "C" fn(CK_SESSION_HANDLE, CK_OBJECT_HANDLE_PTR, CK_ULONG, CK_ULONG_PTR) -> CK_RV;
-pub type C_FindObjectsFinal = extern "C" fn(CK_SESSION_HANDLE) -> CK_RV;
+/// `C_Initialize` initializes the Cryptoki library.
+///
+/// # Function Parameters
+///
+/// * `pInitArgs`: if this is not NULL_PTR, it gets cast to CK_C_INITIALIZE_ARGS_PTR and dereferenced
+///
+pub type C_Initialize = extern "C" fn(pInitArgs: CK_C_INITIALIZE_ARGS_PTR) -> CK_RV;
+
+/// `C_Finalize` indicates that an application is done with the Cryptoki library.
+///
+/// # Function Parameters
+///
+/// * `pReserved`: reserved.  Should be NULL_PTR
+///
+pub type C_Finalize = extern "C" fn(pReserved: CK_VOID_PTR) -> CK_RV;
+
+/// `C_GetInfo` returns general information about Cryptoki.
+///
+/// # Function Parameters
+///
+/// * `pInfo`: location that receives information
+///
+pub type C_GetInfo = extern "C" fn(pInfo: CK_INFO_PTR) -> CK_RV;
+
+/// `C_GetFunctionList` returns the function list.
+///
+/// # Function Parameters
+///
+/// * `ppFunctionList`: receives pointer to function list
+///
+pub type C_GetFunctionList = extern "C" fn(ppFunctionList: CK_FUNCTION_LIST_PTR_PTR) -> CK_RV;
+
+/// `C_GetSlotList` obtains a list of slots in the system.
+///
+/// # Function Parameters
+///
+/// * `tokenPresent`: only slots with tokens
+/// * `pSlotList`: receives array of slot IDs
+/// * `pulCount`: receives number of slots
+///
+pub type C_GetSlotList = extern "C" fn(tokenPresent: CK_BBOOL, pSlotList: CK_SLOT_ID_PTR, pulCount: CK_ULONG_PTR) -> CK_RV;
+
+/// `C_GetSlotInfo` obtains information about a particular slot in the system.
+///
+/// # Function Parameters
+///
+/// * `slotID`: the ID of the slot
+/// * `pInfo`: receives the slot information
+///
+pub type C_GetSlotInfo = extern "C" fn(slotID: CK_SLOT_ID, pInfo: CK_SLOT_INFO_PTR) -> CK_RV;
+
+/// `C_GetTokenInfo` obtains information about a particular token in the system.
+///
+/// # Function Parameters
+///
+/// * `slotID`: ID of the token's slot
+/// * `pInfo`: receives the token information
+///
+pub type C_GetTokenInfo = extern "C" fn(slotID: CK_SLOT_ID, pInfo: CK_TOKEN_INFO_PTR) -> CK_RV;
+
+/// `C_GetMechanismList` obtains a list of mechanism types supported by a token.
+///
+/// # Function Parameters
+///
+/// * `slotID`: ID of token's slot
+/// * `pMechanismList`: gets mech. array
+/// * `pulCount`: gets # of mechs.
+///
+pub type C_GetMechanismList = extern "C" fn(slotID: CK_SLOT_ID, pMechanismList: CK_MECHANISM_TYPE_PTR, pulCount: CK_ULONG_PTR) -> CK_RV;
+
+/// `C_GetMechanismInfo` obtains information about a particular mechanism possibly supported by a token.
+///
+/// # Function Parameters
+///
+/// * `slotID`: ID of the token's slot
+/// * `mechType`: type of mechanism
+/// * `pInfo`: receives mechanism info
+///
+pub type C_GetMechanismInfo = extern "C" fn(slotID: CK_SLOT_ID, mechType: CK_MECHANISM_TYPE, pInfo: CK_MECHANISM_INFO_PTR) -> CK_RV;
+
+/// `C_InitToken` initializes a token.
+///
+/// # Function Parameters
+///
+/// * `slotID`: ID of the token's slot
+/// * `pPin`: the SO's initial PIN
+/// * `ulPinLen`: length in bytes of the PIN
+/// * `pLabel`: 32-byte token label (blank padded)
+///
+pub type C_InitToken = extern "C" fn(slotID: CK_SLOT_ID, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG, pLabel: CK_UTF8CHAR_PTR) -> CK_RV;
+
+/// `C_InitPIN` initializes the normal user's PIN.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `pPin`: the normal user's PIN
+/// * `ulPinLen`: length in bytes of the PIN
+///
+pub type C_InitPIN = extern "C" fn(hSession: CK_SESSION_HANDLE, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG) -> CK_RV;
+
+/// `C_SetPIN` modifies the PIN of the user who is logged in.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `pOldPin`: the old PIN
+/// * `ulOldLen`: length of the old PIN
+/// * `pNewPin`: the new PIN
+/// * `ulNewLen`: length of the new PIN
+///
+pub type C_SetPIN = extern "C" fn(hSession: CK_SESSION_HANDLE, pOldPin: CK_UTF8CHAR_PTR, ulOldLen: CK_ULONG, pNewPin: CK_UTF8CHAR_PTR, ulNewLen: CK_ULONG) -> CK_RV;
+
+/// `C_OpenSession` opens a session between an application and a token.
+///
+/// # Function Parameters
+///
+/// * `slotID`: the slot's ID
+/// * `flags`: from CK_SESSION_INFO
+/// * `pApplication`: passed to callback
+/// * `Notify`: callback function
+/// * `phSession`: gets session handle
+///
+pub type C_OpenSession = extern "C" fn(slotID: CK_SLOT_ID, flags: CK_FLAGS, pApplication: CK_VOID_PTR, Notify: CK_NOTIFY, phSession: CK_SESSION_HANDLE_PTR) -> CK_RV;
+
+/// `C_CloseSession` closes a session between an application and a token.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+///
+pub type C_CloseSession = extern "C" fn(hSession: CK_SESSION_HANDLE) -> CK_RV;
+
+/// `C_CloseAllSessions` closes all sessions with a token.
+///
+/// # Function Parameters
+///
+/// * `slotID`: the token's slot
+///
+pub type C_CloseAllSessions = extern "C" fn(slotID: CK_SLOT_ID) -> CK_RV;
+
+/// `C_GetSessionInfo` obtains information about the session.
+///
+/// # Function Paramters
+///
+/// * `hSession`: the session's handle
+/// * `pInfo`: receives session info
+///
+pub type C_GetSessionInfo = extern "C" fn(hSession: CK_SESSION_HANDLE, pInfo: CK_SESSION_INFO_PTR) -> CK_RV;
+
+/// `C_GetOperationState` obtains the state of the cryptographic operation in a session.
+///
+/// # Function Paramters
+///
+/// * `hSession`: session's handle
+/// * `pOperationState`: gets state
+/// * `pulOperationStateLen`: gets state length
+///
+pub type C_GetOperationState = extern "C" fn(hSession: CK_SESSION_HANDLE, pOperationState: CK_BYTE_PTR, pulOperationStateLen: CK_ULONG_PTR) -> CK_RV;
+
+/// `C_SetOperationState` restores the state of the cryptographic operation in a session.
+///
+/// # Function Paramters
+///
+/// * `hSession`: session's handle
+/// * `pOperationState`: holds state
+/// * `ulOperationStateLen`: holds state length
+/// * `hEncryptionKey`: en/decryption key
+/// * `hAuthenticationKey`: sign/verify key
+///
+pub type C_SetOperationState = extern "C" fn(
+  hSession: CK_SESSION_HANDLE,
+  pOperationState: CK_BYTE_PTR,
+  ulOperationStateLen: CK_ULONG,
+  hEncryptionKey: CK_OBJECT_HANDLE,
+  hAuthenticationKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
+
+/// `C_Login` logs a user into a token.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `userType`: the user type
+/// * `pPin`: the user's PIN
+/// * `ulPinLen`: the length of the PIN
+///
+pub type C_Login = extern "C" fn(hSession: CK_SESSION_HANDLE, userType: CK_USER_TYPE, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG) -> CK_RV;
+
+/// `C_Logout` logs a user out from a token.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+pub type C_Logout = extern "C" fn(hSession: CK_SESSION_HANDLE) -> CK_RV;
+
+/// `C_CreateObject` creates a new object.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `pTemplate`: the object's template
+/// * `ulCount`: attributes in template
+/// * `phObject`: gets new object's handle.
+///
+pub type C_CreateObject = extern "C" fn(hSession: CK_SESSION_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG, phObject: CK_OBJECT_HANDLE_PTR) -> CK_RV;
+
+/// `C_CopyObject` copies an object, creating a new object for the copy.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `hObject`: the object's handle
+/// * `pTemplate`: template for new object
+/// * `ulCount`: attributes in template
+/// * `phNewObject`: receives handle of copy
+///
+pub type C_CopyObject = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG, phNewObject: CK_OBJECT_HANDLE_PTR) -> CK_RV;
+
+/// `C_DestroyObject` destroys an object.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `hObject`: the object's handle
+///
+pub type C_DestroyObject = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE) -> CK_RV;
+
+/// `C_GetObjectSize` gets the size of an object in bytes.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `hObject`: the object's handle
+/// * `pulSize`: receives size of object
+///
+pub type C_GetObjectSize = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pulSize: CK_ULONG_PTR) -> CK_RV;
+
+/// `C_GetAttributeValue` obtains the value of one or more object attributes.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `hObject`: the object's handle
+/// * `pTemplate`: specifies attrs; gets vals
+/// * `ulCount`: attributes in template
+///
+pub type C_GetAttributeValue = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG) -> CK_RV;
+
+/// `C_SetAttributeValue` modifies the value of one or more object attributes.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `hObject`: the object's handle
+/// * `pTemplate`: specifies attrs and values
+/// * `ulCount`: attributes in template
+///
+pub type C_SetAttributeValue = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG) -> CK_RV;
+
+/// `C_FindObjectsInit` initializes a search for token and session objects that match a template.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+/// * `pTemplate`: attribute values to match
+/// * `ulCount`: attrs in search template
+///
+pub type C_FindObjectsInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG) -> CK_RV;
+
+/// `C_FindObjects` continues a search for token and session objects that match a template, obtaining additional object handles.
+///
+/// # Function Parameters
+///
+/// * `hSession`: session's handle
+/// * `phObject`: gets obj. handles
+/// * `ulMaxObjectCount`: max handles to get
+/// * `pulObjectCount`: actual # returned
+///
+pub type C_FindObjects = extern "C" fn(hSession: CK_SESSION_HANDLE, phObject: CK_OBJECT_HANDLE_PTR, ulMaxObjectCount: CK_ULONG, pulObjectCount: CK_ULONG_PTR) -> CK_RV;
+
+/// `C_FindObjectsFinal` finishes a search for token and session objects.
+///
+/// # Function Parameters
+///
+/// * `hSession`: the session's handle
+///
+pub type C_FindObjectsFinal = extern "C" fn(hSession: CK_SESSION_HANDLE) -> CK_RV;
 
 /// `C_EncryptInit` initializes an encryption operation.
 ///
