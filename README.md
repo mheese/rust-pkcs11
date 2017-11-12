@@ -38,7 +38,7 @@ Here is a list of the implementation status and plans on what to do next:
 - [ ] Implementing Legacy PKCS#11 functions
 - [x] Reorganize code of low-level API (too bloated, which we all know is what PKCS#11 is like)
 - [x] Import the rest of the C header `pkcs11t.h` types into rust
-- [ ] Import the rust of the C header `pkcs11f.h` functions into rust
+- [ ] Import the rest of the C header `pkcs11f.h` functions into rust
 - [ ] C type constants to string converter functions, and the reverse
 - [ ] Design and implement high-level API
 - [x] Publish on crates.io (wow, that was easy)

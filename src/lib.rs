@@ -111,6 +111,45 @@ pub struct Ctx {
   C_FindObjectsInit: C_FindObjectsInit,
   C_FindObjects: C_FindObjects,
   C_FindObjectsFinal: C_FindObjectsFinal,
+  C_EncryptInit: C_EncryptInit,
+  C_Encrypt: C_Encrypt,
+  C_EncryptUpdate: C_EncryptUpdate,
+  C_EncryptFinal: C_EncryptFinal,
+  C_DecryptInit: C_DecryptInit,
+  C_Decrypt: C_Decrypt,
+  C_DecryptUpdate: C_DecryptUpdate,
+  C_DecryptFinal: C_DecryptFinal,
+  C_DigestInit: C_DigestInit,
+  C_Digest: C_Digest,
+  C_DigestUpdate: C_DigestUpdate,
+  C_DigestKey: C_DigestKey,
+  C_DigestFinal: C_DigestFinal,
+  C_SignInit: C_SignInit,
+  C_Sign: C_Sign,
+  C_SignUpdate: C_SignUpdate,
+  C_SignFinal: C_SignFinal,
+  C_SignRecoverInit: C_SignRecoverInit,
+  C_SignRecover: C_SignRecover,
+  C_VerifyInit: C_VerifyInit,
+  C_Verify: C_Verify,
+  C_VerifyUpdate: C_VerifyUpdate,
+  C_VerifyFinal: C_VerifyFinal,
+  C_VerifyRecoverInit: C_VerifyRecoverInit,
+  C_VerifyRecover: C_VerifyRecover,
+  C_DigestEncryptUpdate: C_DigestEncryptUpdate,
+  C_DecryptDigestUpdate: C_DecryptDigestUpdate,
+  C_SignEncryptUpdate: C_SignEncryptUpdate,
+  C_DecryptVerifyUpdate: C_DecryptVerifyUpdate,
+  C_GenerateKey: C_GenerateKey,
+  C_GenerateKeyPair: C_GenerateKeyPair,
+  C_WrapKey: C_WrapKey,
+  C_UnwrapKey: C_UnwrapKey,
+  C_DeriveKey: C_DeriveKey,
+  C_SeedRandom: C_SeedRandom,
+  C_GenerateRandom: C_GenerateRandom,
+  C_GetFunctionStatus: C_GetFunctionStatus,
+  C_CancelFunction: C_CancelFunction,
+  C_WaitForSlotEvent: C_WaitForSlotEvent,
 }
 
 impl Ctx {
@@ -129,93 +168,74 @@ impl Ctx {
       Ok(Ctx {
         lib: lib,
         _is_initialized: false,
-        C_Initialize: (*list)
-          .C_Initialize
-          .ok_or(Error::Module("C_Initialize function not found"))?,
-        C_Finalize: (*list)
-          .C_Finalize
-          .ok_or(Error::Module("C_Finalize function not found"))?,
-        C_GetInfo: (*list)
-          .C_GetInfo
-          .ok_or(Error::Module("C_GetInfo function not found"))?,
-        C_GetFunctionList: (*list)
-          .C_GetFunctionList
-          .ok_or(Error::Module("C_GetFunctionList function not found"))?,
-        C_GetSlotList: (*list)
-          .C_GetSlotList
-          .ok_or(Error::Module("C_GetSlotList function not found"))?,
-        C_GetSlotInfo: (*list)
-          .C_GetSlotInfo
-          .ok_or(Error::Module("C_GetSlotInfo function not found"))?,
-        C_GetTokenInfo: (*list)
-          .C_GetTokenInfo
-          .ok_or(Error::Module("C_GetTokenInfo function not found"))?,
-        C_GetMechanismList: (*list)
-          .C_GetMechanismList
-          .ok_or(Error::Module("C_GetMechanismList function not found"))?,
-        C_GetMechanismInfo: (*list)
-          .C_GetMechanismInfo
-          .ok_or(Error::Module("C_GetMechanismInfo function not found"))?,
-        C_InitToken: (*list)
-          .C_InitToken
-          .ok_or(Error::Module("C_InitToken function not found"))?,
-        C_InitPIN: (*list)
-          .C_InitPIN
-          .ok_or(Error::Module("C_InitPIN function not found"))?,
-        C_SetPIN: (*list)
-          .C_SetPIN
-          .ok_or(Error::Module("C_SetPIN function not found"))?,
-        C_OpenSession: (*list)
-          .C_OpenSession
-          .ok_or(Error::Module("C_OpenSession function not found"))?,
-        C_CloseSession: (*list)
-          .C_CloseSession
-          .ok_or(Error::Module("C_CloseSession function not found"))?,
-        C_CloseAllSessions: (*list)
-          .C_CloseAllSessions
-          .ok_or(Error::Module("C_CloseAllSessions function not found"))?,
-        C_GetSessionInfo: (*list)
-          .C_GetSessionInfo
-          .ok_or(Error::Module("C_GetSessionInfo function not found"))?,
-        C_GetOperationState: (*list)
-          .C_GetOperationState
-          .ok_or(Error::Module("C_GetOperationState function not found"))?,
-        C_SetOperationState: (*list)
-          .C_SetOperationState
-          .ok_or(Error::Module("C_SetOperationState function not found"))?,
-        C_Login: (*list)
-          .C_Login
-          .ok_or(Error::Module("C_Login function not found"))?,
-        C_Logout: (*list)
-          .C_Logout
-          .ok_or(Error::Module("C_Logout function not found"))?,
-        C_CreateObject: (*list)
-          .C_CreateObject
-          .ok_or(Error::Module("C_CreateObject function not found"))?,
-        C_CopyObject: (*list)
-          .C_CopyObject
-          .ok_or(Error::Module("C_CopyObject function not found"))?,
-        C_DestroyObject: (*list)
-          .C_DestroyObject
-          .ok_or(Error::Module("C_DestroyObject function not found"))?,
-        C_GetObjectSize: (*list)
-          .C_GetObjectSize
-          .ok_or(Error::Module("C_GetObjectSize function not found"))?,
-        C_GetAttributeValue: (*list)
-          .C_GetAttributeValue
-          .ok_or(Error::Module("C_GetAttributeValue function not found"))?,
-        C_SetAttributeValue: (*list)
-          .C_SetAttributeValue
-          .ok_or(Error::Module("C_SetAttributeValue function not found"))?,
-        C_FindObjectsInit: (*list)
-          .C_FindObjectsInit
-          .ok_or(Error::Module("C_FindObjectsInit function not found"))?,
-        C_FindObjects: (*list)
-          .C_FindObjects
-          .ok_or(Error::Module("C_FindObjects function not found"))?,
-        C_FindObjectsFinal: (*list)
-          .C_FindObjectsFinal
-          .ok_or(Error::Module("C_FindObjectsFinal function not found"))?,
+        C_Initialize: (*list).C_Initialize.ok_or(Error::Module("C_Initialize function not found"))?,
+        C_Finalize: (*list).C_Finalize.ok_or(Error::Module("C_Finalize function not found"))?,
+        C_GetInfo: (*list).C_GetInfo.ok_or(Error::Module("C_GetInfo function not found"))?,
+        C_GetFunctionList: (*list).C_GetFunctionList.ok_or(Error::Module("C_GetFunctionList function not found"))?,
+        C_GetSlotList: (*list).C_GetSlotList.ok_or(Error::Module("C_GetSlotList function not found"))?,
+        C_GetSlotInfo: (*list).C_GetSlotInfo.ok_or(Error::Module("C_GetSlotInfo function not found"))?,
+        C_GetTokenInfo: (*list).C_GetTokenInfo.ok_or(Error::Module("C_GetTokenInfo function not found"))?,
+        C_GetMechanismList: (*list).C_GetMechanismList.ok_or(Error::Module("C_GetMechanismList function not found"))?,
+        C_GetMechanismInfo: (*list).C_GetMechanismInfo.ok_or(Error::Module("C_GetMechanismInfo function not found"))?,
+        C_InitToken: (*list).C_InitToken.ok_or(Error::Module("C_InitToken function not found"))?,
+        C_InitPIN: (*list).C_InitPIN.ok_or(Error::Module("C_InitPIN function not found"))?,
+        C_SetPIN: (*list).C_SetPIN.ok_or(Error::Module("C_SetPIN function not found"))?,
+        C_OpenSession: (*list).C_OpenSession.ok_or(Error::Module("C_OpenSession function not found"))?,
+        C_CloseSession: (*list).C_CloseSession.ok_or(Error::Module("C_CloseSession function not found"))?,
+        C_CloseAllSessions: (*list).C_CloseAllSessions.ok_or(Error::Module("C_CloseAllSessions function not found"))?,
+        C_GetSessionInfo: (*list).C_GetSessionInfo.ok_or(Error::Module("C_GetSessionInfo function not found"))?,
+        C_GetOperationState: (*list).C_GetOperationState.ok_or(Error::Module("C_GetOperationState function not found"))?,
+        C_SetOperationState: (*list).C_SetOperationState.ok_or(Error::Module("C_SetOperationState function not found"))?,
+        C_Login: (*list).C_Login.ok_or(Error::Module("C_Login function not found"))?,
+        C_Logout: (*list).C_Logout.ok_or(Error::Module("C_Logout function not found"))?,
+        C_CreateObject: (*list).C_CreateObject.ok_or(Error::Module("C_CreateObject function not found"))?,
+        C_CopyObject: (*list).C_CopyObject.ok_or(Error::Module("C_CopyObject function not found"))?,
+        C_DestroyObject: (*list).C_DestroyObject.ok_or(Error::Module("C_DestroyObject function not found"))?,
+        C_GetObjectSize: (*list).C_GetObjectSize.ok_or(Error::Module("C_GetObjectSize function not found"))?,
+        C_GetAttributeValue: (*list).C_GetAttributeValue.ok_or(Error::Module("C_GetAttributeValue function not found"))?,
+        C_SetAttributeValue: (*list).C_SetAttributeValue.ok_or(Error::Module("C_SetAttributeValue function not found"))?,
+        C_FindObjectsInit: (*list).C_FindObjectsInit.ok_or(Error::Module("C_FindObjectsInit function not found"))?,
+        C_FindObjects: (*list).C_FindObjects.ok_or(Error::Module("C_FindObjects function not found"))?,
+        C_FindObjectsFinal: (*list).C_FindObjectsFinal.ok_or(Error::Module("C_FindObjectsFinal function not found"))?,
+        C_EncryptInit: (*list).C_EncryptInit.ok_or(Error::Module("C_EncryptInit function not found"))?,
+        C_Encrypt: (*list).C_Encrypt.ok_or(Error::Module("C_Encrypt function not found"))?,
+        C_EncryptUpdate: (*list).C_EncryptUpdate.ok_or(Error::Module("C_EncryptUpdate function not found"))?,
+        C_EncryptFinal: (*list).C_EncryptFinal.ok_or(Error::Module("C_EncryptFinal function not found"))?,
+        C_DecryptInit: (*list).C_DecryptInit.ok_or(Error::Module("C_DecryptInit function not found"))?,
+        C_Decrypt: (*list).C_Decrypt.ok_or(Error::Module("C_Decrypt function not found"))?,
+        C_DecryptUpdate: (*list).C_DecryptUpdate.ok_or(Error::Module("C_DecryptUpdate function not found"))?,
+        C_DecryptFinal: (*list).C_DecryptFinal.ok_or(Error::Module("C_DecryptFinal function not found"))?,
+        C_DigestInit: (*list).C_DigestInit.ok_or(Error::Module("C_DigestInit function not found"))?,
+        C_Digest: (*list).C_Digest.ok_or(Error::Module("C_Digest function not found"))?,
+        C_DigestUpdate: (*list).C_DigestUpdate.ok_or(Error::Module("C_DigestUpdate function not found"))?,
+        C_DigestKey: (*list).C_DigestKey.ok_or(Error::Module("C_DigestKey function not found"))?,
+        C_DigestFinal: (*list).C_DigestFinal.ok_or(Error::Module("C_DigestFinal function not found"))?,
+        C_SignInit: (*list).C_SignInit.ok_or(Error::Module("C_SignInit function not found"))?,
+        C_Sign: (*list).C_Sign.ok_or(Error::Module("C_Sign function not found"))?,
+        C_SignUpdate: (*list).C_SignUpdate.ok_or(Error::Module("C_SignUpdate function not found"))?,
+        C_SignFinal: (*list).C_SignFinal.ok_or(Error::Module("C_SignFinal function not found"))?,
+        C_SignRecoverInit: (*list).C_SignRecoverInit.ok_or(Error::Module("C_SignRecoverInit function not found"))?,
+        C_SignRecover: (*list).C_SignRecover.ok_or(Error::Module("C_SignRecover function not found"))?,
+        C_VerifyInit: (*list).C_VerifyInit.ok_or(Error::Module("C_VerifyInit function not found"))?,
+        C_Verify: (*list).C_Verify.ok_or(Error::Module("C_Verify function not found"))?,
+        C_VerifyUpdate: (*list).C_VerifyUpdate.ok_or(Error::Module("C_VerifyUpdate function not found"))?,
+        C_VerifyFinal: (*list).C_VerifyFinal.ok_or(Error::Module("C_VerifyFinal function not found"))?,
+        C_VerifyRecoverInit: (*list).C_VerifyRecoverInit.ok_or(Error::Module("C_VerifyRecoverInit function not found"))?,
+        C_VerifyRecover: (*list).C_VerifyRecover.ok_or(Error::Module("C_VerifyRecover function not found"))?,
+        C_DigestEncryptUpdate: (*list).C_DigestEncryptUpdate.ok_or(Error::Module("C_DigestEncryptUpdate function not found"))?,
+        C_DecryptDigestUpdate: (*list).C_DecryptDigestUpdate.ok_or(Error::Module("C_DecryptDigestUpdate function not found"))?,
+        C_SignEncryptUpdate: (*list).C_SignEncryptUpdate.ok_or(Error::Module("C_SignEncryptUpdate function not found"))?,
+        C_DecryptVerifyUpdate: (*list).C_DecryptVerifyUpdate.ok_or(Error::Module("C_DecryptVerifyUpdate function not found"))?,
+        C_GenerateKey: (*list).C_GenerateKey.ok_or(Error::Module("C_GenerateKey function not found"))?,
+        C_GenerateKeyPair: (*list).C_GenerateKeyPair.ok_or(Error::Module("C_GenerateKeyPair function not found"))?,
+        C_WrapKey: (*list).C_WrapKey.ok_or(Error::Module("C_WrapKey function not found"))?,
+        C_UnwrapKey: (*list).C_UnwrapKey.ok_or(Error::Module("C_UnwrapKey function not found"))?,
+        C_DeriveKey: (*list).C_DeriveKey.ok_or(Error::Module("C_DeriveKey function not found"))?,
+        C_SeedRandom: (*list).C_SeedRandom.ok_or(Error::Module("C_SeedRandom function not found"))?,
+        C_GenerateRandom: (*list).C_GenerateRandom.ok_or(Error::Module("C_GenerateRandom function not found"))?,
+        C_GetFunctionStatus: (*list).C_GetFunctionStatus.ok_or(Error::Module("C_GetFunctionStatus function not found"))?,
+        C_CancelFunction: (*list).C_CancelFunction.ok_or(Error::Module("C_CancelFunction function not found"))?,
+        C_WaitForSlotEvent: (*list).C_WaitForSlotEvent.ok_or(Error::Module("C_WaitForSlotEvent function not found"))?,
       })
     }
   }
