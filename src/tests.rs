@@ -185,9 +185,7 @@ fn ctx_init_pin() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx
-      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
-      .unwrap();
+    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
     ctx.login(sh, CKU_SO, pin).unwrap();
     let res = ctx.init_pin(sh, pin);
     assert!(res.is_ok(), "failed to call C_InitPIN({}, {}): {}", sh, pin.unwrap(), res.unwrap_err());
@@ -205,9 +203,7 @@ fn ctx_set_pin() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx
-      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
-      .unwrap();
+    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
     ctx.login(sh, CKU_SO, pin).unwrap();
     let res = ctx.set_pin(sh, pin, new_pin);
     assert!(res.is_ok(), "failed to call C_SetPIN({}, {}, {}): {}", sh, pin.unwrap(), new_pin.unwrap(), res.unwrap_err());
@@ -240,9 +236,7 @@ fn ctx_close_session() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx
-      .open_session(slot, CKF_SERIAL_SESSION, None, None)
-      .unwrap();
+    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
     let res = ctx.close_session(sh);
     assert!(res.is_ok(), "failed to call C_CloseSession({}): {}", sh, res.unwrap_err());
     println!("Closed Session with CK_SESSION_HANDLE {}", sh);
@@ -258,9 +252,7 @@ fn ctx_close_all_sessions() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    ctx
-      .open_session(slot, CKF_SERIAL_SESSION, None, None)
-      .unwrap();
+    ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
     let res = ctx.close_all_sessions(slot);
     assert!(res.is_ok(), "failed to call C_CloseAllSessions({}): {}", slot, res.unwrap_err());
     println!("Closed All Sessions on Slot {}", slot);
@@ -276,9 +268,7 @@ fn ctx_get_session_info() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx
-      .open_session(slot, CKF_SERIAL_SESSION, None, None)
-      .unwrap();
+    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
     let res = ctx.get_session_info(sh);
     assert!(res.is_ok(), "failed to call C_GetSessionInfo({}): {}", sh, res.unwrap_err());
     let info = res.unwrap();
@@ -295,9 +285,7 @@ fn ctx_login() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx
-      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
-      .unwrap();
+    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
     let res = ctx.login(sh, CKU_SO, pin);
     assert!(res.is_ok(), "failed to call C_Login({}, CKU_SO, {}): {}", sh, pin.unwrap(), res.unwrap_err());
     println!("Login successful");
@@ -313,9 +301,7 @@ fn ctx_logout() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx
-      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
-      .unwrap();
+    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
     ctx.login(sh, CKU_SO, pin).unwrap();
     let res = ctx.logout(sh);
     assert!(res.is_ok(), "failed to call C_Logout({}): {}", sh, res.unwrap_err());
@@ -613,3 +599,243 @@ fn ctx_find_objects_final() {
   let res = ctx.find_objects_final(sh);
   assert!(res.is_ok(), "failed to call C_FindObjectsFinal({}): {}", sh, res.unwrap_err());
 }
+
+#[test]
+fn ctx_generate_key() {
+  let (ctx, sh) = fixture_token().unwrap();
+
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_AES_KEY_GEN,
+    pParameter: ptr::null(),
+    ulParameterLen: 0,
+  };
+
+  // Wrapping Key Template:
+  // CKA_CLASS        ck_type  object_class:CKO_SECRET_KEY
+  // CKA_KEY_TYPE     ck_type  key_type:CKK_AES
+  // CKA_TOKEN        bool     true
+  // CKA_LABEL        string   wrap1-wrap-key
+  // CKA_ENCRYPT      bool     false
+  // CKA_DECRYPT      bool     false
+  // CKA_VALUE_LEN    uint     32
+  // CKA_PRIVATE      bool     true
+  // CKA_SENSITIVE    bool     false
+  // CKA_EXTRACTABLE  bool     true
+  // CKA_WRAP         bool     true
+  // CKA_UNWRAP       bool     true
+
+  let class = CKO_SECRET_KEY;
+  let keyType = CKK_AES;
+  let valueLen = 32;
+  let label = String::from("wrap1-wrap-key");
+  let token: CK_BBOOL = CK_TRUE;
+  let private: CK_BBOOL = CK_TRUE;
+  let encrypt: CK_BBOOL = CK_FALSE;
+  let decrypt: CK_BBOOL = CK_FALSE;
+  let sensitive: CK_BBOOL = CK_FALSE;
+  let extractable: CK_BBOOL = CK_TRUE;
+  let wrap: CK_BBOOL = CK_TRUE;
+  let unwrap: CK_BBOOL = CK_TRUE;
+
+  let template = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&class),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&keyType),
+    CK_ATTRIBUTE::new(CKA_VALUE_LEN).with_ck_ulong(&valueLen),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&token),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&private),
+    CK_ATTRIBUTE::new(CKA_ENCRYPT).with_bool(&encrypt),
+    CK_ATTRIBUTE::new(CKA_DECRYPT).with_bool(&decrypt),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&sensitive),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&extractable),
+    CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&wrap),
+    CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&unwrap),
+  ];
+
+  let res = ctx.generate_key(sh, &mechanism, &template);
+  assert!(res.is_ok(), "failed to call C_Generatekey({}, {:?}, {:?}): {}", sh, mechanism, template, res.unwrap_err());
+  let oh = res.unwrap();
+  assert_ne!(oh, CK_INVALID_HANDLE);
+  println!("Generated Key Object Handle: {}", oh);
+}
+
+#[test]
+fn ctx_generate_key_pair() {
+  unimplemented!()
+}
+
+fn fixture_token_and_secret_keys() -> Result<(Ctx, CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
+  let (ctx, sh) = fixture_token()?;
+
+  let wrapOh: CK_OBJECT_HANDLE;
+  let secOh: CK_OBJECT_HANDLE;
+  {
+    let mechanism = CK_MECHANISM {
+      mechanism: CKM_AES_KEY_GEN,
+      pParameter: ptr::null(),
+      ulParameterLen: 0,
+    };
+
+    let class = CKO_SECRET_KEY;
+    let keyType = CKK_AES;
+    let valueLen = 32;
+    let label = String::from("wrap1-wrap-key");
+    let token: CK_BBOOL = CK_TRUE;
+    let private: CK_BBOOL = CK_TRUE;
+    let encrypt: CK_BBOOL = CK_FALSE;
+    let decrypt: CK_BBOOL = CK_FALSE;
+    let sensitive: CK_BBOOL = CK_FALSE;
+    let extractable: CK_BBOOL = CK_TRUE;
+    let wrap: CK_BBOOL = CK_TRUE;
+    let unwrap: CK_BBOOL = CK_TRUE;
+
+    let template = vec![
+      CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&class),
+      CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&keyType),
+      CK_ATTRIBUTE::new(CKA_VALUE_LEN).with_ck_ulong(&valueLen),
+      CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label),
+      CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&token),
+      CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&private),
+      CK_ATTRIBUTE::new(CKA_ENCRYPT).with_bool(&encrypt),
+      CK_ATTRIBUTE::new(CKA_DECRYPT).with_bool(&decrypt),
+      CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&sensitive),
+      CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&extractable),
+      CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&wrap),
+      CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&unwrap),
+    ];
+
+    wrapOh = ctx.generate_key(sh, &mechanism, &template)?;
+  }
+
+  {
+    let mechanism = CK_MECHANISM {
+      mechanism: CKM_AES_KEY_GEN,
+      pParameter: ptr::null(),
+      ulParameterLen: 0,
+    };
+
+    // CKA_CLASS        ck_type  object_class:CKO_SECRET_KEY
+    // CKA_KEY_TYPE     ck_type  key_type:CKK_AES
+    // CKA_TOKEN        bool     true
+    // CKA_LABEL        string   secured-key
+    // CKA_ENCRYPT      bool     true
+    // CKA_DECRYPT      bool     true
+    // CKA_VALUE_LEN    uint     32
+    // CKA_PRIVATE      bool     true
+    // CKA_SENSITIVE    bool     true
+    // CKA_EXTRACTABLE  bool     true
+    // CKA_WRAP         bool     false
+    // CKA_UNWRAP       bool     false
+
+    let class = CKO_SECRET_KEY;
+    let keyType = CKK_AES;
+    let valueLen = 32;
+    let label = String::from("secured-key");
+    let token: CK_BBOOL = CK_TRUE;
+    let private: CK_BBOOL = CK_TRUE;
+    let encrypt: CK_BBOOL = CK_TRUE;
+    let decrypt: CK_BBOOL = CK_TRUE;
+    let sensitive: CK_BBOOL = CK_TRUE;
+    let extractable: CK_BBOOL = CK_TRUE;
+    let wrap: CK_BBOOL = CK_FALSE;
+    let unwrap: CK_BBOOL = CK_FALSE;
+
+    let template = vec![
+      CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&class),
+      CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&keyType),
+      CK_ATTRIBUTE::new(CKA_VALUE_LEN).with_ck_ulong(&valueLen),
+      CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label),
+      CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&token),
+      CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&private),
+      CK_ATTRIBUTE::new(CKA_ENCRYPT).with_bool(&encrypt),
+      CK_ATTRIBUTE::new(CKA_DECRYPT).with_bool(&decrypt),
+      CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&sensitive),
+      CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&extractable),
+      CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&wrap),
+      CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&unwrap),
+    ];
+
+    secOh = ctx.generate_key(sh, &mechanism, &template)?;
+  }
+
+  Ok((ctx, sh, wrapOh, secOh))
+}
+
+#[test]
+fn ctx_wrap_key() {
+  let (ctx, sh, wrapOh, secOh) = fixture_token_and_secret_keys().unwrap();
+
+  // using the default IV
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_AES_KEY_WRAP_PAD,
+    pParameter: ptr::null(),
+    ulParameterLen: 0,
+  };
+
+  let res = ctx.wrap_key(sh, &mechanism, wrapOh, secOh);
+  assert!(res.is_ok(), "failed to call C_WrapKey({}, {:?}, {}, {}) without parameter: {}", sh, &mechanism, wrapOh, secOh, res.unwrap_err());
+  let wrappedKey = res.unwrap();
+  println!("Wrapped Key Bytes (Total of {} bytes): {:?}", wrappedKey.len(), wrappedKey);
+}
+
+#[test]
+fn ctx_unwrap_key() {
+  let (ctx, sh, wrapOh, secOh) = fixture_token_and_secret_keys().unwrap();
+
+  // using the default IV
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_AES_KEY_WRAP_PAD,
+    pParameter: ptr::null(),
+    ulParameterLen: 0,
+  };
+
+  let wrappedKey = ctx.wrap_key(sh, &mechanism, wrapOh, secOh).unwrap();
+
+  let class = CKO_SECRET_KEY;
+  let keyType = CKK_AES;
+  let label = String::from("secured-key-unwrapped");
+  let token: CK_BBOOL = CK_TRUE;
+  let private: CK_BBOOL = CK_TRUE;
+  let encrypt: CK_BBOOL = CK_TRUE;
+  let decrypt: CK_BBOOL = CK_TRUE;
+  let sensitive: CK_BBOOL = CK_TRUE;
+  let extractable: CK_BBOOL = CK_TRUE;
+  let wrap: CK_BBOOL = CK_FALSE;
+  let unwrap: CK_BBOOL = CK_FALSE;
+
+  let template = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&class),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&keyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&token),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&private),
+    CK_ATTRIBUTE::new(CKA_ENCRYPT).with_bool(&encrypt),
+    CK_ATTRIBUTE::new(CKA_DECRYPT).with_bool(&decrypt),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&sensitive),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&extractable),
+    CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&wrap),
+    CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&unwrap),
+  ];
+
+  let res = ctx.unwrap_key(sh, &mechanism, wrapOh, &wrappedKey, &template);
+  assert!(res.is_ok(), "failed to call C_UnwrapKey({}, {:?}, {}, {:?}, {:?}): {}", sh, &mechanism, wrapOh, &wrappedKey, &template, res.unwrap_err());
+  let oh = res.unwrap();
+  println!("New unwrapped key Object Handle: {}", oh);
+}
+
+#[test]
+fn ctx_derive_key() {
+  unimplemented!()
+}
+/*
+  C_GenerateKey: C_GenerateKey,
+  C_GenerateKeyPair: C_GenerateKeyPair,
+  C_WrapKey: C_WrapKey,
+  C_UnwrapKey: C_UnwrapKey,
+  C_DeriveKey: C_DeriveKey,
+  C_SeedRandom: C_SeedRandom,
+  C_GenerateRandom: C_GenerateRandom,
+  C_GetFunctionStatus: C_GetFunctionStatus,
+  C_CancelFunction: C_CancelFunction,
+  C_WaitForSlotEvent: C_WaitForSlotEvent,
+  */
