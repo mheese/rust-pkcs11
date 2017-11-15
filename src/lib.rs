@@ -636,6 +636,126 @@ impl Ctx {
       err => Err(Error::Pkcs11(err)),
     }
   }
+
+  pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+    let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+    match (self.C_GenerateKey)(session, mechanism, template.as_slice().as_ptr(), template.len(), &mut object) {
+      CKR_OK => Ok(object),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn generate_key_pair(
+    &self,
+    session: CK_SESSION_HANDLE,
+    mechanism: &CK_MECHANISM,
+    publicKeyTemplate: &Vec<CK_ATTRIBUTE>,
+    privateKeyTemplate: &Vec<CK_ATTRIBUTE>,
+  ) -> Result<(CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
+    let mut pubOh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+    let mut privOh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+    match (self.C_GenerateKeyPair)(
+      session,
+      mechanism,
+      publicKeyTemplate.as_slice().as_ptr(),
+      publicKeyTemplate.len(),
+      privateKeyTemplate.as_slice().as_ptr(),
+      privateKeyTemplate.len(),
+      &mut pubOh,
+      &mut privOh,
+    ) {
+      CKR_OK => Ok((pubOh, privOh)),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn wrap_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, wrappingKey: CK_OBJECT_HANDLE, key: CK_OBJECT_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
+    let mut length: CK_ULONG = 0;
+    match (self.C_WrapKey)(session, mechanism, wrappingKey, key, ptr::null(), &mut length) {
+      CKR_OK => if length > 0 {
+        let mut out: Vec<CK_BYTE> = Vec::with_capacity(length);
+        match (self.C_WrapKey)(session, mechanism, wrappingKey, key, out.as_slice().as_ptr(), &length) {
+          CKR_OK => {
+            unsafe {
+              out.set_len(length);
+            }
+            Ok((out))
+          }
+          err => Err(Error::Pkcs11(err)),
+        }
+      } else {
+        Ok((vec![]))
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn unwrap_key(
+    &self,
+    session: CK_SESSION_HANDLE,
+    mechanism: &CK_MECHANISM,
+    unwrappingKey: CK_OBJECT_HANDLE,
+    wrappedKey: &Vec<CK_BYTE>,
+    template: &Vec<CK_ATTRIBUTE>,
+  ) -> Result<CK_OBJECT_HANDLE, Error> {
+    let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+    match (self.C_UnwrapKey)(session, mechanism, unwrappingKey, wrappedKey.as_slice().as_ptr(), wrappedKey.len(), template.as_slice().as_ptr(), template.len(), &mut oh) {
+      CKR_OK => Ok(oh),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn derive_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, baseKey: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+    let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
+    match (self.C_DeriveKey)(session, mechanism, baseKey, template.as_slice().as_ptr(), template.len(), &mut oh) {
+      CKR_OK => Ok(oh),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn seed_random(&self, session: CK_SESSION_HANDLE, seed: &Vec<CK_BYTE>) -> Result<(), Error> {
+    match (self.C_SeedRandom)(session, seed.as_slice().as_ptr(), seed.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn generate_random(&self, session: CK_SESSION_HANDLE, randomLength: CK_ULONG) -> Result<Vec<CK_BYTE>, Error> {
+    let mut data: Vec<CK_BYTE> = Vec::with_capacity(randomLength);
+    match (self.C_GenerateRandom)(session, data.as_slice().as_ptr(), randomLength) {
+      CKR_OK => {
+        unsafe {
+          data.set_len(randomLength);
+        }
+        Ok(data)
+      }
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn get_function_status(&self, session: CK_SESSION_HANDLE) -> Result<CK_RV, Error> {
+    match (self.C_GetFunctionStatus)(session) {
+      CKR_OK => Ok(CKR_OK),
+      CKR_FUNCTION_NOT_PARALLEL => Ok(CKR_FUNCTION_NOT_PARALLEL),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn cancel_function(&self, session: CK_SESSION_HANDLE) -> Result<CK_RV, Error> {
+    match (self.C_CancelFunction)(session) {
+      CKR_OK => Ok(CKR_OK),
+      CKR_FUNCTION_NOT_PARALLEL => Ok(CKR_FUNCTION_NOT_PARALLEL),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn wait_for_slot_event(&self, flags: CK_FLAGS) -> Result<CK_SLOT_ID, Error> {
+    let mut slotID: CK_SLOT_ID = 0;
+    match (self.C_WaitForSlotEvent)(flags, &mut slotID, ptr::null()) {
+      CKR_OK => Ok(slotID),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
 }
 
 impl Drop for Ctx {
