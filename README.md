@@ -29,17 +29,17 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Implementing Token and PIN Management functions
 - [x] Implementing Session Management functions
 - [x] Implementing Object Management functions
-- [ ] Implementing Key Management functions
+- [x] Implementing Key Management functions
 - [ ] Implementing Encryption/Decryption functions
 - [ ] Implementing Message Digest functions
 - [ ] Implementing Signing and MACing
 - [ ] Implementing Verifying of signatures and MACs
 - [ ] Implementing Dual-function cryptographic operations
-- [ ] Implementing Legacy PKCS#11 functions
+- [x] Implementing Legacy PKCS#11 functions
 - [x] Reorganize code of low-level API (too bloated, which we all know is what PKCS#11 is like)
 - [x] Import the rest of the C header `pkcs11t.h` types into rust
 - [x] Import the rest of the C header `pkcs11f.h` functions into rust
-- [ ] C type constants to string converter functions, and the reverse
+- [ ] C type constants to string converter functions, and the reverse (maybe part of the high-level API?)
 - [ ] Design and implement high-level API
 - [x] Publish on crates.io (wow, that was easy)
 - [ ] Write and Generate Documentation for Rust docs

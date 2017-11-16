@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 /// Tests need to be run with `RUST_TEST_THREADS=1` currently to pass.
 extern crate num_traits;
+extern crate hex;
 
-use tests::num_traits::Num;
+use self::num_traits::Num;
+use self::hex::FromHex;
 
 use super::*;
 use super::types::*;
@@ -56,35 +59,55 @@ fn test_label_from_str() {
 #[test]
 fn ctx_new() {
   let res = Ctx::new(PKCS11_MODULE_FILENAME);
-  assert!(res.is_ok(), "failed to create new context: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to create new context: {}",
+    res.unwrap_err()
+  );
 }
 
 #[test]
 fn ctx_initialize() {
   let mut ctx = Ctx::new(PKCS11_MODULE_FILENAME).unwrap();
   let res = ctx.initialize(None);
-  assert!(res.is_ok(), "failed to initialize context: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to initialize context: {}",
+    res.unwrap_err()
+  );
   assert!(ctx.is_initialized(), "internal state is not initialized");
 }
 
 #[test]
 fn ctx_new_and_initialize() {
   let res = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME);
-  assert!(res.is_ok(), "failed to create or initialize new context: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to create or initialize new context: {}",
+    res.unwrap_err()
+  );
 }
 
 #[test]
 fn ctx_finalize() {
   let mut ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
   let res = ctx.finalize();
-  assert!(res.is_ok(), "failed to finalize context: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to finalize context: {}",
+    res.unwrap_err()
+  );
 }
 
 #[test]
 fn ctx_get_info() {
   let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
   let res = ctx.get_info();
-  assert!(res.is_ok(), "failed to call C_GetInfo: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_GetInfo: {}",
+    res.unwrap_err()
+  );
   let info = res.unwrap();
   println!("{:?}", info);
 }
@@ -93,7 +116,11 @@ fn ctx_get_info() {
 fn ctx_get_function_list() {
   let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
   let res = ctx.get_function_list();
-  assert!(res.is_ok(), "failed to call C_GetFunctionList: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_GetFunctionList: {}",
+    res.unwrap_err()
+  );
   let list = res.unwrap();
   println!("{:?}", list);
 }
@@ -102,7 +129,11 @@ fn ctx_get_function_list() {
 fn ctx_get_slot_list() {
   let ctx = Ctx::new_and_initialize(PKCS11_MODULE_FILENAME).unwrap();
   let res = ctx.get_slot_list(false);
-  assert!(res.is_ok(), "failed to call C_GetSlotList: {}", res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_GetSlotList: {}",
+    res.unwrap_err()
+  );
   let slots = res.unwrap();
   println!("Slots: {:?}", slots);
 }
@@ -114,7 +145,12 @@ fn ctx_get_slot_infos() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     let res = ctx.get_slot_info(slot);
-    assert!(res.is_ok(), "failed to call C_GetSlotInfo({}): {}", slot, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_GetSlotInfo({}): {}",
+      slot,
+      res.unwrap_err()
+    );
     let info = res.unwrap();
     println!("Slot {} {:?}", slot, info);
   }
@@ -127,7 +163,12 @@ fn ctx_get_token_infos() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     let res = ctx.get_token_info(slot);
-    assert!(res.is_ok(), "failed to call C_GetTokenInfo({}): {}", slot, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_GetTokenInfo({}): {}",
+      slot,
+      res.unwrap_err()
+    );
     let info = res.unwrap();
     println!("Slot {} {:?}", slot, info);
   }
@@ -140,7 +181,12 @@ fn ctx_get_mechanism_lists() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     let res = ctx.get_mechanism_list(slot);
-    assert!(res.is_ok(), "failed to call C_GetMechanismList({}): {}", slot, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_GetMechanismList({}): {}",
+      slot,
+      res.unwrap_err()
+    );
     let mechs = res.unwrap();
     println!("Slot {} Mechanisms: {:?}", slot, mechs);
   }
@@ -155,7 +201,13 @@ fn ctx_get_mechanism_infos() {
     let mechanisms = ctx.get_mechanism_list(slot).unwrap();
     for mechanism in mechanisms {
       let res = ctx.get_mechanism_info(slot, mechanism);
-      assert!(res.is_ok(), "failed to call C_GetMechanismInfo({}, {}): {}", slot, mechanism, res.unwrap_err());
+      assert!(
+        res.is_ok(),
+        "failed to call C_GetMechanismInfo({}, {}): {}",
+        slot,
+        mechanism,
+        res.unwrap_err()
+      );
       let info = res.unwrap();
       println!("Slot {} Mechanism {}: {:?}", slot, mechanism, info);
     }
@@ -171,8 +223,19 @@ fn ctx_init_token() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     let res = ctx.init_token(slot, pin, LABEL);
-    assert!(res.is_ok(), "failed to call C_InitToken({}, {}, {}): {}", slot, pin.unwrap(), LABEL, res.unwrap_err());
-    println!("Slot {} C_InitToken successful, PIN: {}", slot, pin.unwrap());
+    assert!(
+      res.is_ok(),
+      "failed to call C_InitToken({}, {}, {}): {}",
+      slot,
+      pin.unwrap(),
+      LABEL,
+      res.unwrap_err()
+    );
+    println!(
+      "Slot {} C_InitToken successful, PIN: {}",
+      slot,
+      pin.unwrap()
+    );
   }
 }
 
@@ -185,10 +248,18 @@ fn ctx_init_pin() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+    let sh = ctx
+      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
+      .unwrap();
     ctx.login(sh, CKU_SO, pin).unwrap();
     let res = ctx.init_pin(sh, pin);
-    assert!(res.is_ok(), "failed to call C_InitPIN({}, {}): {}", sh, pin.unwrap(), res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_InitPIN({}, {}): {}",
+      sh,
+      pin.unwrap(),
+      res.unwrap_err()
+    );
     println!("InitPIN successful");
   }
 }
@@ -203,10 +274,19 @@ fn ctx_set_pin() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+    let sh = ctx
+      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
+      .unwrap();
     ctx.login(sh, CKU_SO, pin).unwrap();
     let res = ctx.set_pin(sh, pin, new_pin);
-    assert!(res.is_ok(), "failed to call C_SetPIN({}, {}, {}): {}", sh, pin.unwrap(), new_pin.unwrap(), res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_SetPIN({}, {}, {}): {}",
+      sh,
+      pin.unwrap(),
+      new_pin.unwrap(),
+      res.unwrap_err()
+    );
     println!("SetPIN successful");
   }
 }
@@ -221,7 +301,12 @@ fn ctx_open_session() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let res = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None);
-    assert!(res.is_ok(), "failed to call C_OpenSession({}, CKF_SERIAL_SESSION, None, None): {}", slot, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_OpenSession({}, CKF_SERIAL_SESSION, None, None): {}",
+      slot,
+      res.unwrap_err()
+    );
     let sh = res.unwrap();
     println!("Opened Session on Slot {}: CK_SESSION_HANDLE {}", slot, sh);
   }
@@ -236,9 +321,16 @@ fn ctx_close_session() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
+    let sh = ctx
+      .open_session(slot, CKF_SERIAL_SESSION, None, None)
+      .unwrap();
     let res = ctx.close_session(sh);
-    assert!(res.is_ok(), "failed to call C_CloseSession({}): {}", sh, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_CloseSession({}): {}",
+      sh,
+      res.unwrap_err()
+    );
     println!("Closed Session with CK_SESSION_HANDLE {}", sh);
   }
 }
@@ -252,9 +344,16 @@ fn ctx_close_all_sessions() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
+    ctx
+      .open_session(slot, CKF_SERIAL_SESSION, None, None)
+      .unwrap();
     let res = ctx.close_all_sessions(slot);
-    assert!(res.is_ok(), "failed to call C_CloseAllSessions({}): {}", slot, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_CloseAllSessions({}): {}",
+      slot,
+      res.unwrap_err()
+    );
     println!("Closed All Sessions on Slot {}", slot);
   }
 }
@@ -268,9 +367,16 @@ fn ctx_get_session_info() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None).unwrap();
+    let sh = ctx
+      .open_session(slot, CKF_SERIAL_SESSION, None, None)
+      .unwrap();
     let res = ctx.get_session_info(sh);
-    assert!(res.is_ok(), "failed to call C_GetSessionInfo({}): {}", sh, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_GetSessionInfo({}): {}",
+      sh,
+      res.unwrap_err()
+    );
     let info = res.unwrap();
     println!("{:?}", info);
   }
@@ -285,9 +391,17 @@ fn ctx_login() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+    let sh = ctx
+      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
+      .unwrap();
     let res = ctx.login(sh, CKU_SO, pin);
-    assert!(res.is_ok(), "failed to call C_Login({}, CKU_SO, {}): {}", sh, pin.unwrap(), res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_Login({}, CKU_SO, {}): {}",
+      sh,
+      pin.unwrap(),
+      res.unwrap_err()
+    );
     println!("Login successful");
   }
 }
@@ -301,10 +415,17 @@ fn ctx_logout() {
   for slot in slots[..1].into_iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
-    let sh = ctx.open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None).unwrap();
+    let sh = ctx
+      .open_session(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION, None, None)
+      .unwrap();
     ctx.login(sh, CKU_SO, pin).unwrap();
     let res = ctx.logout(sh);
-    assert!(res.is_ok(), "failed to call C_Logout({}): {}", sh, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_Logout({}): {}",
+      sh,
+      res.unwrap_err()
+    );
     println!("Logout successful");
   }
 }
@@ -353,7 +474,12 @@ fn attr_bytes() {
   println!("{:?}", attr);
   let ret: Vec<CK_BYTE> = attr.get_bytes();
   println!("{:?}", ret);
-  assert_eq!(val, ret.as_slice(), "attr.get_bytes() shouls have been {:?}", val);
+  assert_eq!(
+    val,
+    ret.as_slice(),
+    "attr.get_bytes() shouls have been {:?}",
+    val
+  );
 }
 
 #[test]
@@ -373,9 +499,24 @@ fn attr_date() {
   println!("{:?}", attr);
   let ret = attr.get_date();
   println!("{:?}", ret);
-  assert_eq!(val.day, ret.day, "attr.get_date() should have been {:?}", val);
-  assert_eq!(val.month, ret.month, "attr.get_date() should have been {:?}", val);
-  assert_eq!(val.year, ret.year, "attr.get_date() should have been {:?}", val);
+  assert_eq!(
+    val.day,
+    ret.day,
+    "attr.get_date() should have been {:?}",
+    val
+  );
+  assert_eq!(
+    val.month,
+    ret.month,
+    "attr.get_date() should have been {:?}",
+    val
+  );
+  assert_eq!(
+    val.year,
+    ret.year,
+    "attr.get_date() should have been {:?}",
+    val
+  );
 }
 
 #[test]
@@ -388,7 +529,12 @@ fn attr_biginteger() {
   let ret = attr.get_biginteger();
   println!("{:?}", ret);
   assert_eq!(ret, val, "attr.get_biginteger() should have been {:?}", val);
-  assert_eq!(ret.to_str_radix(10), num_str, "attr.get_biginteger() should have been {:?}", num_str);
+  assert_eq!(
+    ret.to_str_radix(10),
+    num_str,
+    "attr.get_biginteger() should have been {:?}",
+    num_str
+  );
 }
 
 /// This will create and initialize a context, set a SO and USER PIN, and login as the USER.
@@ -442,7 +588,13 @@ fn ctx_create_object() {
   ];
   println!("Template: {:?}", template);
   let res = ctx.create_object(sh, &template);
-  assert!(res.is_ok(), "failed to call C_CreateObject({}, {:?}): {}", sh, &template, res.is_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_CreateObject({}, {:?}): {}",
+    sh,
+    &template,
+    res.is_err()
+  );
   let oh = res.unwrap();
   println!("Object Handle: {}", oh);
 }
@@ -480,7 +632,14 @@ fn ctx_copy_object() {
   println!("Template2: {:?}", template2);
 
   let res = ctx.copy_object(sh, oh, &template2);
-  assert!(res.is_ok(), "failed to call C_CopyObject({}, {}, {:?}): {}", sh, oh, &template2, res.unwrap_err(),);
+  assert!(
+    res.is_ok(),
+    "failed to call C_CopyObject({}, {}, {:?}): {}",
+    sh,
+    oh,
+    &template2,
+    res.unwrap_err(),
+  );
   let oh2 = res.unwrap();
   println!("Object Handle2: {}", oh2);
 }
@@ -490,7 +649,13 @@ fn ctx_destroy_object() {
   let (ctx, sh, oh) = fixture_token_and_object().unwrap();
 
   let res = ctx.destroy_object(sh, oh);
-  assert!(res.is_ok(), "failed to call C_DestroyObject({}, {}): {})", sh, oh, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_DestroyObject({}, {}): {})",
+    sh,
+    oh,
+    res.unwrap_err()
+  );
 }
 
 #[test]
@@ -498,7 +663,13 @@ fn ctx_get_object_size() {
   let (ctx, sh, oh) = fixture_token_and_object().unwrap();
 
   let res = ctx.get_object_size(sh, oh);
-  assert!(res.is_ok(), "failed to call C_GetObjectSize({}, {}): {}", sh, oh, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_GetObjectSize({}, {}): {}",
+    sh,
+    oh,
+    res.unwrap_err()
+  );
   let size = res.unwrap();
   println!("Object Size: {}", size);
 }
@@ -517,7 +688,14 @@ fn ctx_get_attribute_value() {
     println!("Template: {:?}", template);
     {
       let res = ctx.get_attribute_value(sh, oh, &template);
-      assert!(res.is_ok(), "failed to call C_GetAttributeValue({}, {}, {:?}): {}", sh, oh, &template, res.unwrap_err());
+      assert!(
+        res.is_ok(),
+        "failed to call C_GetAttributeValue({}, {}, {:?}): {}",
+        sh,
+        oh,
+        &template,
+        res.unwrap_err()
+      );
       let (rv, _) = res.unwrap();
       println!("CK_RV: 0x{:x}, Template: {:?}", rv, &template);
     }
@@ -532,7 +710,14 @@ fn ctx_get_attribute_value() {
     template[3].set_bytes(&value.as_slice());
 
     let res = ctx.get_attribute_value(sh, oh, &template);
-    assert!(res.is_ok(), "failed to call C_GetAttributeValue({}, {}, {:?}): {}", sh, oh, &template, res.unwrap_err());
+    assert!(
+      res.is_ok(),
+      "failed to call C_GetAttributeValue({}, {}, {:?}): {}",
+      sh,
+      oh,
+      &template,
+      res.unwrap_err()
+    );
     let (rv, _) = res.unwrap();
     println!("CK_RV: 0x{:x}, Retrieved Attributes: {:?}", rv, &template);
 
@@ -552,7 +737,14 @@ fn ctx_set_attribute_value() {
   let template = vec![CK_ATTRIBUTE::new(CKA_LABEL).with_bytes(&value[..])];
 
   let res = ctx.set_attribute_value(sh, oh, &template);
-  assert!(res.is_ok(), "failed to call C_SetAttributeValue({}, {}, {:?}): {}", sh, oh, &template, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_SetAttributeValue({}, {}, {:?}): {}",
+    sh,
+    oh,
+    &template,
+    res.unwrap_err()
+  );
 
   let str: Vec<CK_BYTE> = Vec::from("aaaaaaaaaaaaaaaa");
   let template2 = vec![CK_ATTRIBUTE::new(CKA_LABEL).with_bytes(&str.as_slice())];
@@ -568,7 +760,13 @@ fn ctx_find_objects_init() {
   let template = vec![CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label)];
 
   let res = ctx.find_objects_init(sh, &template);
-  assert!(res.is_ok(), "failed to call C_FindObjectsInit({}, {:?}): {}", sh, &template, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_FindObjectsInit({}, {:?}): {}",
+    sh,
+    &template,
+    res.unwrap_err()
+  );
 }
 
 #[test]
@@ -581,7 +779,13 @@ fn ctx_find_objects() {
   ctx.find_objects_init(sh, &template).unwrap();
 
   let res = ctx.find_objects(sh, 10);
-  assert!(res.is_ok(), "failed to call C_FindObjects({}, {}): {}", sh, 10, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_FindObjects({}, {}): {}",
+    sh,
+    10,
+    res.unwrap_err()
+  );
   let objs = res.unwrap();
   assert_eq!(objs.len(), 1);
 }
@@ -597,7 +801,12 @@ fn ctx_find_objects_final() {
   ctx.find_objects(sh, 10).unwrap();
 
   let res = ctx.find_objects_final(sh);
-  assert!(res.is_ok(), "failed to call C_FindObjectsFinal({}): {}", sh, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_FindObjectsFinal({}): {}",
+    sh,
+    res.unwrap_err()
+  );
 }
 
 #[test]
@@ -653,7 +862,14 @@ fn ctx_generate_key() {
   ];
 
   let res = ctx.generate_key(sh, &mechanism, &template);
-  assert!(res.is_ok(), "failed to call C_Generatekey({}, {:?}, {:?}): {}", sh, mechanism, template, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_Generatekey({}, {:?}, {:?}): {}",
+    sh,
+    mechanism,
+    template,
+    res.unwrap_err()
+  );
   let oh = res.unwrap();
   assert_ne!(oh, CK_INVALID_HANDLE);
   println!("Generated Key Object Handle: {}", oh);
@@ -661,10 +877,98 @@ fn ctx_generate_key() {
 
 #[test]
 fn ctx_generate_key_pair() {
-  unimplemented!()
+  let (ctx, sh) = fixture_token().unwrap();
+
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_RSA_PKCS_KEY_PAIR_GEN,
+    pParameter: ptr::null(),
+    ulParameterLen: 0,
+  };
+
+  // Private Key Template
+  // CKA_CLASS         ck_type  object_class:CKO_PRIVATE_KEY
+  // CKA_KEY_TYPE      ck_type  key_type:CKK_RSA
+  // CKA_TOKEN         bool     true
+  // CKA_SENSITIVE     bool     true
+  // CKA_UNWRAP        bool     false
+  // CKA_EXTRACTABLE   bool     false
+  // CKA_LABEL         string   ca-hsm-priv
+  // CKA_SIGN          bool     true
+  // CKA_PRIVATE       bool     true
+
+  let privClass = CKO_PRIVATE_KEY;
+  let privKeyType = CKK_RSA;
+  let privLabel = String::from("ca-hsm-priv");
+  let privToken = CK_TRUE;
+  let privPrivate = CK_TRUE;
+  let privSensitive = CK_TRUE;
+  let privUnwrap = CK_FALSE;
+  let privExtractable = CK_FALSE;
+  let privSign = CK_TRUE;
+
+  let privTemplate = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&privClass),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&privKeyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&privLabel),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&privToken),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&privPrivate),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&privSensitive),
+    CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&privUnwrap),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&privExtractable),
+    CK_ATTRIBUTE::new(CKA_SIGN).with_bool(&privSign),
+  ];
+
+  // Public Key Template
+  // CKA_CLASS             ck_type       object_class:CKO_PUBLIC_KEY
+  // CKA_KEY_TYPE          ck_type       key_type:CKK_RSA
+  // CKA_TOKEN             bool          true
+  // CKA_MODULUS_BITS      uint          4096
+  // CKA_PUBLIC_EXPONENT   big_integer   65537
+  // CKA_LABEL             string        ca-hsm-pub
+  // CKA_WRAP              bool          false
+  // CKA_VERIFY            bool          true
+  // CKA_PRIVATE           bool          true
+
+  let pubClass = CKO_PUBLIC_KEY;
+  let pubKeyType = CKK_RSA;
+  let pubLabel = String::from("ca-hsm-pub");
+  let pubToken = CK_TRUE;
+  let pubPrivate = CK_TRUE;
+  let pubWrap = CK_FALSE;
+  let pubVerify = CK_TRUE;
+  let pubModulusBits: CK_ULONG = 4096;
+  let pubPublicExponent = BigUint::from(65537u32);
+  let pubPublicExponentSlice = pubPublicExponent.to_bytes_le();
+
+  let pubTemplate = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&pubClass),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&pubKeyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&pubLabel),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&pubToken),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&pubPrivate),
+    CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&pubWrap),
+    CK_ATTRIBUTE::new(CKA_VERIFY).with_bool(&pubVerify),
+    CK_ATTRIBUTE::new(CKA_MODULUS_BITS).with_ck_ulong(&pubModulusBits),
+    CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT).with_biginteger(&pubPublicExponentSlice),
+  ];
+
+  let res = ctx.generate_key_pair(sh, &mechanism, &pubTemplate, &privTemplate);
+  assert!(
+    res.is_ok(),
+    "failed to call C_GenerateKeyPair({}, {:?}, {:?}, {:?}): {}",
+    sh,
+    &mechanism,
+    &pubTemplate,
+    &privTemplate,
+    res.unwrap_err()
+  );
+  let (pubOh, privOh) = res.unwrap();
+  println!("Private Key Object Handle: {}", privOh);
+  println!("Public Key Object Handle: {}", pubOh);
 }
 
-fn fixture_token_and_secret_keys() -> Result<(Ctx, CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
+fn fixture_token_and_secret_keys(
+) -> Result<(Ctx, CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
   let (ctx, sh) = fixture_token()?;
 
   let wrapOh: CK_OBJECT_HANDLE;
@@ -761,6 +1065,148 @@ fn fixture_token_and_secret_keys() -> Result<(Ctx, CK_SESSION_HANDLE, CK_OBJECT_
   Ok((ctx, sh, wrapOh, secOh))
 }
 
+fn fixture_key_pair(
+  ctx: &Ctx,
+  sh: CK_SESSION_HANDLE,
+  pubLabel: String,
+  privLabel: String,
+) -> Result<(CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_RSA_PKCS_KEY_PAIR_GEN,
+    pParameter: ptr::null(),
+    ulParameterLen: 0,
+  };
+
+  let privClass = CKO_PRIVATE_KEY;
+  let privKeyType = CKK_RSA;
+  let privLabel = privLabel;
+  let privToken = CK_TRUE;
+  let privPrivate = CK_TRUE;
+  let privSensitive = CK_TRUE;
+  let privUnwrap = CK_FALSE;
+  let privExtractable = CK_FALSE;
+  let privSign = CK_TRUE;
+
+  let privTemplate = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&privClass),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&privKeyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&privLabel),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&privToken),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&privPrivate),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&privSensitive),
+    CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&privUnwrap),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&privExtractable),
+    CK_ATTRIBUTE::new(CKA_SIGN).with_bool(&privSign),
+  ];
+
+  let pubClass = CKO_PUBLIC_KEY;
+  let pubKeyType = CKK_RSA;
+  let pubLabel = pubLabel;
+  let pubToken = CK_TRUE;
+  let pubPrivate = CK_TRUE;
+  let pubWrap = CK_FALSE;
+  let pubVerify = CK_TRUE;
+  let pubModulusBits: CK_ULONG = 4096;
+  let pubPublicExponent = BigUint::from(65537u32);
+  let pubPublicExponentSlice = pubPublicExponent.to_bytes_le();
+
+  let pubTemplate = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&pubClass),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&pubKeyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&pubLabel),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&pubToken),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&pubPrivate),
+    CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&pubWrap),
+    CK_ATTRIBUTE::new(CKA_VERIFY).with_bool(&pubVerify),
+    CK_ATTRIBUTE::new(CKA_MODULUS_BITS).with_ck_ulong(&pubModulusBits),
+    CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT).with_biginteger(&pubPublicExponentSlice),
+  ];
+
+  let (pubOh, privOh) = ctx.generate_key_pair(sh, &mechanism, &pubTemplate, &privTemplate)?;
+  Ok((pubOh, privOh))
+}
+
+fn fixture_dh_key_pair(
+  ctx: &Ctx,
+  sh: CK_SESSION_HANDLE,
+  pubLabel: String,
+  privLabel: String,
+) -> Result<(CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_DH_PKCS_KEY_PAIR_GEN,
+    pParameter: ptr::null(),
+    ulParameterLen: 0,
+  };
+  //[]*pkcs11.Attribute{
+  //	pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_PRIVATE_KEY),
+  //	pkcs11.NewAttribute(pkcs11.CKA_KEY_TYPE, pkcs11.CKK_DH),
+  //	pkcs11.NewAttribute(pkcs11.CKA_PRIVATE, true),
+  //	pkcs11.NewAttribute(pkcs11.CKA_TOKEN, false),
+  //	pkcs11.NewAttribute(pkcs11.CKA_DERIVE, true),
+  //},
+  let privClass = CKO_PRIVATE_KEY;
+  let privKeyType = CKK_DH;
+  let privLabel = privLabel;
+  let privToken = CK_TRUE;
+  let privPrivate = CK_TRUE;
+  let privSensitive = CK_TRUE;
+  let privExtractable = CK_FALSE;
+  let privDerive = CK_TRUE;
+
+  let privTemplate = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&privClass),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&privKeyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&privLabel),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&privToken),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&privPrivate),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&privSensitive),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&privExtractable),
+    CK_ATTRIBUTE::new(CKA_DERIVE).with_bool(&privDerive),
+  ];
+
+  /*
+			[]*pkcs11.Attribute{
+				pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_PUBLIC_KEY),
+				pkcs11.NewAttribute(pkcs11.CKA_KEY_TYPE, pkcs11.CKK_DH),
+				pkcs11.NewAttribute(pkcs11.CKA_PRIVATE, true),
+				pkcs11.NewAttribute(pkcs11.CKA_TOKEN, false),
+				pkcs11.NewAttribute(pkcs11.CKA_DERIVE, true),
+				pkcs11.NewAttribute(pkcs11.CKA_BASE, domainParamBase.Bytes()),
+				pkcs11.NewAttribute(pkcs11.CKA_PRIME, domainParamPrime.Bytes()),
+			},
+  */
+
+  let pubClass = CKO_PUBLIC_KEY;
+  let pubKeyType = CKK_DH;
+  let pubLabel = pubLabel;
+  let pubToken = CK_TRUE;
+  let pubPrivate = CK_TRUE;
+  let pubDerive = CK_TRUE;
+  //  2048-bit MODP Group
+  let prime: Vec<u8> = Vec::from_hex(
+    "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF",
+  ).unwrap();
+  // 1536-bit MODP Group
+  //let base: Vec<u8> = Vec::from_hex(
+  //  "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF"
+  //).unwrap();
+  let base: Vec<u8> = Vec::from_hex("02").unwrap();
+
+  let pubTemplate = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&pubClass),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&pubKeyType),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&pubLabel),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&pubToken),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&pubPrivate),
+    CK_ATTRIBUTE::new(CKA_DERIVE).with_bool(&pubDerive),
+    CK_ATTRIBUTE::new(CKA_BASE).with_bytes(&base.as_slice()),
+    CK_ATTRIBUTE::new(CKA_PRIME).with_bytes(&prime.as_slice()),
+  ];
+
+  let (pubOh, privOh) = ctx.generate_key_pair(sh, &mechanism, &pubTemplate, &privTemplate)?;
+  Ok((pubOh, privOh))
+}
+
 #[test]
 fn ctx_wrap_key() {
   let (ctx, sh, wrapOh, secOh) = fixture_token_and_secret_keys().unwrap();
@@ -773,9 +1219,21 @@ fn ctx_wrap_key() {
   };
 
   let res = ctx.wrap_key(sh, &mechanism, wrapOh, secOh);
-  assert!(res.is_ok(), "failed to call C_WrapKey({}, {:?}, {}, {}) without parameter: {}", sh, &mechanism, wrapOh, secOh, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_WrapKey({}, {:?}, {}, {}) without parameter: {}",
+    sh,
+    &mechanism,
+    wrapOh,
+    secOh,
+    res.unwrap_err()
+  );
   let wrappedKey = res.unwrap();
-  println!("Wrapped Key Bytes (Total of {} bytes): {:?}", wrappedKey.len(), wrappedKey);
+  println!(
+    "Wrapped Key Bytes (Total of {} bytes): {:?}",
+    wrappedKey.len(),
+    wrappedKey
+  );
 }
 
 #[test]
@@ -818,24 +1276,218 @@ fn ctx_unwrap_key() {
   ];
 
   let res = ctx.unwrap_key(sh, &mechanism, wrapOh, &wrappedKey, &template);
-  assert!(res.is_ok(), "failed to call C_UnwrapKey({}, {:?}, {}, {:?}, {:?}): {}", sh, &mechanism, wrapOh, &wrappedKey, &template, res.unwrap_err());
+  assert!(
+    res.is_ok(),
+    "failed to call C_UnwrapKey({}, {:?}, {}, {:?}, {:?}): {}",
+    sh,
+    &mechanism,
+    wrapOh,
+    &wrappedKey,
+    &template,
+    res.unwrap_err()
+  );
   let oh = res.unwrap();
   println!("New unwrapped key Object Handle: {}", oh);
 }
 
 #[test]
 fn ctx_derive_key() {
-  unimplemented!()
+  let (ctx, sh) = fixture_token().unwrap();
+
+  // 1. generate 2 DH KeyPairs
+  let (pubOh1, privOh1) = fixture_dh_key_pair(
+    &ctx,
+    sh,
+    String::from("label1-pub"),
+    String::from("label1-priv"),
+  ).unwrap();
+  let (pubOh2, privOh2) = fixture_dh_key_pair(
+    &ctx,
+    sh,
+    String::from("label2-pub"),
+    String::from("label2-priv"),
+  ).unwrap();
+
+  // 2. retrieve the public key bytes from both
+  let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
+  ctx.get_attribute_value(sh, pubOh1, &template).unwrap();
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  template[0].set_bytes(&value.as_slice());
+  ctx.get_attribute_value(sh, pubOh1, &template).unwrap();
+
+  let pub1Bytes = template[0].get_bytes();
+
+  let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
+  ctx.get_attribute_value(sh, pubOh2, &template).unwrap();
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  template[0].set_bytes(&value.as_slice());
+  ctx.get_attribute_value(sh, pubOh2, &template).unwrap();
+
+  let pub2Bytes = template[0].get_bytes();
+
+  // 3. derive the first secret key
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_DH_PKCS_DERIVE,
+    pParameter: pub2Bytes.as_slice().as_ptr() as CK_VOID_PTR,
+    ulParameterLen: pub2Bytes.len(),
+  };
+
+  let class = CKO_SECRET_KEY;
+  let keyType = CKK_AES;
+  let valueLen = 32;
+  let label = String::from("derived-key-1");
+  let token: CK_BBOOL = CK_TRUE;
+  let private: CK_BBOOL = CK_TRUE;
+  let sensitive: CK_BBOOL = CK_FALSE;
+  let extractable: CK_BBOOL = CK_TRUE;
+
+  let template = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&class),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&keyType),
+    CK_ATTRIBUTE::new(CKA_VALUE_LEN).with_ck_ulong(&valueLen),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&token),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&private),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&sensitive),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&extractable),
+  ];
+
+  let res = ctx.derive_key(sh, &mechanism, privOh1, &template);
+  assert!(res.is_ok(), "failed to call C_DeriveKey({}, {:?}, {}, {:?}): {}", sh, &mechanism, privOh1, &template, res.unwrap_err());
+  let secOh1 = res.unwrap();
+  println!("1st Derived Secret Key Object Handle: {}", secOh1);
+
+  // 4. derive the second secret key
+  let mechanism = CK_MECHANISM {
+    mechanism: CKM_DH_PKCS_DERIVE,
+    pParameter: pub1Bytes.as_slice().as_ptr() as CK_VOID_PTR,
+    ulParameterLen: pub1Bytes.len(),
+  };
+
+  let class = CKO_SECRET_KEY;
+  let keyType = CKK_AES;
+  let valueLen = 32;
+  let label = String::from("derived-key-2");
+  let token: CK_BBOOL = CK_TRUE;
+  let private: CK_BBOOL = CK_TRUE;
+  let sensitive: CK_BBOOL = CK_FALSE;
+  let extractable: CK_BBOOL = CK_TRUE;
+
+  let template = vec![
+    CK_ATTRIBUTE::new(CKA_CLASS).with_ck_ulong(&class),
+    CK_ATTRIBUTE::new(CKA_KEY_TYPE).with_ck_ulong(&keyType),
+    CK_ATTRIBUTE::new(CKA_VALUE_LEN).with_ck_ulong(&valueLen),
+    CK_ATTRIBUTE::new(CKA_LABEL).with_string(&label),
+    CK_ATTRIBUTE::new(CKA_TOKEN).with_bool(&token),
+    CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&private),
+    CK_ATTRIBUTE::new(CKA_SENSITIVE).with_bool(&sensitive),
+    CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&extractable),
+  ];
+
+  let res = ctx.derive_key(sh, &mechanism, privOh2, &template);
+  assert!(res.is_ok(), "failed to call C_DeriveKey({}, {:?}, {}, {:?}): {}", sh, &mechanism, privOh2, &template, res.unwrap_err());
+  let secOh2 = res.unwrap();
+  println!("2nd Derived Secret Key Object Handle: {}", secOh2);
+
+  // 5. retrieve the derived private keys from both
+  let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
+  ctx.get_attribute_value(sh, secOh1, &template).unwrap();
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  template[0].set_bytes(&value.as_slice());
+  ctx.get_attribute_value(sh, secOh1, &template).unwrap();
+
+  let sec1Bytes = template[0].get_bytes();
+
+  let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
+  ctx.get_attribute_value(sh, secOh2, &template).unwrap();
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  template[0].set_bytes(&value.as_slice());
+  ctx.get_attribute_value(sh, secOh2, &template).unwrap();
+
+  let sec2Bytes = template[0].get_bytes();
+
+  println!("1st Derived Key Bytes: {:?}", sec1Bytes);
+  println!("2nd Derived Key Bytes: {:?}", sec2Bytes);
+  assert_eq!(sec1Bytes, sec2Bytes, "Derived Secret Keys don't match");
 }
-/*
-  C_GenerateKey: C_GenerateKey,
-  C_GenerateKeyPair: C_GenerateKeyPair,
-  C_WrapKey: C_WrapKey,
-  C_UnwrapKey: C_UnwrapKey,
-  C_DeriveKey: C_DeriveKey,
-  C_SeedRandom: C_SeedRandom,
-  C_GenerateRandom: C_GenerateRandom,
-  C_GetFunctionStatus: C_GetFunctionStatus,
-  C_CancelFunction: C_CancelFunction,
-  C_WaitForSlotEvent: C_WaitForSlotEvent,
-  */
+
+#[test]
+fn ctx_seed_random() {
+  let (ctx, sh) = fixture_token().unwrap();
+
+  let seed: Vec<CK_BYTE> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+  let res = ctx.seed_random(sh, &seed);
+  assert!(
+    res.is_ok(),
+    "failed to call C_SeedRandom({}, {:?}): {}",
+    sh,
+    &seed,
+    res.unwrap_err()
+  );
+}
+
+#[test]
+fn ctx_generate_random() {
+  let (ctx, sh) = fixture_token().unwrap();
+  let res = ctx.generate_random(sh, 32);
+  assert!(
+    res.is_ok(),
+    "failed to call C_GenerateRandom({}, {}): {}",
+    sh,
+    32,
+    res.unwrap_err()
+  );
+  let randomData = res.unwrap();
+  println!("Randomly Generated Data: {:?}", randomData);
+}
+
+#[test]
+fn ctx_get_function_status() {
+  let (ctx, sh) = fixture_token().unwrap();
+  let res = ctx.get_function_status(sh);
+  assert!(
+    res.is_ok(),
+    "failed to call C_GetFunctionStatus({}): {}",
+    sh,
+    res.unwrap_err()
+  );
+  let val = res.unwrap();
+  assert_eq!(val, CKR_FUNCTION_NOT_PARALLEL);
+}
+
+#[test]
+fn ctx_cancel_function() {
+  let (ctx, sh) = fixture_token().unwrap();
+  let res = ctx.cancel_function(sh);
+  assert!(
+    res.is_ok(),
+    "failed to call C_CancelFunction({}): {}",
+    sh,
+    res.unwrap_err()
+  );
+  let val = res.unwrap();
+  assert_eq!(val, CKR_FUNCTION_NOT_PARALLEL);
+}
+
+#[test]
+fn ctx_wait_for_slot_event() {
+  let (ctx, _) = fixture_token().unwrap();
+  let res = ctx.wait_for_slot_event(CKF_DONT_BLOCK);
+  if res.is_err() {
+    // SoftHSM does not support this function, so this is what we should compare against
+    //assert_eq!(Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED), res.unwrap_err());
+    match res.unwrap_err() {
+      Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
+        println!("as expected SoftHSM does not support this function");
+      }
+      _ => panic!("ahhh"),
+    }
+  } else {
+    assert!(
+      res.is_ok(),
+      "failed to call C_WaitForSlotEvent({}): {}",
+      CKF_DONT_BLOCK,
+      res.unwrap_err()
+    );
+  }
+}

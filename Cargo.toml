@@ -34,3 +34,4 @@ num-bigint = "^0.1"
 
 [dev-dependencies]
 num-traits = "^0.1"
+hex = "^0.3"
