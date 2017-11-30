@@ -709,6 +709,77 @@ impl Ctx {
     }
   }
 
+  pub fn decrypt_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_DecryptInit)(session, mechanism, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn decrypt(&self, session: CK_SESSION_HANDLE, encryptedData: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut dataLen: CK_ULONG = 0;
+    match (self.C_Decrypt)(session, encryptedData.as_slice().as_ptr(), encryptedData.len(), ptr::null(), &mut dataLen) {
+      CKR_OK => {
+        let mut data: Vec<CK_BYTE> = Vec::with_capacity(dataLen);
+        match (self.C_Decrypt)(session, encryptedData.as_slice().as_ptr(), encryptedData.len(), data.as_slice().as_ptr(), &dataLen) {
+          CKR_OK => {
+            unsafe {
+              data.set_len(dataLen);
+            }
+            Ok(data)
+          },
+          err => Err(Error:Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn decrypt_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut partLen: CK_ULONG = 0;
+    match (self.C_DecryptUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), ptr::null(), &mut partLen) {
+      CKR_OK => {
+        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen);
+        match (self.C_Decrypt)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), part.as_slice().as_ptr(), &partLen) {
+          CKR_OK => {
+            unsafe {
+              part.set_len(partLen);
+            }
+            Ok(part)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn decrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Option<Vec<CK_BYTE>>, Error> {
+    let mut lastPartLen: CK_ULONG = 0;
+    match (self.C_DecryptFinal)(session, ptr::null(), &mut lastPartLen) {
+      CKR_OK => {
+        if lastPartLen == 0 {
+          Ok(None)
+        } else {
+          let mut lastPart: Vec<CK_BYTE> = Vec::with_capacity(lastPartLen);
+          match (self.C_DecryptFinal)(session, lastPart.as_slice().as_ptr(), lastPartLen) {
+            CKR_OK => {
+              unsafe {
+                lastPart.set_len(lastPartLen);
+              }
+              Ok(lastPart)
+            },
+            err => Err(Error::Pkcs11(err)),
+          }
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
   pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
