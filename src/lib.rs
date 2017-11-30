@@ -637,7 +637,80 @@ impl Ctx {
     }
   }
 
+  pub fn encrypt_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_EncryptInit)(session, mechanism, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn encrypt(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut encryptedDataLen: CK_ULONG = 0;
+    match (self.C_Encrypt)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut encryptedDataLen) {
+      CKR_OK => {
+        let mut encryptedData: Vec<CK_BYTE> = Vec::with_capacity(encryptedDataLen);
+        match (self.C_Encrypt)(session, data.as_slice().as_ptr(), data.len(), encryptedData.as_slice().as_ptr(), &encryptedDataLen) {
+          CKR_OK => {
+            unsafe {
+              encryptedData.set_len(encryptedDataLen);
+            }
+            Ok(encryptedData)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut encryptedPartLen: CK_ULONG = 0;
+    match (self.C_EncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), ptr::null(), &mut encryptedPartLen) {
+      CKR_OK => {
+        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen);
+        match (self.C_EncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
+          CKR_OK => {
+            unsafe {
+              encryptedPart.set_len(encryptedPartLen);
+            }
+            Ok(encryptedPart)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn encrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Option<Vec<CK_BYTE>>, Error> {
+    self.initialized()?;
+    let mut lastEncryptedPartLen: CK_ULONG = 0;
+    match (self.C_EncryptFinal)(session, ptr::null(), &mut lastEncryptedPartLen) {
+      CKR_OK => {
+        if lastEncryptedPartLen == 0 {
+          Ok(None)
+        } else {
+          let mut lastEncryptedPart: Vec<CK_BYTE> = Vec::with_capacity(lastEncryptedPartLen);
+          match (self.C_EncryptFinal)(session, lastEncryptedPart.as_slice().as_ptr(), &lastEncryptedPartLen) {
+            CKR_OK => {
+              unsafe {
+                lastEncryptedPart.set_len(lastEncryptedPartLen);
+              }
+              Ok(Some(lastEncryptedPart))
+            },
+            err => Err(Error::Pkcs11(err)),
+          }
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
   pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+    self.initialized()?;
     let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_GenerateKey)(session, mechanism, template.as_slice().as_ptr(), template.len(), &mut object) {
       CKR_OK => Ok(object),
