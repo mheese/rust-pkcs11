@@ -780,6 +780,65 @@ impl Ctx {
     }
   }
 
+  pub fn digest_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM) -> Result<(), Error> {
+    match (self.C_DigestInit)(session, mechanism) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn digest(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    let mut digestLen: CK_ULONG = 0;
+    match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut digestLen) {
+      CKR_OK => {
+        let mut digest: Vec<CK_BYTE> = Vec::with_capacity(digestLen);
+        match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len(), digest.as_slice().as_ptr(), &digestLen) {
+          CKR_OK => {
+            unsafe {
+              digest.set_len(digestLen);
+            }
+            Ok(digest)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn digest_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
+    match (self.C_DigestUpdate)(session, part.as_slice().as_ptr(), part.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn digest_key(&self, session: CK_SESSION_HANDLE, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    match (self.C_DigestKey)(session, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn digest_final(&self, session: CK_SESSION_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
+    let mut digestLen: CK_ULONG = 0;
+    match (self.C_DigestFinal)(session, ptr::null(), &mut digestLen) {
+      CKR_OK => {
+        let mut digest: Vec<CK_BYTE> = Vec::with_capacity(digestLen);
+        match (self.C_DigestFinal)(session, digest.as_slice().as_ptr(), &digestLen) {
+          CKR_OK => {
+            unsafe {
+              digest.set_len(digestLen);
+            }
+            Ok(digest)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
   pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
