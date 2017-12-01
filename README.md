@@ -30,8 +30,8 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Implementing Session Management functions
 - [x] Implementing Object Management functions
 - [x] Implementing Key Management functions
-- [ ] Implementing Encryption/Decryption functions
-- [ ] Implementing Message Digest functions
+- [x] Implementing Encryption/Decryption functions (TODO: tests still missing)
+- [x] Implementing Message Digest functions (TODO: tests still missing)
 - [ ] Implementing Signing and MACing
 - [ ] Implementing Verifying of signatures and MACs
 - [ ] Implementing Dual-function cryptographic operations
