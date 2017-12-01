@@ -34,7 +34,7 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Implementing Message Digest functions (TODO: tests still missing)
 - [x] Implementing Signing and MACing (TODO: tests still missing)
 - [x] Implementing Verifying of signatures and MACs (TODO: tests still missing)
-- [ ] Implementing Dual-function cryptographic operations
+- [x] Implementing Dual-function cryptographic operations (TODO: tests still missing)
 - [x] Implementing Legacy PKCS#11 functions
 - [x] Reorganize code of low-level API (too bloated, which we all know is what PKCS#11 is like)
 - [x] Import the rest of the C header `pkcs11t.h` types into rust
