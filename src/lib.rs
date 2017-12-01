@@ -839,6 +839,150 @@ impl Ctx {
     }
   }
 
+  pub fn sign_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_SignInit)(session, mechanism, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn sign(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut signatureLen: CK_ULONG = 0;
+    match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut signatureLen) {
+      CKR_OK => {
+        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen);
+        match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &signatureLen) {
+          CKR_OK => {
+            unsafe {
+              signature.set_len(signatureLen); 
+            }
+            Ok(signature)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn sign_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_SignUpdate)(session, part.as_slice().as_ptr(), part.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn sign_final(&self, session: CK_SESSION_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut signatureLen: CK_ULONG = 0;
+    match (self.C_SignFinal)(session, ptr::null(), &mut signatureLen) {
+      CKR_OK => {
+        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen);
+        match (self.C_SignFinal)(session, signature.as_slice().as_ptr(), &signatureLen) {
+          CKR_OK => {
+            unsafe {
+              signature.set_len(signatureLen);
+            }
+            Ok(signature)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn sign_recover_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_SignRecoverInit)(session, mechanism, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err))
+    }
+  }
+
+  pub fn sign_recover(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut signatureLen: CK_ULONG = 0;
+    match (self.C_SignRecover)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut signatureLen) {
+      CKR_OK => {
+        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen);
+        match (self.C_SignRecover)(session, data.as_slice().as_ptr(), data.len(), signature.as_slice().as_ptr(), &signatureLen) {
+          CKR_OK => {
+            unsafe {
+              signature.set_len(signatureLen);
+            }
+            Ok(signature)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn verify_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_VerifyInit)(session, mechanism, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn verify(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>, signature: &Vec<CK_BYTE>) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_Verify)(session, data.as_slice().as_ptr(), data.len(), signature.as_slice().as_ptr(), signature.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn verify_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_VerifyUpdate)(session, part.as_slice().as_ptr(), part.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn verify_final(&self, session: CK_SESSION_HANDLE, signature: &Vec<CK_BYTE>) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_VerifyFinal)(session, signature.as_slice().as_ptr(), signature.len()) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn verify_recover_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
+    match (self.C_VerifyRecoverInit)(session, mechanism, key) {
+      CKR_OK => Ok(()),
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
+  pub fn verify_recover(&self, session: CK_SESSION_HANDLE, signature: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
+    let mut dataLen: CK_ULONG = 0;
+    match (self.C_VerifyRecover)(session, signature.as_slice().as_ptr(), signature.len(), ptr::null(), &mut dataLen) {
+      CKR_OK => {
+        let mut data: Vec<CK_BYTE> = Vec::with_capacity(dataLen);
+        match (self.C_VerifyRecover)(session, signature.as_slice().as_ptr(), signature.len(), data.as_slice().as_ptr(), &dataLen) {
+          CKR_OK => {
+            unsafe {
+              data.set_len(dataLen);
+            }
+            Ok(data)
+          },
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      err => Err(Error::Pkcs11(err)),
+    }
+  }
+
   pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
