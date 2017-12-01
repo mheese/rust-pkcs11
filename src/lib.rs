@@ -730,7 +730,7 @@ impl Ctx {
             }
             Ok(data)
           },
-          err => Err(Error:Pkcs11(err)),
+          err => Err(Error::Pkcs11(err)),
         }
       },
       err => Err(Error::Pkcs11(err)),
@@ -765,12 +765,12 @@ impl Ctx {
           Ok(None)
         } else {
           let mut lastPart: Vec<CK_BYTE> = Vec::with_capacity(lastPartLen);
-          match (self.C_DecryptFinal)(session, lastPart.as_slice().as_ptr(), lastPartLen) {
+          match (self.C_DecryptFinal)(session, lastPart.as_slice().as_ptr(), &lastPartLen) {
             CKR_OK => {
               unsafe {
                 lastPart.set_len(lastPartLen);
               }
-              Ok(lastPart)
+              Ok(Some(lastPart))
             },
             err => Err(Error::Pkcs11(err)),
           }
