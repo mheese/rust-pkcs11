@@ -13,6 +13,13 @@
 // limitations under the License.
 #![allow(non_camel_case_types, non_snake_case)]
 
+// Cryptoki's packed structs interfere with the Clone trait, so we implement Copy and use this
+macro_rules! packed_clone {
+    ($name:ty) => (
+        impl Clone for $name { fn clone(&self) -> $name { *self } }
+    )
+}
+
 use std;
 use std::mem;
 use std::slice;
@@ -42,17 +49,24 @@ pub type CK_UTF8CHAR_PTR = *const CK_UTF8CHAR;
 pub type CK_BBOOL = CK_BYTE;
 
 /// an unsigned value, at least 32 bits long
+#[cfg(windows)]
+pub type CK_ULONG = u32;
+#[cfg(not(windows))]
 pub type CK_ULONG = usize;
 pub type CK_ULONG_PTR = *const CK_ULONG;
 
 /// a signed value, the same size as a CK_ULONG
+#[cfg(windows)]
+pub type CK_LONG = i32;
+#[cfg(not(windows))]
 pub type CK_LONG = isize;
+
 
 /// at least 32 bits; each bit is a Boolean flag
 pub type CK_FLAGS = CK_ULONG;
 
 /* some special values for certain CK_ULONG variables */
-pub const CK_UNAVAILABLE_INFORMATION: CK_ULONG = 0xffffffffffffffff;
+pub const CK_UNAVAILABLE_INFORMATION: CK_ULONG = !0;
 pub const CK_EFFECTIVELY_INFINITE: CK_ULONG = 0;
 
 #[derive(Debug)]
@@ -70,17 +84,18 @@ pub type CK_VOID_PTR_PTR = *const CK_VOID_PTR;
 /// handle or object handle
 pub const CK_INVALID_HANDLE: CK_ULONG = 0;
 
-#[derive(Debug, Clone, Default)]
-#[repr(C)]
+#[derive(Debug, Copy, Default)]
+#[repr(packed, C)]
 pub struct CK_VERSION {
   pub major: CK_BYTE, /* integer portion of version number */
   pub minor: CK_BYTE, /* 1/100ths portion of version number */
 }
+packed_clone!(CK_VERSION);
 
 pub type CK_VERSION_PTR = *const CK_VERSION;
 
-#[derive(Debug, Clone, Default)]
-#[repr(C)]
+#[derive(Debug, Copy, Default)]
+#[repr(packed, C)]
 pub struct CK_INFO {
   /* manufacturerID and libraryDecription have been changed from
    * CK_CHAR to CK_UTF8CHAR for v2.10 */
@@ -90,6 +105,7 @@ pub struct CK_INFO {
   pub libraryDescription: [CK_UTF8CHAR; 32], /* blank padded */
   pub libraryVersion: CK_VERSION,            /* version of library */
 }
+packed_clone!(CK_INFO);
 
 impl CK_INFO {
   pub fn new() -> CK_INFO {
@@ -116,7 +132,7 @@ pub type CK_SLOT_ID = CK_ULONG;
 pub type CK_SLOT_ID_PTR = *const CK_SLOT_ID;
 
 /// CK_SLOT_INFO provides information about a slot
-#[repr(C)]
+#[repr(packed, C)]
 pub struct CK_SLOT_INFO {
   /// slotDescription and manufacturerID have been changed from
   /// CK_CHAR to CK_UTF8CHAR for v2.10
@@ -145,14 +161,16 @@ impl Default for CK_SLOT_INFO {
 impl std::fmt::Debug for CK_SLOT_INFO {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
     let sd = self.slotDescription.to_vec();
-    fmt
-      .debug_struct("CK_SLOT_INFO")
-      .field("slotDescription", &sd)
-      .field("manufacturerID", &self.manufacturerID)
-      .field("flags", &self.flags)
-      .field("hardwareVersion", &self.hardwareVersion)
-      .field("firmwareVersion", &self.firmwareVersion)
-      .finish()
+    unsafe {
+      fmt
+        .debug_struct("CK_SLOT_INFO")
+        .field("slotDescription", &sd)
+        .field("manufacturerID", &self.manufacturerID)
+        .field("flags", &self.flags)
+        .field("hardwareVersion", &self.hardwareVersion)
+        .field("firmwareVersion", &self.firmwareVersion)
+        .finish()
+    }
   }
 }
 
@@ -165,8 +183,8 @@ pub const CKF_HW_SLOT: CK_FLAGS = 0x00000004;
 
 pub type CK_SLOT_INFO_PTR = *const CK_SLOT_INFO;
 
-#[derive(Debug)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_TOKEN_INFO {
   /* label, manufacturerID, and model have been changed from
    * CK_CHAR to CK_UTF8CHAR for v2.10 */
@@ -189,6 +207,7 @@ pub struct CK_TOKEN_INFO {
   pub firmwareVersion: CK_VERSION,       /* version of firmware */
   pub utcTime: [CK_CHAR; 16],            /* time */
 }
+packed_clone!(CK_TOKEN_INFO);
 
 impl Default for CK_TOKEN_INFO {
   fn default() -> CK_TOKEN_INFO {
@@ -328,8 +347,8 @@ pub const CKS_RW_PUBLIC_SESSION: CK_STATE = 2;
 pub const CKS_RW_USER_FUNCTIONS: CK_STATE = 3;
 pub const CKS_RW_SO_FUNCTIONS: CK_STATE = 4;
 
-#[derive(Debug, Default, Clone)]
-#[repr(C)]
+#[derive(Debug, Default, Copy)]
+#[repr(packed, C)]
 pub struct CK_SESSION_INFO {
   pub slotID: CK_SLOT_ID,
   pub state: CK_STATE,
@@ -337,6 +356,7 @@ pub struct CK_SESSION_INFO {
   /// device-dependent error code
   pub ulDeviceError: CK_ULONG,
 }
+packed_clone!(CK_SESSION_INFO);
 
 /// session is r/w
 pub const CKF_RW_SESSION: CK_FLAGS = 0x00000002;
@@ -595,14 +615,15 @@ pub const CKA_VENDOR_DEFINED: CK_ATTRIBUTE_TYPE = 0x80000000;
 
 /// CK_ATTRIBUTE is a structure that includes the type, length
 /// and value of an attribute
-#[derive(Clone)]
-#[repr(C)]
+#[derive(Copy)]
+#[repr(packed, C)]
 pub struct CK_ATTRIBUTE {
   pub attrType: CK_ATTRIBUTE_TYPE,
   pub pValue: CK_VOID_PTR,
   /// in bytes
   pub ulValueLen: CK_ULONG,
 }
+packed_clone!(CK_ATTRIBUTE);
 
 pub type CK_ATTRIBUTE_PTR = *const CK_ATTRIBUTE;
 
@@ -618,14 +639,16 @@ impl Default for CK_ATTRIBUTE {
 
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let attrType = format!("0x{:x}", self.attrType);
-    let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen) };
-    fmt
-      .debug_struct("CK_ATTRIBUTE")
-      .field("attrType", &attrType)
-      .field("pValue", &data)
-      .field("ulValueLen", &self.ulValueLen)
-      .finish()
+    let attrType = unsafe {format!("0x{:x}", self.attrType)};
+    let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) };
+    unsafe {
+      fmt
+        .debug_struct("CK_ATTRIBUTE")
+        .field("attrType", &attrType)
+        .field("pValue", &data)
+        .field("ulValueLen", &self.ulValueLen)
+        .finish()
+    }
   }
 }
 
@@ -658,14 +681,14 @@ impl CK_ATTRIBUTE {
 
   pub fn with_ck_ulong(mut self, val: &CK_ULONG) -> Self {
     self.pValue = val as *const _ as CK_VOID_PTR;
-    self.ulValueLen = std::mem::size_of::<CK_ULONG>();
+    self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
     self
   }
 
   pub fn set_ck_ulong(&mut self, val: &CK_ULONG) {
     self.pValue = val as *const _ as CK_VOID_PTR;
     if self.ulValueLen == 0 {
-      self.ulValueLen = std::mem::size_of::<CK_ULONG>();
+      self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
     }
   }
 
@@ -675,14 +698,14 @@ impl CK_ATTRIBUTE {
 
   pub fn with_ck_long(mut self, val: &CK_LONG) -> Self {
     self.pValue = val as *const _ as CK_VOID_PTR;
-    self.ulValueLen = std::mem::size_of::<CK_LONG>();
+    self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
     self
   }
 
   pub fn set_ck_long(&mut self, val: &CK_LONG) {
     self.pValue = val as *const _ as CK_VOID_PTR;
     if self.ulValueLen == 0 {
-      self.ulValueLen = std::mem::size_of::<CK_LONG>();
+      self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
     }
   }
 
@@ -692,68 +715,68 @@ impl CK_ATTRIBUTE {
 
   pub fn with_biginteger(mut self, val: &Vec<u8>) -> Self {
     self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
-    self.ulValueLen = val.len();
+    self.ulValueLen = val.len() as CK_ULONG;
     self
   }
 
   pub fn set_biginteger(&mut self, val: &Vec<u8>) {
     self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
     if self.ulValueLen == 0 {
-      self.ulValueLen = val.len();
+      self.ulValueLen = val.len() as CK_ULONG;
     }
   }
 
   pub fn get_biginteger(&self) -> BigUint {
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen) };
+    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
     BigUint::from_bytes_le(slice)
   }
 
   pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
     self.pValue = val.as_ptr() as CK_VOID_PTR;
-    self.ulValueLen = val.len();
+    self.ulValueLen = val.len() as CK_ULONG;
     self
   }
 
   pub fn set_bytes(&mut self, val: &[CK_BYTE]) {
     self.pValue = val.as_ptr() as CK_VOID_PTR;
     if self.ulValueLen == 0 {
-      self.ulValueLen = val.len();
+      self.ulValueLen = val.len() as CK_ULONG;
     }
   }
 
   pub fn get_bytes(&self) -> Vec<CK_BYTE> {
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen) };
+    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
     Vec::from(slice).clone()
   }
 
   pub fn with_string(mut self, str: &String) -> Self {
     self.pValue = str.as_ptr() as CK_VOID_PTR;
-    self.ulValueLen = str.len();
+    self.ulValueLen = str.len() as CK_ULONG;
     self
   }
 
   pub fn set_string(&mut self, str: &String) {
     self.pValue = str.as_ptr() as CK_VOID_PTR;
     if self.ulValueLen == 0 {
-      self.ulValueLen = str.len();
+      self.ulValueLen = str.len() as CK_ULONG;
     }
   }
 
   pub fn get_string(&self) -> String {
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen) };
+    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
     String::from_utf8_lossy(slice).into_owned().clone()
   }
 
   pub fn with_date(mut self, date: &CK_DATE) -> Self {
     self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
-    self.ulValueLen = mem::size_of::<CK_DATE>();
+    self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
     self
   }
 
   pub fn set_date(&mut self, date: &CK_DATE) {
     self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
     if self.ulValueLen == 0 {
-      self.ulValueLen = mem::size_of::<CK_DATE>();
+      self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
     }
   }
 
@@ -795,8 +818,8 @@ impl CK_ATTRIBUTE {
 //}
 
 /// CK_DATE is a structure that defines a date
-#[derive(Debug, Default, Clone)]
-#[repr(C)]
+#[derive(Debug, Default, Copy)]
+#[repr(packed, C)]
 pub struct CK_DATE {
   /// the year ("1900" - "9999")
   pub year: [CK_CHAR; 4],
@@ -805,6 +828,7 @@ pub struct CK_DATE {
   /// the day   ("01" - "31")
   pub day: [CK_CHAR; 2],
 }
+packed_clone!(CK_DATE);
 
 /// CK_MECHANISM_TYPE is a value that identifies a mechanism
 /// type
@@ -1209,26 +1233,28 @@ pub type CK_MECHANISM_TYPE_PTR = *const CK_MECHANISM_TYPE;
 
 /// CK_MECHANISM is a structure that specifies a particular
 /// mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_MECHANISM {
   pub mechanism: CK_MECHANISM_TYPE,
   pub pParameter: CK_VOID_PTR,
   /// in bytes
   pub ulParameterLen: CK_ULONG,
 }
+packed_clone!(CK_MECHANISM);
 
 pub type CK_MECHANISM_PTR = *const CK_MECHANISM;
 
 /// CK_MECHANISM_INFO provides information about a particular
 /// mechanism
-#[derive(Debug, Default, Clone)]
-#[repr(C)]
+#[derive(Debug, Default, Copy)]
+#[repr(packed, C)]
 pub struct CK_MECHANISM_INFO {
   pub ulMinKeySize: CK_ULONG,
   pub ulMaxKeySize: CK_ULONG,
   pub flags: CK_FLAGS,
 }
+packed_clone!(CK_MECHANISM_INFO);
 
 /// The flags are defined as follows:
 pub const CKF_HW: CK_FLAGS = 0x00000001; /* performed by HW */
@@ -1365,8 +1391,8 @@ pub type CK_NOTIFY = Option<extern "C" fn(CK_SESSION_HANDLE, CK_NOTIFICATION, CK
 /// CK_FUNCTION_LIST is a structure holding a Cryptoki spec
 /// version and pointers of appropriate types to all the
 /// Cryptoki functions
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_FUNCTION_LIST {
   pub version: CK_VERSION,
   pub C_Initialize: Option<C_Initialize>,
@@ -1438,6 +1464,7 @@ pub struct CK_FUNCTION_LIST {
   pub C_CancelFunction: Option<C_CancelFunction>,
   pub C_WaitForSlotEvent: Option<C_WaitForSlotEvent>,
 }
+packed_clone!(CK_FUNCTION_LIST);
 pub type CK_FUNCTION_LIST_PTR = *const CK_FUNCTION_LIST;
 pub type CK_FUNCTION_LIST_PTR_PTR = *const CK_FUNCTION_LIST_PTR;
 
@@ -1455,8 +1482,8 @@ pub type CK_UNLOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
 
 /// CK_C_INITIALIZE_ARGS provides the optional arguments to
 /// C_Initialize
-#[derive(Debug)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_C_INITIALIZE_ARGS {
   pub CreateMutex: CK_CREATEMUTEX,
   pub DestroyMutex: CK_DESTROYMUTEX,
@@ -1465,6 +1492,7 @@ pub struct CK_C_INITIALIZE_ARGS {
   pub flags: CK_FLAGS,
   pub pReserved: CK_VOID_PTR,
 }
+packed_clone!(CK_C_INITIALIZE_ARGS);
 
 // TODO: we need to make this the default and implement a new
 // function
@@ -1516,8 +1544,8 @@ pub const CKZ_DATA_SPECIFIED: CK_RSA_PKCS_OAEP_SOURCE_TYPE = 0x00000001;
 
 /// CK_RSA_PKCS_OAEP_PARAMS provides the parameters to the
 /// CKM_RSA_PKCS_OAEP mechanism.
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RSA_PKCS_OAEP_PARAMS {
   pub hashAlg: CK_MECHANISM_TYPE,
   pub mgf: CK_RSA_PKCS_MGF_TYPE,
@@ -1525,18 +1553,20 @@ pub struct CK_RSA_PKCS_OAEP_PARAMS {
   pub pSourceData: CK_VOID_PTR,
   pub ulSourceDataLen: CK_ULONG,
 }
+packed_clone!(CK_RSA_PKCS_OAEP_PARAMS);
 
 pub type CK_RSA_PKCS_OAEP_PARAMS_PTR = *const CK_RSA_PKCS_OAEP_PARAMS;
 
 /// CK_RSA_PKCS_PSS_PARAMS provides the parameters to the
 /// CKM_RSA_PKCS_PSS mechanism(s).
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RSA_PKCS_PSS_PARAMS {
   pub hashAlg: CK_MECHANISM_TYPE,
   pub mgf: CK_RSA_PKCS_MGF_TYPE,
   pub sLen: CK_ULONG,
 }
+packed_clone!(CK_RSA_PKCS_PSS_PARAMS);
 
 pub type CK_RSA_PKCS_PSS_PARAMS_PTR = *const CK_RSA_PKCS_PSS_PARAMS;
 
@@ -1558,6 +1588,7 @@ pub const CKD_CPDIVERSIFY_KDF: CK_X9_42_DH_KDF_TYPE = 0x00000009;
 /// CK_ECDH1_DERIVE_PARAMS provides the parameters to the
 /// CKM_ECDH1_DERIVE and CKM_ECDH1_COFACTOR_DERIVE mechanisms,
 /// where each party contributes one key pair.
+#[repr(packed, C)]
 pub struct CK_ECDH1_DERIVE_PARAMS {
   pub kdf: CK_EC_KDF_TYPE,
   pub ulSharedDataLen: CK_ULONG,
@@ -1570,8 +1601,8 @@ pub type CK_ECDH1_DERIVE_PARAMS_PTR = *const CK_ECDH1_DERIVE_PARAMS;
 
 /// CK_ECDH2_DERIVE_PARAMS provides the parameters to the
 /// CKM_ECMQV_DERIVE mechanism, where each party contributes two key pairs.
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_ECDH2_DERIVE_PARAMS {
   pub kdf: CK_EC_KDF_TYPE,
   pub ulSharedDataLen: CK_ULONG,
@@ -1583,11 +1614,12 @@ pub struct CK_ECDH2_DERIVE_PARAMS {
   pub ulPublicDataLen2: CK_ULONG,
   pub pPublicData2: CK_BYTE_PTR,
 }
+packed_clone!(CK_ECDH2_DERIVE_PARAMS);
 
 pub type CK_ECDH2_DERIVE_PARAMS_PTR = *const CK_ECDH2_DERIVE_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_ECMQV_DERIVE_PARAMS {
   pub kdf: CK_EC_KDF_TYPE,
   pub ulSharedDataLen: CK_ULONG,
@@ -1600,6 +1632,7 @@ pub struct CK_ECMQV_DERIVE_PARAMS {
   pub pPublicData2: CK_BYTE_PTR,
   pub publicKey: CK_OBJECT_HANDLE,
 }
+packed_clone!(CK_ECMQV_DERIVE_PARAMS);
 
 pub type CK_ECMQV_DERIVE_PARAMS_PTR = *const CK_ECMQV_DERIVE_PARAMS;
 
@@ -1611,8 +1644,8 @@ pub type CK_X9_42_DH_KDF_TYPE_PTR = *const CK_X9_42_DH_KDF_TYPE;
 /// CK_X9_42_DH1_DERIVE_PARAMS provides the parameters to the
 /// CKM_X9_42_DH_DERIVE key derivation mechanism, where each party
 /// contributes one key pair
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_X9_42_DH1_DERIVE_PARAMS {
   pub kdf: CK_X9_42_DH_KDF_TYPE,
   pub ulOtherInfoLen: CK_ULONG,
@@ -1620,14 +1653,15 @@ pub struct CK_X9_42_DH1_DERIVE_PARAMS {
   pub ulPublicDataLen: CK_ULONG,
   pub pPublicData: CK_BYTE_PTR,
 }
+packed_clone!(CK_X9_42_DH1_DERIVE_PARAMS);
 
 pub type CK_X9_42_DH1_DERIVE_PARAMS_PTR = *const CK_X9_42_DH1_DERIVE_PARAMS;
 
 /// CK_X9_42_DH2_DERIVE_PARAMS provides the parameters to the
 /// CKM_X9_42_DH_HYBRID_DERIVE and CKM_X9_42_MQV_DERIVE key derivation
 /// mechanisms, where each party contributes two key pairs
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_X9_42_DH2_DERIVE_PARAMS {
   pub kdf: CK_X9_42_DH_KDF_TYPE,
   pub ulOtherInfoLen: CK_ULONG,
@@ -1639,11 +1673,12 @@ pub struct CK_X9_42_DH2_DERIVE_PARAMS {
   pub ulPublicDataLen2: CK_ULONG,
   pub pPublicData2: CK_BYTE_PTR,
 }
+packed_clone!(CK_X9_42_DH2_DERIVE_PARAMS);
 
 pub type CK_X9_42_DH2_DERIVE_PARAMS_PTR = *const CK_X9_42_DH2_DERIVE_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_X9_42_MQV_DERIVE_PARAMS {
   pub kdf: CK_X9_42_DH_KDF_TYPE,
   pub ulOtherInfoLen: CK_ULONG,
@@ -1656,13 +1691,14 @@ pub struct CK_X9_42_MQV_DERIVE_PARAMS {
   pub pPublicData2: CK_BYTE_PTR,
   pub publicKey: CK_OBJECT_HANDLE,
 }
+packed_clone!(CK_X9_42_MQV_DERIVE_PARAMS);
 
 pub type CK_X9_42_MQV_DERIVE_PARAMS_PTR = *const CK_X9_42_MQV_DERIVE_PARAMS;
 
 /// CK_KEA_DERIVE_PARAMS provides the parameters to the
 /// CKM_KEA_DERIVE mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_KEA_DERIVE_PARAMS {
   pub isSender: CK_BBOOL,
   pub ulRandomLen: CK_ULONG,
@@ -1671,6 +1707,7 @@ pub struct CK_KEA_DERIVE_PARAMS {
   pub ulPublicDataLen: CK_ULONG,
   pub pPublicData: CK_BYTE_PTR,
 }
+packed_clone!(CK_KEA_DERIVE_PARAMS);
 
 pub type CK_KEA_DERIVE_PARAMS_PTR = *const CK_KEA_DERIVE_PARAMS;
 
@@ -1684,50 +1721,53 @@ pub type CK_RC2_PARAMS_PTR = *const CK_RC2_PARAMS;
 
 /// CK_RC2_CBC_PARAMS provides the parameters to the CKM_RC2_CBC
 /// mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RC2_CBC_PARAMS {
   /// effective bits (1-1024)
   pub ulEffectiveBits: CK_ULONG,
   /// IV for CBC mode
   pub iv: [CK_BYTE; 8],
 }
+packed_clone!(CK_RC2_CBC_PARAMS);
 
 pub type CK_RC2_CBC_PARAMS_PTR = *const CK_RC2_CBC_PARAMS;
 
 
 /// CK_RC2_MAC_GENERAL_PARAMS provides the parameters for the
 /// CKM_RC2_MAC_GENERAL mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RC2_MAC_GENERAL_PARAMS {
   /// effective bits (1-1024)
   pub ulEffectiveBits: CK_ULONG,
   /// Length of MAC in bytes
   pub ulMacLength: CK_ULONG,
 }
+packed_clone!(CK_RC2_MAC_GENERAL_PARAMS);
 
 pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *const CK_RC2_MAC_GENERAL_PARAMS;
 
 
 /// CK_RC5_PARAMS provides the parameters to the CKM_RC5_ECB and
 /// CKM_RC5_MAC mechanisms
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RC5_PARAMS {
   /// wordsize in bits
   pub ulWordsize: CK_ULONG,
   /// number of rounds
   pub ulRounds: CK_ULONG,
 }
+packed_clone!(CK_RC5_PARAMS);
 
 pub type CK_RC5_PARAMS_PTR = *const CK_RC5_PARAMS;
 
 
 /// CK_RC5_CBC_PARAMS provides the parameters to the CKM_RC5_CBC
 /// mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RC5_CBC_PARAMS {
   /// wordsize in bits
   pub ulWordsize: CK_ULONG,
@@ -1738,14 +1778,15 @@ pub struct CK_RC5_CBC_PARAMS {
   /// length of IV in bytes
   pub ulIvLen: CK_ULONG,
 }
+packed_clone!(CK_RC5_CBC_PARAMS);
 
 pub type CK_RC5_CBC_PARAMS_PTR = *const CK_RC5_CBC_PARAMS;
 
 
 /// CK_RC5_MAC_GENERAL_PARAMS provides the parameters for the
 /// CKM_RC5_MAC_GENERAL mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RC5_MAC_GENERAL_PARAMS {
   /// wordsize in bits
   pub ulWordsize: CK_ULONG,
@@ -1754,6 +1795,7 @@ pub struct CK_RC5_MAC_GENERAL_PARAMS {
   /// Length of MAC in bytes
   pub ulMacLength: CK_ULONG,
 }
+packed_clone!(CK_RC5_MAC_GENERAL_PARAMS);
 
 pub type CK_RC5_MAC_GENERAL_PARAMS_PTR = *const CK_RC5_MAC_GENERAL_PARAMS;
 
@@ -1764,30 +1806,32 @@ pub type CK_MAC_GENERAL_PARAMS = CK_ULONG;
 
 pub type CK_MAC_GENERAL_PARAMS_PTR = *const CK_MAC_GENERAL_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_DES_CBC_ENCRYPT_DATA_PARAMS {
   pub iv: [CK_BYTE; 8],
   pub pData: CK_BYTE_PTR,
   pub length: CK_ULONG,
 }
+packed_clone!(CK_DES_CBC_ENCRYPT_DATA_PARAMS);
 
 pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_DES_CBC_ENCRYPT_DATA_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_AES_CBC_ENCRYPT_DATA_PARAMS {
   pub iv: [CK_BYTE; 16],
   pub pData: CK_BYTE_PTR,
   pub length: CK_ULONG,
 }
+packed_clone!(CK_AES_CBC_ENCRYPT_DATA_PARAMS);
 
 pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_AES_CBC_ENCRYPT_DATA_PARAMS;
 
 /// CK_SKIPJACK_PRIVATE_WRAP_PARAMS provides the parameters to the
 /// CKM_SKIPJACK_PRIVATE_WRAP mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SKIPJACK_PRIVATE_WRAP_PARAMS {
   pub ulPasswordLen: CK_ULONG,
   pub pPassword: CK_BYTE_PTR,
@@ -1801,14 +1845,15 @@ pub struct CK_SKIPJACK_PRIVATE_WRAP_PARAMS {
   pub pBaseG: CK_BYTE_PTR,
   pub pSubprimeQ: CK_BYTE_PTR,
 }
+packed_clone!(CK_SKIPJACK_PRIVATE_WRAP_PARAMS);
 
 pub type CK_SKIPJACK_PRIVATE_WRAP_PARAMS_PTR = *const CK_SKIPJACK_PRIVATE_WRAP_PARAMS;
 
 
 /// CK_SKIPJACK_RELAYX_PARAMS provides the parameters to the
 /// CKM_SKIPJACK_RELAYX mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SKIPJACK_RELAYX_PARAMS {
   pub ulOldWrappedXLen: CK_ULONG,
   pub pOldWrappedX: CK_BYTE_PTR,
@@ -1825,11 +1870,12 @@ pub struct CK_SKIPJACK_RELAYX_PARAMS {
   pub ulNewRandomLen: CK_ULONG,
   pub pNewRandomA: CK_BYTE_PTR,
 }
+packed_clone!(CK_SKIPJACK_RELAYX_PARAMS);
 
 pub type CK_SKIPJACK_RELAYX_PARAMS_PTR = *const CK_SKIPJACK_RELAYX_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_PBE_PARAMS {
   pub pInitVector: CK_BYTE_PTR,
   pub pPassword: CK_UTF8CHAR_PTR,
@@ -1838,14 +1884,15 @@ pub struct CK_PBE_PARAMS {
   pub ulSaltLen: CK_ULONG,
   pub ulIteration: CK_ULONG,
 }
+packed_clone!(CK_PBE_PARAMS);
 
 pub type CK_PBE_PARAMS_PTR = *const CK_PBE_PARAMS;
 
 
 /// CK_KEY_WRAP_SET_OAEP_PARAMS provides the parameters to the
 /// CKM_KEY_WRAP_SET_OAEP mechanism
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_KEY_WRAP_SET_OAEP_PARAMS {
   /// block contents byte
   pub bBC: CK_BYTE,
@@ -1854,29 +1901,32 @@ pub struct CK_KEY_WRAP_SET_OAEP_PARAMS {
   /// length of extra data in bytes
   pub ulXLen: CK_ULONG,
 }
+packed_clone!(CK_KEY_WRAP_SET_OAEP_PARAMS);
 
 pub type CK_KEY_WRAP_SET_OAEP_PARAMS_PTR = *const CK_KEY_WRAP_SET_OAEP_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SSL3_RANDOM_DATA {
   pub pClientRandom: CK_BYTE_PTR,
   pub ulClientRandomLen: CK_ULONG,
   pub pServerRandom: CK_BYTE_PTR,
   pub ulServerRandomLen: CK_ULONG,
 }
+packed_clone!(CK_SSL3_RANDOM_DATA);
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SSL3_MASTER_KEY_DERIVE_PARAMS {
   pub RandomInfo: CK_SSL3_RANDOM_DATA,
   pub pVersion: CK_VERSION_PTR,
 }
+packed_clone!(CK_SSL3_MASTER_KEY_DERIVE_PARAMS);
 
 pub type CK_SSL3_MASTER_KEY_DERIVE_PARAMS_PTR = *const CK_SSL3_MASTER_KEY_DERIVE_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SSL3_KEY_MAT_OUT {
   pub hClientMacSecret: CK_OBJECT_HANDLE,
   pub hServerMacSecret: CK_OBJECT_HANDLE,
@@ -1885,11 +1935,12 @@ pub struct CK_SSL3_KEY_MAT_OUT {
   pub pIVClient: CK_BYTE_PTR,
   pub pIVServer: CK_BYTE_PTR,
 }
+packed_clone!(CK_SSL3_KEY_MAT_OUT);
 
 pub type CK_SSL3_KEY_MAT_OUT_PTR = *const CK_SSL3_KEY_MAT_OUT;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SSL3_KEY_MAT_PARAMS {
   pub ulMacSizeInBits: CK_ULONG,
   pub ulKeySizeInBits: CK_ULONG,
@@ -1898,11 +1949,12 @@ pub struct CK_SSL3_KEY_MAT_PARAMS {
   pub RandomInfo: CK_SSL3_RANDOM_DATA,
   pub pReturnedKeyMaterial: CK_SSL3_KEY_MAT_OUT_PTR,
 }
+packed_clone!(CK_SSL3_KEY_MAT_PARAMS);
 
 pub type CK_SSL3_KEY_MAT_PARAMS_PTR = *const CK_SSL3_KEY_MAT_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_TLS_PRF_PARAMS {
   pub pSeed: CK_BYTE_PTR,
   pub ulSeedLen: CK_ULONG,
@@ -1911,32 +1963,35 @@ pub struct CK_TLS_PRF_PARAMS {
   pub pOutput: CK_BYTE_PTR,
   pub pulOutputLen: CK_ULONG_PTR,
 }
+packed_clone!(CK_TLS_PRF_PARAMS);
 
 pub type CK_TLS_PRF_PARAMS_PTR = *const CK_TLS_PRF_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_WTLS_RANDOM_DATA {
   pub pClientRandom: CK_BYTE_PTR,
   pub ulClientRandomLen: CK_ULONG,
   pub pServerRandom: CK_BYTE_PTR,
   pub ulServerRandomLen: CK_ULONG,
 }
+packed_clone!(CK_WTLS_RANDOM_DATA);
 
 pub type CK_WTLS_RANDOM_DATA_PTR = *const CK_WTLS_RANDOM_DATA;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_WTLS_MASTER_KEY_DERIVE_PARAMS {
   pub DigestMechanism: CK_MECHANISM_TYPE,
   pub RandomInfo: CK_WTLS_RANDOM_DATA,
   pub pVersion: CK_BYTE_PTR,
 }
+packed_clone!(CK_WTLS_MASTER_KEY_DERIVE_PARAMS);
 
 pub type CK_WTLS_MASTER_KEY_DERIVE_PARAMS_PTR = *const CK_WTLS_MASTER_KEY_DERIVE_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_WTLS_PRF_PARAMS {
   pub DigestMechanism: CK_MECHANISM_TYPE,
   pub pSeed: CK_BYTE_PTR,
@@ -1946,21 +2001,23 @@ pub struct CK_WTLS_PRF_PARAMS {
   pub pOutput: CK_BYTE_PTR,
   pub pulOutputLen: CK_ULONG_PTR,
 }
+packed_clone!(CK_WTLS_PRF_PARAMS);
 
 pub type CK_WTLS_PRF_PARAMS_PTR = *const CK_WTLS_PRF_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_WTLS_KEY_MAT_OUT {
   pub hMacSecret: CK_OBJECT_HANDLE,
   pub hKey: CK_OBJECT_HANDLE,
   pub pIV: CK_BYTE_PTR,
 }
+packed_clone!(CK_WTLS_KEY_MAT_OUT);
 
 pub type CK_WTLS_KEY_MAT_OUT_PTR = *const CK_WTLS_KEY_MAT_OUT;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_WTLS_KEY_MAT_PARAMS {
   pub DigestMechanism: CK_MECHANISM_TYPE,
   pub ulMacSizeInBits: CK_ULONG,
@@ -1971,11 +2028,12 @@ pub struct CK_WTLS_KEY_MAT_PARAMS {
   pub RandomInfo: CK_WTLS_RANDOM_DATA,
   pub pReturnedKeyMaterial: CK_WTLS_KEY_MAT_OUT_PTR,
 }
+packed_clone!(CK_WTLS_KEY_MAT_PARAMS);
 
 pub type CK_WTLS_KEY_MAT_PARAMS_PTR = *const CK_WTLS_KEY_MAT_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_CMS_SIG_PARAMS {
   pub certificateHandle: CK_OBJECT_HANDLE,
   pub pSigningMechanism: CK_MECHANISM_PTR,
@@ -1986,15 +2044,17 @@ pub struct CK_CMS_SIG_PARAMS {
   pub pRequiredAttributes: CK_BYTE_PTR,
   pub ulRequiredAttributesLen: CK_ULONG,
 }
+packed_clone!(CK_CMS_SIG_PARAMS);
 
 pub type CK_CMS_SIG_PARAMS_PTR = *const CK_CMS_SIG_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_KEY_DERIVATION_STRING_DATA {
   pub pData: CK_BYTE_PTR,
   pub ulLen: CK_ULONG,
 }
+packed_clone!(CK_KEY_DERIVATION_STRING_DATA);
 
 pub type CK_KEY_DERIVATION_STRING_DATA_PTR = *const CK_KEY_DERIVATION_STRING_DATA;
 
@@ -2035,8 +2095,8 @@ pub const CKZ_SALT_SPECIFIED: CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE = 0x00000001;
 
 /// CK_PKCS5_PBKD2_PARAMS is a structure that provides the
 /// parameters to the CKM_PKCS5_PBKD2 mechanism.
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_PKCS5_PBKD2_PARAMS {
   pub saltSource: CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE,
   pub pSaltSourceData: CK_VOID_PTR,
@@ -2048,14 +2108,15 @@ pub struct CK_PKCS5_PBKD2_PARAMS {
   pub pPassword: CK_UTF8CHAR_PTR,
   pub ulPasswordLen: CK_ULONG_PTR,
 }
+packed_clone!(CK_PKCS5_PBKD2_PARAMS);
 
 pub type CK_PKCS5_PBKD2_PARAMS_PTR = *const CK_PKCS5_PBKD2_PARAMS;
 
 /// CK_PKCS5_PBKD2_PARAMS2 is a corrected version of the CK_PKCS5_PBKD2_PARAMS
 /// structure that provides the parameters to the CKM_PKCS5_PBKD2 mechanism
 /// noting that the ulPasswordLen field is a CK_ULONG and not a CK_ULONG_PTR.
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_PKCS5_PBKD2_PARAMS2 {
   pub saltSource: CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE,
   pub pSaltSourceData: CK_VOID_PTR,
@@ -2067,6 +2128,7 @@ pub struct CK_PKCS5_PBKD2_PARAMS2 {
   pub pPassword: CK_UTF8CHAR_PTR,
   pub ulPasswordLen: CK_ULONG,
 }
+packed_clone!(CK_PKCS5_PBKD2_PARAMS2);
 
 pub type CK_PKCS5_PBKD2_PARAMS2_PTR = *const CK_PKCS5_PBKD2_PARAMS2;
 
@@ -2074,31 +2136,34 @@ pub type CK_OTP_PARAM_TYPE = CK_ULONG;
 /// backward compatibility
 pub type CK_PARAM_TYPE = CK_OTP_PARAM_TYPE;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_OTP_PARAM {
   pub paramType: CK_OTP_PARAM_TYPE,
   pub pValue: CK_VOID_PTR,
   pub ulValueLen: CK_ULONG,
 }
+packed_clone!(CK_OTP_PARAM);
 
 pub type CK_OTP_PARAM_PTR = *const CK_OTP_PARAM;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_OTP_PARAMS {
   pub pParams: CK_OTP_PARAM_PTR,
   pub ulCount: CK_ULONG,
 }
+packed_clone!(CK_OTP_PARAMS);
 
 pub type CK_OTP_PARAMS_PTR = *const CK_OTP_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_OTP_SIGNATURE_INFO {
   pub pParams: CK_OTP_PARAM_PTR,
   pub ulCount: CK_ULONG,
 }
+packed_clone!(CK_OTP_SIGNATURE_INFO);
 
 pub type CK_OTP_SIGNATURE_INFO_PTR = *const CK_OTP_SIGNATURE_INFO;
 
@@ -2118,28 +2183,30 @@ pub const CKF_EXCLUDE_CHALLENGE: CK_FLAGS = 0x00000008;
 pub const CKF_EXCLUDE_PIN: CK_FLAGS = 0x00000010;
 pub const CKF_USER_FRIENDLY_OTP: CK_FLAGS = 0x00000020;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_KIP_PARAMS {
   pub pMechanism: CK_MECHANISM_PTR,
   pub hKey: CK_OBJECT_HANDLE,
   pub pSeed: CK_BYTE_PTR,
   pub ulSeedLen: CK_ULONG,
 }
+packed_clone!(CK_KIP_PARAMS);
 
 pub type CK_KIP_PARAMS_PTR = *const CK_KIP_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_AES_CTR_PARAMS {
   pub ulCounterBits: CK_ULONG,
   pub cb: [CK_BYTE; 16],
 }
+packed_clone!(CK_AES_CTR_PARAMS);
 
 pub type CK_AES_CTR_PARAMS_PTR = *const CK_AES_CTR_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_GCM_PARAMS {
   pub pIv: CK_BYTE_PTR,
   pub ulIvLen: CK_ULONG,
@@ -2148,11 +2215,12 @@ pub struct CK_GCM_PARAMS {
   pub ulAADLen: CK_ULONG,
   pub ulTagBits: CK_ULONG,
 }
+packed_clone!(CK_GCM_PARAMS);
 
 pub type CK_GCM_PARAMS_PTR = *const CK_GCM_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_CCM_PARAMS {
   pub ulDataLen: CK_ULONG,
   pub pNonce: CK_BYTE_PTR,
@@ -2161,12 +2229,13 @@ pub struct CK_CCM_PARAMS {
   pub ulAADLen: CK_ULONG,
   pub ulMACLen: CK_ULONG,
 }
+packed_clone!(CK_CCM_PARAMS);
 
 pub type CK_CCM_PARAMS_PTR = *const CK_CCM_PARAMS;
 
 /// Deprecated. Use CK_GCM_PARAMS
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_AES_GCM_PARAMS {
   pub pIv: CK_BYTE_PTR,
   pub ulIvLen: CK_ULONG,
@@ -2175,12 +2244,13 @@ pub struct CK_AES_GCM_PARAMS {
   pub ulAADLen: CK_ULONG,
   pub ulTagBits: CK_ULONG,
 }
+packed_clone!(CK_AES_GCM_PARAMS);
 
 pub type CK_AES_GCM_PARAMS_PTR = *const CK_AES_GCM_PARAMS;
 
 /// Deprecated. Use CK_CCM_PARAMS
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_AES_CCM_PARAMS {
   pub ulDataLen: CK_ULONG,
   pub pNonce: CK_BYTE_PTR,
@@ -2189,57 +2259,63 @@ pub struct CK_AES_CCM_PARAMS {
   pub ulAADLen: CK_ULONG,
   pub ulMACLen: CK_ULONG,
 }
+packed_clone!(CK_AES_CCM_PARAMS);
 
 pub type CK_AES_CCM_PARAMS_PTR = *const CK_AES_CCM_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_CAMELLIA_CTR_PARAMS {
   pub ulCounterBits: CK_ULONG,
   pub cb: [CK_BYTE; 16],
 }
+packed_clone!(CK_CAMELLIA_CTR_PARAMS);
 
 pub type CK_CAMELLIA_CTR_PARAMS_PTR = *const CK_CAMELLIA_CTR_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS {
   pub iv: [CK_BYTE; 16],
   pub pData: CK_BYTE_PTR,
   pub length: CK_ULONG,
 }
+packed_clone!(CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS);
 
 pub type CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_ARIA_CBC_ENCRYPT_DATA_PARAMS {
   pub iv: [CK_BYTE; 16],
   pub pData: CK_BYTE_PTR,
   pub length: CK_ULONG,
 }
+packed_clone!(CK_ARIA_CBC_ENCRYPT_DATA_PARAMS);
 
 pub type CK_ARIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_ARIA_CBC_ENCRYPT_DATA_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_DSA_PARAMETER_GEN_PARAM {
   pub hash: CK_MECHANISM_TYPE,
   pub pSeed: CK_BYTE_PTR,
   pub ulSeedLen: CK_ULONG,
   pub ulIndex: CK_ULONG,
 }
+packed_clone!(CK_DSA_PARAMETER_GEN_PARAM);
 
 pub type CK_DSA_PARAMETER_GEN_PARAM_PTR = *const CK_DSA_PARAMETER_GEN_PARAM;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_ECDH_AES_KEY_WRAP_PARAMS {
   pub ulAESKeyBits: CK_ULONG,
   pub kdf: CK_EC_KDF_TYPE,
   pub ulSharedDataLen: CK_ULONG,
   pub pSharedData: CK_BYTE_PTR,
 }
+packed_clone!(CK_ECDH_AES_KEY_WRAP_PARAMS);
 
 pub type CK_ECDH_AES_KEY_WRAP_PARAMS_PTR = *const CK_ECDH_AES_KEY_WRAP_PARAMS;
 
@@ -2247,27 +2323,29 @@ pub type CK_JAVA_MIDP_SECURITY_DOMAIN = CK_ULONG;
 
 pub type CK_CERTIFICATE_CATEGORY = CK_ULONG;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_RSA_AES_KEY_WRAP_PARAMS {
   pub ulAESKeyBits: CK_ULONG,
   pub pOAEPParams: CK_RSA_PKCS_OAEP_PARAMS_PTR,
 }
+packed_clone!(CK_RSA_AES_KEY_WRAP_PARAMS);
 
 pub type CK_RSA_AES_KEY_WRAP_PARAMS_PTR = *const CK_RSA_AES_KEY_WRAP_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_TLS12_MASTER_KEY_DERIVE_PARAMS {
   pub RandomInfo: CK_SSL3_RANDOM_DATA,
   pub pVersion: CK_VERSION_PTR,
   pub prfHashMechanism: CK_MECHANISM_TYPE,
 }
+packed_clone!(CK_TLS12_MASTER_KEY_DERIVE_PARAMS);
 
 pub type CK_TLS12_MASTER_KEY_DERIVE_PARAMS_PTR = *const CK_TLS12_MASTER_KEY_DERIVE_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_TLS12_KEY_MAT_PARAMS {
   pub ulMacSizeInBits: CK_ULONG,
   pub ulKeySizeInBits: CK_ULONG,
@@ -2277,11 +2355,12 @@ pub struct CK_TLS12_KEY_MAT_PARAMS {
   pub pReturnedKeyMaterial: CK_SSL3_KEY_MAT_OUT_PTR,
   pub prfHashMechanism: CK_MECHANISM_TYPE,
 }
+packed_clone!(CK_TLS12_KEY_MAT_PARAMS);
 
 pub type CK_TLS12_KEY_MAT_PARAMS_PTR = *const CK_TLS12_KEY_MAT_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_TLS_KDF_PARAMS {
   pub prfMechanism: CK_MECHANISM_TYPE,
   pub pLabel: CK_BYTE_PTR,
@@ -2290,21 +2369,23 @@ pub struct CK_TLS_KDF_PARAMS {
   pub pContextData: CK_BYTE_PTR,
   pub ulContextDataLength: CK_ULONG,
 }
+packed_clone!(CK_TLS_KDF_PARAMS);
 
 pub type CK_TLS_KDF_PARAMS_PTR = *const CK_TLS_KDF_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_TLS_MAC_PARAMS {
   pub prfHashMechanism: CK_MECHANISM_TYPE,
   pub ulMacLength: CK_ULONG,
   pub ulServerOrClient: CK_ULONG,
 }
+packed_clone!(CK_TLS_MAC_PARAMS);
 
 pub type CK_TLS_MAC_PARAMS_PTR = *const CK_TLS_MAC_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_GOSTR3410_DERIVE_PARAMS {
   pub kdf: CK_EC_KDF_TYPE,
   pub pPublicData: CK_BYTE_PTR,
@@ -2312,11 +2393,12 @@ pub struct CK_GOSTR3410_DERIVE_PARAMS {
   pub pUKM: CK_BYTE_PTR,
   pub ulUKMLen: CK_ULONG,
 }
+packed_clone!(CK_GOSTR3410_DERIVE_PARAMS);
 
 pub type CK_GOSTR3410_DERIVE_PARAMS_PTR = *const CK_GOSTR3410_DERIVE_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_GOSTR3410_KEY_WRAP_PARAMS {
   pub pWrapOID: CK_BYTE_PTR,
   pub ulWrapOIDLen: CK_ULONG,
@@ -2324,15 +2406,17 @@ pub struct CK_GOSTR3410_KEY_WRAP_PARAMS {
   pub ulUKMLen: CK_ULONG,
   pub hKey: CK_OBJECT_HANDLE,
 }
+packed_clone!(CK_GOSTR3410_KEY_WRAP_PARAMS);
 
 pub type CK_GOSTR3410_KEY_WRAP_PARAMS_PTR = *const CK_GOSTR3410_KEY_WRAP_PARAMS;
 
-#[derive(Debug, Clone)]
-#[repr(C)]
+#[derive(Debug, Copy)]
+#[repr(packed, C)]
 pub struct CK_SEED_CBC_ENCRYPT_DATA_PARAMS {
   pub iv: [CK_BYTE; 16],
   pub pData: CK_BYTE_PTR,
   pub length: CK_ULONG,
 }
+packed_clone!(CK_SEED_CBC_ENCRYPT_DATA_PARAMS);
 
 pub type CK_SEED_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_SEED_CBC_ENCRYPT_DATA_PARAMS;

@@ -82,6 +82,7 @@ fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {
 pub struct Ctx {
   lib: libloading::Library,
   _is_initialized: bool,
+  version: CK_VERSION,
   C_Initialize: C_Initialize,
   C_Finalize: C_Finalize,
   C_GetInfo: C_GetInfo,
@@ -149,7 +150,8 @@ pub struct Ctx {
   C_GenerateRandom: C_GenerateRandom,
   C_GetFunctionStatus: C_GetFunctionStatus,
   C_CancelFunction: C_CancelFunction,
-  C_WaitForSlotEvent: C_WaitForSlotEvent,
+  // Functions added in for Cryptoki Version 2.01 or later
+  C_WaitForSlotEvent: Option<C_WaitForSlotEvent>,
 }
 
 impl Ctx {
@@ -168,6 +170,7 @@ impl Ctx {
       Ok(Ctx {
         lib: lib,
         _is_initialized: false,
+        version: (*list).version.clone(),
         C_Initialize: (*list).C_Initialize.ok_or(Error::Module("C_Initialize function not found"))?,
         C_Finalize: (*list).C_Finalize.ok_or(Error::Module("C_Finalize function not found"))?,
         C_GetInfo: (*list).C_GetInfo.ok_or(Error::Module("C_GetInfo function not found"))?,
@@ -235,7 +238,8 @@ impl Ctx {
         C_GenerateRandom: (*list).C_GenerateRandom.ok_or(Error::Module("C_GenerateRandom function not found"))?,
         C_GetFunctionStatus: (*list).C_GetFunctionStatus.ok_or(Error::Module("C_GetFunctionStatus function not found"))?,
         C_CancelFunction: (*list).C_CancelFunction.ok_or(Error::Module("C_CancelFunction function not found"))?,
-        C_WaitForSlotEvent: (*list).C_WaitForSlotEvent.ok_or(Error::Module("C_WaitForSlotEvent function not found"))?,
+        // Functions added in for Cryptoki Version 2.01 or later
+        C_WaitForSlotEvent: (*list).C_WaitForSlotEvent,
       })
     }
   }
@@ -268,7 +272,12 @@ impl Ctx {
 
   pub fn initialize(&mut self, init_args: Option<CK_C_INITIALIZE_ARGS>) -> Result<(), Error> {
     self.not_initialized()?;
-    match (self.C_Initialize)(&init_args.unwrap_or(CK_C_INITIALIZE_ARGS::new())) {
+    // if no args are specified, library expects NULL
+    let init_args = match init_args {
+        Some(args) => &args,
+        None => ptr::null()
+    };
+    match (self.C_Initialize)(init_args) {
       CKR_OK => {
         self._is_initialized = true;
         Ok(())
@@ -315,12 +324,12 @@ impl Ctx {
         // important is to pass slots_len **again** because in
         // the 2nd call it is used to tell C how big the memory
         // in slots is.
-        let mut slots = Vec::<CK_SLOT_ID>::with_capacity(slots_len);
+        let mut slots = Vec::<CK_SLOT_ID>::with_capacity(slots_len as usize);
         let slots_ptr = slots.as_mut_ptr();
         match (self.C_GetSlotList)(CkFrom::from(token_present), slots_ptr, &slots_len) {
           CKR_OK => {
             unsafe {
-              slots.set_len(slots_len);
+              slots.set_len(slots_len as usize);
             }
             Ok(slots)
           }
@@ -355,12 +364,12 @@ impl Ctx {
     match (self.C_GetMechanismList)(slot_id, ptr::null(), &mut count) {
       CKR_OK => {
         // see get_slot_list() for an explanation - it works the same way
-        let mut list = Vec::<CK_MECHANISM_TYPE>::with_capacity(count);
+        let mut list = Vec::<CK_MECHANISM_TYPE>::with_capacity(count as usize);
         let list_ptr = list.as_mut_ptr();
         match (self.C_GetMechanismList)(slot_id, list_ptr, &count) {
           CKR_OK => {
             unsafe {
-              list.set_len(count);
+              list.set_len(count as usize);
             }
             Ok(list)
           }
@@ -386,7 +395,7 @@ impl Ctx {
     match pin {
       Some(pin) => if let Ok(cpin) = CString::new(pin) {
         let cpin_bytes = cpin.into_bytes();
-        match (self.C_InitToken)(slot_id, cpin_bytes.as_ptr(), cpin_bytes.len(), formatted_label) {
+        match (self.C_InitToken)(slot_id, cpin_bytes.as_ptr(), cpin_bytes.len() as CK_ULONG, formatted_label) {
           CKR_OK => Ok(()),
           err => Err(Error::Pkcs11(err)),
         }
@@ -408,7 +417,7 @@ impl Ctx {
     match pin {
       Some(pin) => if let Ok(cpin) = CString::new(pin) {
         let cpin_bytes = cpin.into_bytes();
-        match (self.C_InitPIN)(session, cpin_bytes.as_ptr(), cpin_bytes.len()) {
+        match (self.C_InitPIN)(session, cpin_bytes.as_ptr(), cpin_bytes.len() as CK_ULONG) {
           CKR_OK => Ok(()),
           err => Err(Error::Pkcs11(err)),
         }
@@ -440,7 +449,7 @@ impl Ctx {
       }
       let old_cpin = old_cpin_res.unwrap().into_bytes();
       let new_cpin = new_cpin_res.unwrap().into_bytes();
-      match (self.C_SetPIN)(session, old_cpin.as_ptr(), old_cpin.len(), new_cpin.as_ptr(), new_cpin.len()) {
+      match (self.C_SetPIN)(session, old_cpin.as_ptr(), old_cpin.len() as CK_ULONG, new_cpin.as_ptr(), new_cpin.len() as CK_ULONG) {
         CKR_OK => Ok(()),
         err => Err(Error::Pkcs11(err)),
       }
@@ -488,12 +497,12 @@ impl Ctx {
     let mut state_length: CK_ULONG = 0;
     match (self.C_GetOperationState)(session, ptr::null(), &mut state_length) {
       CKR_OK => {
-        let mut state: Vec<CK_BYTE> = Vec::with_capacity(state_length);
+        let mut state: Vec<CK_BYTE> = Vec::with_capacity(state_length as usize);
         let state_ptr = state.as_mut_ptr();
         match (self.C_GetOperationState)(session, state_ptr, &state_length) {
           CKR_OK => {
             unsafe {
-              state.set_len(state_length);
+              state.set_len(state_length as usize);
             }
             Ok(state)
           }
@@ -512,7 +521,7 @@ impl Ctx {
     authentication_key: Option<CK_OBJECT_HANDLE>,
   ) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_SetOperationState)(session, operation_state.as_ptr(), operation_state.len(), encryption_key.unwrap_or(0), authentication_key.unwrap_or(0)) {
+    match (self.C_SetOperationState)(session, operation_state.as_ptr(), operation_state.len() as CK_ULONG, encryption_key.unwrap_or(0), authentication_key.unwrap_or(0)) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -523,7 +532,7 @@ impl Ctx {
     match pin {
       Some(pin) => if let Ok(cpin) = CString::new(pin) {
         let cpin_bytes = cpin.into_bytes();
-        match (self.C_Login)(session, user_type, cpin_bytes.as_ptr(), cpin_bytes.len()) {
+        match (self.C_Login)(session, user_type, cpin_bytes.as_ptr(), cpin_bytes.len() as CK_ULONG) {
           CKR_OK => Ok(()),
           err => Err(Error::Pkcs11(err)),
         }
@@ -548,7 +557,7 @@ impl Ctx {
   pub fn create_object(&self, session: CK_SESSION_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
-    match (self.C_CreateObject)(session, template.as_slice().as_ptr(), template.len(), &mut oh) {
+    match (self.C_CreateObject)(session, template.as_slice().as_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
       err => Err(Error::Pkcs11(err)),
     }
@@ -557,7 +566,7 @@ impl Ctx {
   pub fn copy_object(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
-    match (self.C_CopyObject)(session, object, template.as_slice().as_ptr(), template.len(), &mut oh) {
+    match (self.C_CopyObject)(session, object, template.as_slice().as_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
       err => Err(Error::Pkcs11(err)),
     }
@@ -589,7 +598,7 @@ impl Ctx {
       C_GetAttributeValue.  Each attribute in the template whose value can be returned by the call to
       C_GetAttributeValue will be returned by the call to C_GetAttributeValue.
     */
-    match (self.C_GetAttributeValue)(session, object, template.as_slice().as_ptr(), template.len()) {
+    match (self.C_GetAttributeValue)(session, object, template.as_slice().as_ptr(), template.len() as CK_ULONG) {
       CKR_OK => Ok((CKR_OK, template)),
       CKR_ATTRIBUTE_SENSITIVE => Ok((CKR_ATTRIBUTE_SENSITIVE, template)),
       CKR_ATTRIBUTE_TYPE_INVALID => Ok((CKR_ATTRIBUTE_TYPE_INVALID, template)),
@@ -600,7 +609,7 @@ impl Ctx {
 
   pub fn set_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_SetAttributeValue)(session, object, template.as_slice().as_ptr(), template.len()) {
+    match (self.C_SetAttributeValue)(session, object, template.as_slice().as_ptr(), template.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -608,7 +617,7 @@ impl Ctx {
 
   pub fn find_objects_init(&self, session: CK_SESSION_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_FindObjectsInit)(session, template.as_slice().as_ptr(), template.len()) {
+    match (self.C_FindObjectsInit)(session, template.as_slice().as_ptr(), template.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -616,12 +625,12 @@ impl Ctx {
 
   pub fn find_objects(&self, session: CK_SESSION_HANDLE, max_object_count: CK_ULONG) -> Result<Vec<CK_OBJECT_HANDLE>, Error> {
     self.initialized()?;
-    let mut list: Vec<CK_OBJECT_HANDLE> = Vec::with_capacity(max_object_count);
+    let mut list: Vec<CK_OBJECT_HANDLE> = Vec::with_capacity(max_object_count as usize);
     let mut count: CK_ULONG = 0;
     match (self.C_FindObjects)(session, list.as_ptr(), max_object_count, &mut count) {
       CKR_OK => {
         unsafe {
-          list.set_len(count);
+          list.set_len(count as usize);
         }
         Ok(list)
       }
@@ -648,13 +657,13 @@ impl Ctx {
   pub fn encrypt(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut encryptedDataLen: CK_ULONG = 0;
-    match (self.C_Encrypt)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut encryptedDataLen) {
+    match (self.C_Encrypt)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &mut encryptedDataLen) {
       CKR_OK => {
-        let mut encryptedData: Vec<CK_BYTE> = Vec::with_capacity(encryptedDataLen);
-        match (self.C_Encrypt)(session, data.as_slice().as_ptr(), data.len(), encryptedData.as_slice().as_ptr(), &encryptedDataLen) {
+        let mut encryptedData: Vec<CK_BYTE> = Vec::with_capacity(encryptedDataLen as usize);
+        match (self.C_Encrypt)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, encryptedData.as_slice().as_ptr(), &encryptedDataLen) {
           CKR_OK => {
             unsafe {
-              encryptedData.set_len(encryptedDataLen);
+              encryptedData.set_len(encryptedDataLen as usize);
             }
             Ok(encryptedData)
           },
@@ -668,13 +677,13 @@ impl Ctx {
   pub fn encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut encryptedPartLen: CK_ULONG = 0;
-    match (self.C_EncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), ptr::null(), &mut encryptedPartLen) {
+    match (self.C_EncryptUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG, ptr::null(), &mut encryptedPartLen) {
       CKR_OK => {
-        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen);
-        match (self.C_EncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
+        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen as usize);
+        match (self.C_EncryptUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG, encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
           CKR_OK => {
             unsafe {
-              encryptedPart.set_len(encryptedPartLen);
+              encryptedPart.set_len(encryptedPartLen as usize);
             }
             Ok(encryptedPart)
           },
@@ -693,11 +702,11 @@ impl Ctx {
         if lastEncryptedPartLen == 0 {
           Ok(None)
         } else {
-          let mut lastEncryptedPart: Vec<CK_BYTE> = Vec::with_capacity(lastEncryptedPartLen);
+          let mut lastEncryptedPart: Vec<CK_BYTE> = Vec::with_capacity(lastEncryptedPartLen as usize);
           match (self.C_EncryptFinal)(session, lastEncryptedPart.as_slice().as_ptr(), &lastEncryptedPartLen) {
             CKR_OK => {
               unsafe {
-                lastEncryptedPart.set_len(lastEncryptedPartLen);
+                lastEncryptedPart.set_len(lastEncryptedPartLen as usize);
               }
               Ok(Some(lastEncryptedPart))
             },
@@ -720,13 +729,13 @@ impl Ctx {
   pub fn decrypt(&self, session: CK_SESSION_HANDLE, encryptedData: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut dataLen: CK_ULONG = 0;
-    match (self.C_Decrypt)(session, encryptedData.as_slice().as_ptr(), encryptedData.len(), ptr::null(), &mut dataLen) {
+    match (self.C_Decrypt)(session, encryptedData.as_slice().as_ptr(), encryptedData.len() as CK_ULONG, ptr::null(), &mut dataLen) {
       CKR_OK => {
-        let mut data: Vec<CK_BYTE> = Vec::with_capacity(dataLen);
-        match (self.C_Decrypt)(session, encryptedData.as_slice().as_ptr(), encryptedData.len(), data.as_slice().as_ptr(), &dataLen) {
+        let mut data: Vec<CK_BYTE> = Vec::with_capacity(dataLen as usize);
+        match (self.C_Decrypt)(session, encryptedData.as_slice().as_ptr(), encryptedData.len() as CK_ULONG, data.as_slice().as_ptr(), &dataLen) {
           CKR_OK => {
             unsafe {
-              data.set_len(dataLen);
+              data.set_len(dataLen as usize);
             }
             Ok(data)
           },
@@ -740,13 +749,13 @@ impl Ctx {
   pub fn decrypt_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut partLen: CK_ULONG = 0;
-    match (self.C_DecryptUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), ptr::null(), &mut partLen) {
+    match (self.C_DecryptUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len() as CK_ULONG, ptr::null(), &mut partLen) {
       CKR_OK => {
-        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen);
-        match (self.C_Decrypt)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), part.as_slice().as_ptr(), &partLen) {
+        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen as usize);
+        match (self.C_Decrypt)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len() as CK_ULONG, part.as_slice().as_ptr(), &partLen) {
           CKR_OK => {
             unsafe {
-              part.set_len(partLen);
+              part.set_len(partLen as usize);
             }
             Ok(part)
           },
@@ -764,11 +773,11 @@ impl Ctx {
         if lastPartLen == 0 {
           Ok(None)
         } else {
-          let mut lastPart: Vec<CK_BYTE> = Vec::with_capacity(lastPartLen);
+          let mut lastPart: Vec<CK_BYTE> = Vec::with_capacity(lastPartLen as usize);
           match (self.C_DecryptFinal)(session, lastPart.as_slice().as_ptr(), &lastPartLen) {
             CKR_OK => {
               unsafe {
-                lastPart.set_len(lastPartLen);
+                lastPart.set_len(lastPartLen as usize);
               }
               Ok(Some(lastPart))
             },
@@ -789,13 +798,13 @@ impl Ctx {
 
   pub fn digest(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     let mut digestLen: CK_ULONG = 0;
-    match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut digestLen) {
+    match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &mut digestLen) {
       CKR_OK => {
-        let mut digest: Vec<CK_BYTE> = Vec::with_capacity(digestLen);
-        match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len(), digest.as_slice().as_ptr(), &digestLen) {
+        let mut digest: Vec<CK_BYTE> = Vec::with_capacity(digestLen as usize);
+        match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, digest.as_slice().as_ptr(), &digestLen) {
           CKR_OK => {
             unsafe {
-              digest.set_len(digestLen);
+              digest.set_len(digestLen as usize);
             }
             Ok(digest)
           },
@@ -807,7 +816,7 @@ impl Ctx {
   }
 
   pub fn digest_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
-    match (self.C_DigestUpdate)(session, part.as_slice().as_ptr(), part.len()) {
+    match (self.C_DigestUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -824,11 +833,11 @@ impl Ctx {
     let mut digestLen: CK_ULONG = 0;
     match (self.C_DigestFinal)(session, ptr::null(), &mut digestLen) {
       CKR_OK => {
-        let mut digest: Vec<CK_BYTE> = Vec::with_capacity(digestLen);
+        let mut digest: Vec<CK_BYTE> = Vec::with_capacity(digestLen as usize);
         match (self.C_DigestFinal)(session, digest.as_slice().as_ptr(), &digestLen) {
           CKR_OK => {
             unsafe {
-              digest.set_len(digestLen);
+              digest.set_len(digestLen as usize);
             }
             Ok(digest)
           },
@@ -850,13 +859,13 @@ impl Ctx {
   pub fn sign(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut signatureLen: CK_ULONG = 0;
-    match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut signatureLen) {
+    match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &mut signatureLen) {
       CKR_OK => {
-        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen);
-        match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &signatureLen) {
+        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen as usize);
+        match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &signatureLen) {
           CKR_OK => {
             unsafe {
-              signature.set_len(signatureLen); 
+              signature.set_len(signatureLen as usize); 
             }
             Ok(signature)
           },
@@ -869,7 +878,7 @@ impl Ctx {
 
   pub fn sign_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_SignUpdate)(session, part.as_slice().as_ptr(), part.len()) {
+    match (self.C_SignUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -880,11 +889,11 @@ impl Ctx {
     let mut signatureLen: CK_ULONG = 0;
     match (self.C_SignFinal)(session, ptr::null(), &mut signatureLen) {
       CKR_OK => {
-        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen);
+        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen as usize);
         match (self.C_SignFinal)(session, signature.as_slice().as_ptr(), &signatureLen) {
           CKR_OK => {
             unsafe {
-              signature.set_len(signatureLen);
+              signature.set_len(signatureLen as usize);
             }
             Ok(signature)
           },
@@ -906,13 +915,13 @@ impl Ctx {
   pub fn sign_recover(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut signatureLen: CK_ULONG = 0;
-    match (self.C_SignRecover)(session, data.as_slice().as_ptr(), data.len(), ptr::null(), &mut signatureLen) {
+    match (self.C_SignRecover)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &mut signatureLen) {
       CKR_OK => {
-        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen);
-        match (self.C_SignRecover)(session, data.as_slice().as_ptr(), data.len(), signature.as_slice().as_ptr(), &signatureLen) {
+        let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen as usize);
+        match (self.C_SignRecover)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, signature.as_slice().as_ptr(), &signatureLen) {
           CKR_OK => {
             unsafe {
-              signature.set_len(signatureLen);
+              signature.set_len(signatureLen as usize);
             }
             Ok(signature)
           },
@@ -933,7 +942,7 @@ impl Ctx {
 
   pub fn verify(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>, signature: &Vec<CK_BYTE>) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_Verify)(session, data.as_slice().as_ptr(), data.len(), signature.as_slice().as_ptr(), signature.len()) {
+    match (self.C_Verify)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, signature.as_slice().as_ptr(), signature.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -941,7 +950,7 @@ impl Ctx {
 
   pub fn verify_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_VerifyUpdate)(session, part.as_slice().as_ptr(), part.len()) {
+    match (self.C_VerifyUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -949,7 +958,7 @@ impl Ctx {
 
   pub fn verify_final(&self, session: CK_SESSION_HANDLE, signature: &Vec<CK_BYTE>) -> Result<(), Error> {
     self.initialized()?;
-    match (self.C_VerifyFinal)(session, signature.as_slice().as_ptr(), signature.len()) {
+    match (self.C_VerifyFinal)(session, signature.as_slice().as_ptr(), signature.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
@@ -966,13 +975,13 @@ impl Ctx {
   pub fn verify_recover(&self, session: CK_SESSION_HANDLE, signature: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut dataLen: CK_ULONG = 0;
-    match (self.C_VerifyRecover)(session, signature.as_slice().as_ptr(), signature.len(), ptr::null(), &mut dataLen) {
+    match (self.C_VerifyRecover)(session, signature.as_slice().as_ptr(), signature.len() as CK_ULONG, ptr::null(), &mut dataLen) {
       CKR_OK => {
-        let mut data: Vec<CK_BYTE> = Vec::with_capacity(dataLen);
-        match (self.C_VerifyRecover)(session, signature.as_slice().as_ptr(), signature.len(), data.as_slice().as_ptr(), &dataLen) {
+        let mut data: Vec<CK_BYTE> = Vec::with_capacity(dataLen as usize);
+        match (self.C_VerifyRecover)(session, signature.as_slice().as_ptr(), signature.len() as CK_ULONG, data.as_slice().as_ptr(), &dataLen) {
           CKR_OK => {
             unsafe {
-              data.set_len(dataLen);
+              data.set_len(dataLen as usize);
             }
             Ok(data)
           },
@@ -986,13 +995,13 @@ impl Ctx {
   pub fn digest_encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut encryptedPartLen: CK_ULONG = 0;
-    match (self.C_DigestEncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), ptr::null(), &mut encryptedPartLen) {
+    match (self.C_DigestEncryptUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG, ptr::null(), &mut encryptedPartLen) {
       CKR_OK => {
-        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen);
-        match (self.C_DigestEncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
+        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen as usize);
+        match (self.C_DigestEncryptUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG, encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
           CKR_OK => {
             unsafe {
-              encryptedPart.set_len(encryptedPartLen);
+              encryptedPart.set_len(encryptedPartLen as usize);
             }
             Ok(encryptedPart)
           },
@@ -1006,13 +1015,13 @@ impl Ctx {
   pub fn decrypt_digest_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut partLen: CK_ULONG = 0;
-    match (self.C_DecryptDigestUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), ptr::null(), &mut partLen) {
+    match (self.C_DecryptDigestUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len() as CK_ULONG, ptr::null(), &mut partLen) {
       CKR_OK => {
-        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen);
-        match (self.C_DecryptDigestUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), part.as_slice().as_ptr(), &partLen) {
+        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen as usize);
+        match (self.C_DecryptDigestUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len() as CK_ULONG, part.as_slice().as_ptr(), &partLen) {
           CKR_OK => {
             unsafe {
-              part.set_len(partLen);
+              part.set_len(partLen as usize);
             }
             Ok(part)
           },
@@ -1026,13 +1035,13 @@ impl Ctx {
   pub fn sign_encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut encryptedPartLen: CK_ULONG = 0;
-    match (self.C_SignEncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), ptr::null(), &mut encryptedPartLen) {
+    match (self.C_SignEncryptUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG, ptr::null(), &mut encryptedPartLen) {
       CKR_OK => {
-        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen);
-        match (self.C_SignEncryptUpdate)(session, part.as_slice().as_ptr(), part.len(), encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
+        let mut encryptedPart: Vec<CK_BYTE> = Vec::with_capacity(encryptedPartLen as usize);
+        match (self.C_SignEncryptUpdate)(session, part.as_slice().as_ptr(), part.len() as CK_ULONG, encryptedPart.as_slice().as_ptr(), &encryptedPartLen) {
           CKR_OK => {
             unsafe {
-              encryptedPart.set_len(encryptedPartLen);
+              encryptedPart.set_len(encryptedPartLen as usize);
             }
             Ok(encryptedPart)
           },
@@ -1046,13 +1055,13 @@ impl Ctx {
   pub fn decrypt_verify_update(&self, session: CK_SESSION_HANDLE, encryptedPart: Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
     let mut partLen: CK_ULONG = 0;
-    match (self.C_DecryptVerifyUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), ptr::null(), &mut partLen) {
+    match (self.C_DecryptVerifyUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len() as CK_ULONG, ptr::null(), &mut partLen) {
       CKR_OK => {
-        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen);
-        match (self.C_DecryptVerifyUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len(), part.as_slice().as_ptr(), &partLen) {
+        let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen as usize);
+        match (self.C_DecryptVerifyUpdate)(session, encryptedPart.as_slice().as_ptr(), encryptedPart.len() as CK_ULONG, part.as_slice().as_ptr(), &partLen) {
           CKR_OK => {
             unsafe {
-              part.set_len(partLen);
+              part.set_len(partLen as usize);
             }
             Ok(part)
           },
@@ -1066,7 +1075,7 @@ impl Ctx {
   pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
-    match (self.C_GenerateKey)(session, mechanism, template.as_slice().as_ptr(), template.len(), &mut object) {
+    match (self.C_GenerateKey)(session, mechanism, template.as_slice().as_ptr(), template.len() as CK_ULONG, &mut object) {
       CKR_OK => Ok(object),
       err => Err(Error::Pkcs11(err)),
     }
@@ -1085,9 +1094,9 @@ impl Ctx {
       session,
       mechanism,
       publicKeyTemplate.as_slice().as_ptr(),
-      publicKeyTemplate.len(),
+      publicKeyTemplate.len() as CK_ULONG,
       privateKeyTemplate.as_slice().as_ptr(),
-      privateKeyTemplate.len(),
+      privateKeyTemplate.len() as CK_ULONG,
       &mut pubOh,
       &mut privOh,
     ) {
@@ -1100,18 +1109,18 @@ impl Ctx {
     let mut length: CK_ULONG = 0;
     match (self.C_WrapKey)(session, mechanism, wrappingKey, key, ptr::null(), &mut length) {
       CKR_OK => if length > 0 {
-        let mut out: Vec<CK_BYTE> = Vec::with_capacity(length);
+        let mut out: Vec<CK_BYTE> = Vec::with_capacity(length as usize);
         match (self.C_WrapKey)(session, mechanism, wrappingKey, key, out.as_slice().as_ptr(), &length) {
           CKR_OK => {
             unsafe {
-              out.set_len(length);
+              out.set_len(length as usize);
             }
-            Ok((out))
+            Ok(out)
           }
           err => Err(Error::Pkcs11(err)),
         }
       } else {
-        Ok((vec![]))
+        Ok(vec![])
       },
       err => Err(Error::Pkcs11(err)),
     }
@@ -1126,7 +1135,16 @@ impl Ctx {
     template: &Vec<CK_ATTRIBUTE>,
   ) -> Result<CK_OBJECT_HANDLE, Error> {
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
-    match (self.C_UnwrapKey)(session, mechanism, unwrappingKey, wrappedKey.as_slice().as_ptr(), wrappedKey.len(), template.as_slice().as_ptr(), template.len(), &mut oh) {
+    match (self.C_UnwrapKey)(
+      session,
+      mechanism,
+      unwrappingKey,
+      wrappedKey.as_slice().as_ptr(),
+      wrappedKey.len() as CK_ULONG,
+      template.as_slice().as_ptr(),
+      template.len() as CK_ULONG,
+      &mut oh
+    ) {
       CKR_OK => Ok(oh),
       err => Err(Error::Pkcs11(err)),
     }
@@ -1134,25 +1152,25 @@ impl Ctx {
 
   pub fn derive_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, baseKey: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
-    match (self.C_DeriveKey)(session, mechanism, baseKey, template.as_slice().as_ptr(), template.len(), &mut oh) {
+    match (self.C_DeriveKey)(session, mechanism, baseKey, template.as_slice().as_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
       err => Err(Error::Pkcs11(err)),
     }
   }
 
   pub fn seed_random(&self, session: CK_SESSION_HANDLE, seed: &Vec<CK_BYTE>) -> Result<(), Error> {
-    match (self.C_SeedRandom)(session, seed.as_slice().as_ptr(), seed.len()) {
+    match (self.C_SeedRandom)(session, seed.as_slice().as_ptr(), seed.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
   }
 
   pub fn generate_random(&self, session: CK_SESSION_HANDLE, randomLength: CK_ULONG) -> Result<Vec<CK_BYTE>, Error> {
-    let mut data: Vec<CK_BYTE> = Vec::with_capacity(randomLength);
+    let mut data: Vec<CK_BYTE> = Vec::with_capacity(randomLength as usize);
     match (self.C_GenerateRandom)(session, data.as_slice().as_ptr(), randomLength) {
       CKR_OK => {
         unsafe {
-          data.set_len(randomLength);
+          data.set_len(randomLength as usize);
         }
         Ok(data)
       }
@@ -1178,7 +1196,8 @@ impl Ctx {
 
   pub fn wait_for_slot_event(&self, flags: CK_FLAGS) -> Result<CK_SLOT_ID, Error> {
     let mut slotID: CK_SLOT_ID = 0;
-    match (self.C_WaitForSlotEvent)(flags, &mut slotID, ptr::null()) {
+    let C_WaitForSlotEvent = self.C_WaitForSlotEvent.ok_or(Error::Module("C_WaitForSlotEvent function not found"))?;
+    match C_WaitForSlotEvent(flags, &mut slotID, ptr::null()) {
       CKR_OK => Ok(slotID),
       err => Err(Error::Pkcs11(err)),
     }
