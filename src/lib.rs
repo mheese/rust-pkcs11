@@ -546,6 +546,22 @@ impl Ctx {
     }
   }
 
+  pub fn login_with_raw<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&Vec<CK_BYTE>>) -> Result<(), Error> {
+    self.initialized()?;
+    match pin {
+      Some(pin) => {
+        match (self.C_Login)(session, user_type, pin.as_slice().as_ptr(), pin.len() as CK_ULONG) {
+          CKR_OK => Ok(()),
+          err => Err(Error::Pkcs11(err)),
+        }
+      },
+      None => match (self.C_Login)(session, user_type, ptr::null(), 0) {
+        CKR_OK => Ok(()),
+        err => Err(Error::Pkcs11(err)),
+      },
+    }
+  }
+
   pub fn logout(&self, session: CK_SESSION_HANDLE) -> Result<(), Error> {
     self.initialized()?;
     match (self.C_Logout)(session) {
