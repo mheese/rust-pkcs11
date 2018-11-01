@@ -546,6 +546,10 @@ impl Ctx {
     }
   }
 
+  // Some dongle drivers (such as Safenet) allow NUL bytes in PINs, and fail
+  // login if a NUL containing PIN is truncated. Combined with poor PIN gen
+  // algorithms which insert NULs into the PIN, you might need a way to supply
+  // raw bytes for a PIN, instead of converting from a UTF8 string as per spec
   pub fn login_with_raw<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&Vec<CK_BYTE>>) -> Result<(), Error> {
     self.initialized()?;
     match pin {
