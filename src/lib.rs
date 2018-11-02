@@ -890,7 +890,7 @@ impl Ctx {
         match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len(), signature.as_slice().as_ptr(), &signatureLen) {
           CKR_OK => {
             unsafe {
-              signature.set_len(signatureLen);
+              signature.set_len(signatureLen as usize);
             }
             Ok(signature)
           },
