@@ -787,6 +787,7 @@ impl Ctx {
   }
 
   pub fn decrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Option<Vec<CK_BYTE>>, Error> {
+    self.initialized()?;
     let mut lastPartLen: CK_ULONG = 0;
     match (self.C_DecryptFinal)(session, ptr::null(), &mut lastPartLen) {
       CKR_OK => {
@@ -810,6 +811,7 @@ impl Ctx {
   }
 
   pub fn digest_init(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM) -> Result<(), Error> {
+    self.initialized()?;
     match (self.C_DigestInit)(session, mechanism) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -817,6 +819,7 @@ impl Ctx {
   }
 
   pub fn digest(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
     let mut digestLen: CK_ULONG = 0;
     match (self.C_Digest)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &mut digestLen) {
       CKR_OK => {
@@ -843,6 +846,7 @@ impl Ctx {
   }
 
   pub fn digest_key(&self, session: CK_SESSION_HANDLE, key: CK_OBJECT_HANDLE) -> Result<(), Error> {
+    self.initialized()?;
     match (self.C_DigestKey)(session, key) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -850,6 +854,7 @@ impl Ctx {
   }
 
   pub fn digest_final(&self, session: CK_SESSION_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
     let mut digestLen: CK_ULONG = 0;
     match (self.C_DigestFinal)(session, ptr::null(), &mut digestLen) {
       CKR_OK => {
@@ -1108,6 +1113,7 @@ impl Ctx {
     publicKeyTemplate: &Vec<CK_ATTRIBUTE>,
     privateKeyTemplate: &Vec<CK_ATTRIBUTE>,
   ) -> Result<(CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
+    self.initialized()?;
     let mut pubOh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     let mut privOh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_GenerateKeyPair)(
@@ -1126,6 +1132,7 @@ impl Ctx {
   }
 
   pub fn wrap_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, wrappingKey: CK_OBJECT_HANDLE, key: CK_OBJECT_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
+    self.initialized()?;
     let mut length: CK_ULONG = 0;
     match (self.C_WrapKey)(session, mechanism, wrappingKey, key, ptr::null(), &mut length) {
       CKR_OK => if length > 0 {
@@ -1154,6 +1161,7 @@ impl Ctx {
     wrappedKey: &Vec<CK_BYTE>,
     template: &Vec<CK_ATTRIBUTE>,
   ) -> Result<CK_OBJECT_HANDLE, Error> {
+    self.initialized()?;
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_UnwrapKey)(
       session,
@@ -1171,6 +1179,7 @@ impl Ctx {
   }
 
   pub fn derive_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, baseKey: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+    self.initialized()?;
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_DeriveKey)(session, mechanism, baseKey, template.as_slice().as_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
