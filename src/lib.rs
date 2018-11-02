@@ -887,7 +887,7 @@ impl Ctx {
     match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, ptr::null(), &mut signatureLen) {
       CKR_OK => {
         let mut signature: Vec<CK_BYTE> = Vec::with_capacity(signatureLen as usize);
-        match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len(), signature.as_slice().as_ptr(), &signatureLen) {
+        match (self.C_Sign)(session, data.as_slice().as_ptr(), data.len() as CK_ULONG, signature.as_slice().as_ptr(), &signatureLen) {
           CKR_OK => {
             unsafe {
               signature.set_len(signatureLen as usize);
