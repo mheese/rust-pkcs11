@@ -176,16 +176,14 @@ impl Default for CK_SLOT_INFO {
 impl std::fmt::Debug for CK_SLOT_INFO {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
     let sd = self.slotDescription.to_vec();
-    unsafe {
-      fmt
-        .debug_struct("CK_SLOT_INFO")
-        .field("slotDescription", &sd)
-        .field("manufacturerID", &self.manufacturerID)
-        .field("flags", &self.flags)
-        .field("hardwareVersion", &self.hardwareVersion)
-        .field("firmwareVersion", &self.firmwareVersion)
-        .finish()
-    }
+    fmt
+      .debug_struct("CK_SLOT_INFO")
+      .field("slotDescription", &sd)
+      .field("manufacturerID", &self.manufacturerID)
+      .field("flags", &self.flags)
+      .field("hardwareVersion", &self.hardwareVersion)
+      .field("firmwareVersion", &self.firmwareVersion)
+      .finish()
   }
 }
 
@@ -657,16 +655,14 @@ impl Default for CK_ATTRIBUTE {
 
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let attrType = unsafe {format!("0x{:x}", self.attrType)};
+    let attrType = format!("0x{:x}", self.attrType);
     let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) };
-    unsafe {
-      fmt
-        .debug_struct("CK_ATTRIBUTE")
-        .field("attrType", &attrType)
-        .field("pValue", &data)
-        .field("ulValueLen", &self.ulValueLen)
-        .finish()
-    }
+    fmt
+      .debug_struct("CK_ATTRIBUTE")
+      .field("attrType", &attrType)
+      .field("pValue", &data)
+      .field("ulValueLen", &self.ulValueLen)
+      .finish()
   }
 }
 
