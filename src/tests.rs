@@ -1065,6 +1065,7 @@ fn fixture_token_and_secret_keys(
   Ok((ctx, sh, wrapOh, secOh))
 }
 
+#[allow(dead_code)]
 fn fixture_key_pair(
   ctx: &Ctx,
   sh: CK_SESSION_HANDLE,
