@@ -29,8 +29,10 @@ use super::errors::Error;
 use num_bigint::BigUint;
 
 fn pkcs11_module_name() -> PathBuf {
+  let default_path = option_env!("PKCS11_SOFTHSM2_MODULE")
+    .unwrap_or("/usr/local/lib/softhsm/libsofthsm2.so");
   let path = env::var_os("PKCS11_SOFTHSM2_MODULE")
-    .unwrap_or("/usr/local/lib/softhsm/libsofthsm2.so".into());
+    .unwrap_or(default_path.into());
   let path_buf = PathBuf::from(path);
 
   if !path_buf.exists() {
