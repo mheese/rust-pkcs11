@@ -32,6 +32,7 @@ use errors::Error;
 
 
 use std::mem;
+use std::path::Path;
 use std::ptr;
 use std::ffi::CString;
 //use libc::c_uchar;
@@ -155,9 +156,12 @@ pub struct Ctx {
 }
 
 impl Ctx {
-  pub fn new(filename: &'static str) -> Result<Ctx, Error> {
+  pub fn new<P>(filename: P) -> Result<Ctx, Error>
+  where
+    P: AsRef<Path>,
+  {
     unsafe {
-      let lib = libloading::Library::new(filename)?;
+      let lib = libloading::Library::new(filename.as_ref())?;
       let mut list: CK_FUNCTION_LIST_PTR = mem::uninitialized();
       {
         let func: libloading::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
@@ -244,7 +248,10 @@ impl Ctx {
     }
   }
 
-  pub fn new_and_initialize(filename: &'static str) -> Result<Ctx, Error> {
+  pub fn new_and_initialize<P>(filename: P) -> Result<Ctx, Error>
+  where
+    P: AsRef<Path>,
+  {
     let mut ctx = Ctx::new(filename)?;
     ctx.initialize(None)?;
     Ok(ctx)
