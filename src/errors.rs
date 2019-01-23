@@ -40,6 +40,16 @@ impl std::fmt::Display for Error {
   }
 }
 
+impl std::error::Error for Error {
+  fn cause(&self) -> Option<&std::error::Error> {
+    if let Error::Io(ref err) = self {
+      Some(err)
+    } else {
+      None
+    }
+  }
+}
+
 fn strerror(err: CK_RV) -> &'static str {
   match err {
     CKR_OK => "CKR_OK",
