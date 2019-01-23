@@ -35,3 +35,5 @@ num-bigint = "^0.1"
 [dev-dependencies]
 num-traits = "^0.1"
 hex = "^0.3"
+serial_test = "~0.1"
+serial_test_derive = "~0.1"
