@@ -47,15 +47,15 @@ pub const CK_FALSE: CK_BBOOL = 0;
 
 //// an unsigned 8-bit value
 pub type CK_BYTE = u8;
-pub type CK_BYTE_PTR = *const CK_BYTE;
+pub type CK_BYTE_PTR = *mut CK_BYTE;
 
 /// an unsigned 8-bit character
 pub type CK_CHAR = CK_BYTE;
-pub type CK_CHAR_PTR = *const CK_CHAR;
+pub type CK_CHAR_PTR = *mut CK_CHAR;
 
 /// an 8-bit UTF-8 character
 pub type CK_UTF8CHAR = CK_BYTE;
-pub type CK_UTF8CHAR_PTR = *const CK_UTF8CHAR;
+pub type CK_UTF8CHAR_PTR = *mut CK_UTF8CHAR;
 
 /// a BYTE-sized Boolean flag
 pub type CK_BBOOL = CK_BYTE;
@@ -65,7 +65,7 @@ pub type CK_BBOOL = CK_BYTE;
 pub type CK_ULONG = u32;
 #[cfg(not(windows))]
 pub type CK_ULONG = usize;
-pub type CK_ULONG_PTR = *const CK_ULONG;
+pub type CK_ULONG_PTR = *mut CK_ULONG;
 
 /// a signed value, the same size as a CK_ULONG
 #[cfg(windows)]
@@ -87,10 +87,10 @@ pub enum CK_VOID {
   #[doc(hidden)] __Variant1,
   #[doc(hidden)] __Variant2,
 }
-pub type CK_VOID_PTR = *const CK_VOID;
+pub type CK_VOID_PTR = *mut CK_VOID;
 
 /// Pointer to a CK_VOID_PTR-- i.e., pointer to pointer to void
-pub type CK_VOID_PTR_PTR = *const CK_VOID_PTR;
+pub type CK_VOID_PTR_PTR = *mut CK_VOID_PTR;
 
 /// The following value is always invalid if used as a session
 /// handle or object handle
@@ -105,7 +105,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_VERSION);
 
-pub type CK_VERSION_PTR = *const CK_VERSION;
+pub type CK_VERSION_PTR = *mut CK_VERSION;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy, Default)]
@@ -133,7 +133,7 @@ impl CK_INFO {
   }
 }
 
-pub type CK_INFO_PTR = *const CK_INFO;
+pub type CK_INFO_PTR = *mut CK_INFO;
 
 /// CK_NOTIFICATION enumerates the types of notifications that
 /// Cryptoki provides to an application
@@ -143,7 +143,7 @@ pub const CKN_SURRENDER: CK_NOTIFICATION = 0;
 pub const CKN_OTP_CHANGED: CK_NOTIFICATION = 1;
 
 pub type CK_SLOT_ID = CK_ULONG;
-pub type CK_SLOT_ID_PTR = *const CK_SLOT_ID;
+pub type CK_SLOT_ID_PTR = *mut CK_SLOT_ID;
 
 /// CK_SLOT_INFO provides information about a slot
 cryptoki_aligned! {
@@ -194,7 +194,7 @@ pub const CKF_REMOVABLE_DEVICE: CK_FLAGS = 0x00000002;
 /// hardware slot
 pub const CKF_HW_SLOT: CK_FLAGS = 0x00000004;
 
-pub type CK_SLOT_INFO_PTR = *const CK_SLOT_INFO;
+pub type CK_SLOT_INFO_PTR = *mut CK_SLOT_INFO;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -336,12 +336,12 @@ pub const CKF_SO_PIN_TO_BE_CHANGED: CK_FLAGS = 0x00800000;
 
 pub const CKF_ERROR_STATE: CK_FLAGS = 0x01000000;
 
-pub type CK_TOKEN_INFO_PTR = *const CK_TOKEN_INFO;
+pub type CK_TOKEN_INFO_PTR = *mut CK_TOKEN_INFO;
 
 /// CK_SESSION_HANDLE is a Cryptoki-assigned value that
 /// identifies a session
 pub type CK_SESSION_HANDLE = CK_ULONG;
-pub type CK_SESSION_HANDLE_PTR = *const CK_SESSION_HANDLE;
+pub type CK_SESSION_HANDLE_PTR = *mut CK_SESSION_HANDLE;
 
 /// CK_USER_TYPE enumerates the types of Cryptoki users
 pub type CK_USER_TYPE = CK_ULONG;
@@ -378,12 +378,12 @@ pub const CKF_RW_SESSION: CK_FLAGS = 0x00000002;
 /// no parallel
 pub const CKF_SERIAL_SESSION: CK_FLAGS = 0x00000004;
 
-pub type CK_SESSION_INFO_PTR = *const CK_SESSION_INFO;
+pub type CK_SESSION_INFO_PTR = *mut CK_SESSION_INFO;
 
 /// CK_OBJECT_HANDLE is a token-specific identifier for an
 /// object
 pub type CK_OBJECT_HANDLE = CK_ULONG;
-pub type CK_OBJECT_HANDLE_PTR = *const CK_OBJECT_HANDLE;
+pub type CK_OBJECT_HANDLE_PTR = *mut CK_OBJECT_HANDLE;
 
 /// CK_OBJECT_CLASS is a value that identifies the classes (or
 /// types) of objects that Cryptoki recognizes.  It is defined
@@ -402,7 +402,7 @@ pub const CKO_MECHANISM: CK_OBJECT_CLASS = 0x00000007;
 pub const CKO_OTP_KEY: CK_OBJECT_CLASS = 0x00000008;
 pub const CKO_VENDOR_DEFINED: CK_OBJECT_CLASS = 0x80000000;
 
-pub type CK_OBJECT_CLASS_PTR = *const CK_OBJECT_CLASS;
+pub type CK_OBJECT_CLASS_PTR = *mut CK_OBJECT_CLASS;
 
 /// CK_HW_FEATURE_TYPE is a value that identifies the hardware feature type
 /// of an object with CK_OBJECT_CLASS equal to CKO_HW_FEATURE.
@@ -641,13 +641,13 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_ATTRIBUTE);
 
-pub type CK_ATTRIBUTE_PTR = *const CK_ATTRIBUTE;
+pub type CK_ATTRIBUTE_PTR = *mut CK_ATTRIBUTE;
 
 impl Default for CK_ATTRIBUTE {
   fn default() -> Self {
     Self {
       attrType: CKA_VENDOR_DEFINED,
-      pValue: ptr::null(),
+      pValue: ptr::null_mut(),
       ulValueLen: 0,
     }
   }
@@ -670,7 +670,7 @@ impl CK_ATTRIBUTE {
   pub fn new(attrType: CK_ATTRIBUTE_TYPE) -> Self {
     Self {
       attrType: attrType,
-      pValue: ptr::null(),
+      pValue: ptr::null_mut(),
       ulValueLen: 0,
     }
   }
@@ -1243,7 +1243,7 @@ pub const CKM_RSA_PKCS_OAEP_TPM_1_1: CK_MECHANISM_TYPE = 0x00004002;
 
 pub const CKM_VENDOR_DEFINED: CK_MECHANISM_TYPE = 0x80000000;
 
-pub type CK_MECHANISM_TYPE_PTR = *const CK_MECHANISM_TYPE;
+pub type CK_MECHANISM_TYPE_PTR = *mut CK_MECHANISM_TYPE;
 
 
 /// CK_MECHANISM is a structure that specifies a particular
@@ -1259,7 +1259,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_MECHANISM);
 
-pub type CK_MECHANISM_PTR = *const CK_MECHANISM;
+pub type CK_MECHANISM_PTR = *mut CK_MECHANISM;
 
 /// CK_MECHANISM_INFO provides information about a particular
 /// mechanism
@@ -1301,7 +1301,7 @@ pub const CKF_EC_COMPRESS: CK_FLAGS = 0x02000000;
 
 pub const CKF_EXTENSION: CK_FLAGS = 0x80000000;
 
-pub type CK_MECHANISM_INFO_PTR = *const CK_MECHANISM_INFO;
+pub type CK_MECHANISM_INFO_PTR = *mut CK_MECHANISM_INFO;
 
 /// CK_RV is a value that identifies the return value of a
 /// Cryptoki function
@@ -1483,8 +1483,8 @@ cryptoki_aligned! {
   }
 }
 packed_clone!(CK_FUNCTION_LIST);
-pub type CK_FUNCTION_LIST_PTR = *const CK_FUNCTION_LIST;
-pub type CK_FUNCTION_LIST_PTR_PTR = *const CK_FUNCTION_LIST_PTR;
+pub type CK_FUNCTION_LIST_PTR = *mut CK_FUNCTION_LIST;
+pub type CK_FUNCTION_LIST_PTR_PTR = *mut CK_FUNCTION_LIST_PTR;
 
 /// CK_CREATEMUTEX is an application callback for creating a
 /// mutex object
@@ -1523,7 +1523,7 @@ impl CK_C_INITIALIZE_ARGS {
       DestroyMutex: None,
       LockMutex: None,
       UnlockMutex: None,
-      pReserved: ptr::null(),
+      pReserved: ptr::null_mut(),
     }
   }
 }
@@ -1531,7 +1531,7 @@ impl CK_C_INITIALIZE_ARGS {
 pub const CKF_LIBRARY_CANT_CREATE_OS_THREADS: CK_FLAGS = 0x00000001;
 pub const CKF_OS_LOCKING_OK: CK_FLAGS = 0x00000002;
 
-pub type CK_C_INITIALIZE_ARGS_PTR = *const CK_C_INITIALIZE_ARGS;
+pub type CK_C_INITIALIZE_ARGS_PTR = *mut CK_C_INITIALIZE_ARGS;
 
 /// CKF_DONT_BLOCK is for the function C_WaitForSlotEvent
 pub const CKF_DONT_BLOCK: CK_FLAGS = 1;
@@ -1542,7 +1542,7 @@ pub const CKF_DONT_BLOCK: CK_FLAGS = 1;
 /// scheme.
 pub type CK_RSA_PKCS_MGF_TYPE = CK_ULONG;
 
-pub type CK_RSA_PKCS_MGF_TYPE_PTR = *const CK_RSA_PKCS_MGF_TYPE;
+pub type CK_RSA_PKCS_MGF_TYPE_PTR = *mut CK_RSA_PKCS_MGF_TYPE;
 
 /// The following MGFs are defined
 pub const CKG_MGF1_SHA1: CK_RSA_PKCS_MGF_TYPE = 0x00000001;
@@ -1556,7 +1556,7 @@ pub const CKG_MGF1_SHA224: CK_RSA_PKCS_MGF_TYPE = 0x00000005;
 /// for the PKCS #1 OAEP encryption scheme.
 pub type CK_RSA_PKCS_OAEP_SOURCE_TYPE = CK_ULONG;
 
-pub type CK_RSA_PKCS_OAEP_SOURCE_TYPE_PTR = *const CK_RSA_PKCS_OAEP_SOURCE_TYPE;
+pub type CK_RSA_PKCS_OAEP_SOURCE_TYPE_PTR = *mut CK_RSA_PKCS_OAEP_SOURCE_TYPE;
 
 /// The following encoding parameter sources are defined
 pub const CKZ_DATA_SPECIFIED: CK_RSA_PKCS_OAEP_SOURCE_TYPE = 0x00000001;
@@ -1575,7 +1575,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RSA_PKCS_OAEP_PARAMS);
 
-pub type CK_RSA_PKCS_OAEP_PARAMS_PTR = *const CK_RSA_PKCS_OAEP_PARAMS;
+pub type CK_RSA_PKCS_OAEP_PARAMS_PTR = *mut CK_RSA_PKCS_OAEP_PARAMS;
 
 /// CK_RSA_PKCS_PSS_PARAMS provides the parameters to the
 /// CKM_RSA_PKCS_PSS mechanism(s).
@@ -1589,7 +1589,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RSA_PKCS_PSS_PARAMS);
 
-pub type CK_RSA_PKCS_PSS_PARAMS_PTR = *const CK_RSA_PKCS_PSS_PARAMS;
+pub type CK_RSA_PKCS_PSS_PARAMS_PTR = *mut CK_RSA_PKCS_PSS_PARAMS;
 
 pub type CK_EC_KDF_TYPE = CK_ULONG;
 
@@ -1619,7 +1619,7 @@ cryptoki_aligned! {
   }
 }
 
-pub type CK_ECDH1_DERIVE_PARAMS_PTR = *const CK_ECDH1_DERIVE_PARAMS;
+pub type CK_ECDH1_DERIVE_PARAMS_PTR = *mut CK_ECDH1_DERIVE_PARAMS;
 
 /// CK_ECDH2_DERIVE_PARAMS provides the parameters to the
 /// CKM_ECMQV_DERIVE mechanism, where each party contributes two key pairs.
@@ -1639,7 +1639,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_ECDH2_DERIVE_PARAMS);
 
-pub type CK_ECDH2_DERIVE_PARAMS_PTR = *const CK_ECDH2_DERIVE_PARAMS;
+pub type CK_ECDH2_DERIVE_PARAMS_PTR = *mut CK_ECDH2_DERIVE_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1658,12 +1658,12 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_ECMQV_DERIVE_PARAMS);
 
-pub type CK_ECMQV_DERIVE_PARAMS_PTR = *const CK_ECMQV_DERIVE_PARAMS;
+pub type CK_ECMQV_DERIVE_PARAMS_PTR = *mut CK_ECMQV_DERIVE_PARAMS;
 
 /// Typedefs and defines for the CKM_X9_42_DH_KEY_PAIR_GEN and the
 /// CKM_X9_42_DH_PARAMETER_GEN mechanisms
 pub type CK_X9_42_DH_KDF_TYPE = CK_ULONG;
-pub type CK_X9_42_DH_KDF_TYPE_PTR = *const CK_X9_42_DH_KDF_TYPE;
+pub type CK_X9_42_DH_KDF_TYPE_PTR = *mut CK_X9_42_DH_KDF_TYPE;
 
 /// CK_X9_42_DH1_DERIVE_PARAMS provides the parameters to the
 /// CKM_X9_42_DH_DERIVE key derivation mechanism, where each party
@@ -1680,7 +1680,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_X9_42_DH1_DERIVE_PARAMS);
 
-pub type CK_X9_42_DH1_DERIVE_PARAMS_PTR = *const CK_X9_42_DH1_DERIVE_PARAMS;
+pub type CK_X9_42_DH1_DERIVE_PARAMS_PTR = *mut CK_X9_42_DH1_DERIVE_PARAMS;
 
 /// CK_X9_42_DH2_DERIVE_PARAMS provides the parameters to the
 /// CKM_X9_42_DH_HYBRID_DERIVE and CKM_X9_42_MQV_DERIVE key derivation
@@ -1701,7 +1701,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_X9_42_DH2_DERIVE_PARAMS);
 
-pub type CK_X9_42_DH2_DERIVE_PARAMS_PTR = *const CK_X9_42_DH2_DERIVE_PARAMS;
+pub type CK_X9_42_DH2_DERIVE_PARAMS_PTR = *mut CK_X9_42_DH2_DERIVE_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1720,7 +1720,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_X9_42_MQV_DERIVE_PARAMS);
 
-pub type CK_X9_42_MQV_DERIVE_PARAMS_PTR = *const CK_X9_42_MQV_DERIVE_PARAMS;
+pub type CK_X9_42_MQV_DERIVE_PARAMS_PTR = *mut CK_X9_42_MQV_DERIVE_PARAMS;
 
 /// CK_KEA_DERIVE_PARAMS provides the parameters to the
 /// CKM_KEA_DERIVE mechanism
@@ -1737,14 +1737,14 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_KEA_DERIVE_PARAMS);
 
-pub type CK_KEA_DERIVE_PARAMS_PTR = *const CK_KEA_DERIVE_PARAMS;
+pub type CK_KEA_DERIVE_PARAMS_PTR = *mut CK_KEA_DERIVE_PARAMS;
 
 /// CK_RC2_PARAMS provides the parameters to the CKM_RC2_ECB and
 /// CKM_RC2_MAC mechanisms.  An instance of CK_RC2_PARAMS just
 /// holds the effective keysize
 pub type CK_RC2_PARAMS = CK_ULONG;
 
-pub type CK_RC2_PARAMS_PTR = *const CK_RC2_PARAMS;
+pub type CK_RC2_PARAMS_PTR = *mut CK_RC2_PARAMS;
 
 
 /// CK_RC2_CBC_PARAMS provides the parameters to the CKM_RC2_CBC
@@ -1760,7 +1760,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RC2_CBC_PARAMS);
 
-pub type CK_RC2_CBC_PARAMS_PTR = *const CK_RC2_CBC_PARAMS;
+pub type CK_RC2_CBC_PARAMS_PTR = *mut CK_RC2_CBC_PARAMS;
 
 
 /// CK_RC2_MAC_GENERAL_PARAMS provides the parameters for the
@@ -1776,7 +1776,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RC2_MAC_GENERAL_PARAMS);
 
-pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *const CK_RC2_MAC_GENERAL_PARAMS;
+pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *mut CK_RC2_MAC_GENERAL_PARAMS;
 
 
 /// CK_RC5_PARAMS provides the parameters to the CKM_RC5_ECB and
@@ -1792,7 +1792,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RC5_PARAMS);
 
-pub type CK_RC5_PARAMS_PTR = *const CK_RC5_PARAMS;
+pub type CK_RC5_PARAMS_PTR = *mut CK_RC5_PARAMS;
 
 
 /// CK_RC5_CBC_PARAMS provides the parameters to the CKM_RC5_CBC
@@ -1812,7 +1812,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RC5_CBC_PARAMS);
 
-pub type CK_RC5_CBC_PARAMS_PTR = *const CK_RC5_CBC_PARAMS;
+pub type CK_RC5_CBC_PARAMS_PTR = *mut CK_RC5_CBC_PARAMS;
 
 
 /// CK_RC5_MAC_GENERAL_PARAMS provides the parameters for the
@@ -1830,14 +1830,14 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RC5_MAC_GENERAL_PARAMS);
 
-pub type CK_RC5_MAC_GENERAL_PARAMS_PTR = *const CK_RC5_MAC_GENERAL_PARAMS;
+pub type CK_RC5_MAC_GENERAL_PARAMS_PTR = *mut CK_RC5_MAC_GENERAL_PARAMS;
 
 /// CK_MAC_GENERAL_PARAMS provides the parameters to most block
 /// ciphers' MAC_GENERAL mechanisms.  Its value is the length of
 /// the MAC
 pub type CK_MAC_GENERAL_PARAMS = CK_ULONG;
 
-pub type CK_MAC_GENERAL_PARAMS_PTR = *const CK_MAC_GENERAL_PARAMS;
+pub type CK_MAC_GENERAL_PARAMS_PTR = *mut CK_MAC_GENERAL_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1849,7 +1849,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_DES_CBC_ENCRYPT_DATA_PARAMS);
 
-pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_DES_CBC_ENCRYPT_DATA_PARAMS;
+pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_DES_CBC_ENCRYPT_DATA_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1861,7 +1861,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_AES_CBC_ENCRYPT_DATA_PARAMS);
 
-pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_AES_CBC_ENCRYPT_DATA_PARAMS;
+pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_AES_CBC_ENCRYPT_DATA_PARAMS;
 
 /// CK_SKIPJACK_PRIVATE_WRAP_PARAMS provides the parameters to the
 /// CKM_SKIPJACK_PRIVATE_WRAP mechanism
@@ -1883,7 +1883,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_SKIPJACK_PRIVATE_WRAP_PARAMS);
 
-pub type CK_SKIPJACK_PRIVATE_WRAP_PARAMS_PTR = *const CK_SKIPJACK_PRIVATE_WRAP_PARAMS;
+pub type CK_SKIPJACK_PRIVATE_WRAP_PARAMS_PTR = *mut CK_SKIPJACK_PRIVATE_WRAP_PARAMS;
 
 
 /// CK_SKIPJACK_RELAYX_PARAMS provides the parameters to the
@@ -1909,7 +1909,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_SKIPJACK_RELAYX_PARAMS);
 
-pub type CK_SKIPJACK_RELAYX_PARAMS_PTR = *const CK_SKIPJACK_RELAYX_PARAMS;
+pub type CK_SKIPJACK_RELAYX_PARAMS_PTR = *mut CK_SKIPJACK_RELAYX_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1924,7 +1924,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_PBE_PARAMS);
 
-pub type CK_PBE_PARAMS_PTR = *const CK_PBE_PARAMS;
+pub type CK_PBE_PARAMS_PTR = *mut CK_PBE_PARAMS;
 
 
 /// CK_KEY_WRAP_SET_OAEP_PARAMS provides the parameters to the
@@ -1942,7 +1942,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_KEY_WRAP_SET_OAEP_PARAMS);
 
-pub type CK_KEY_WRAP_SET_OAEP_PARAMS_PTR = *const CK_KEY_WRAP_SET_OAEP_PARAMS;
+pub type CK_KEY_WRAP_SET_OAEP_PARAMS_PTR = *mut CK_KEY_WRAP_SET_OAEP_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1964,7 +1964,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_SSL3_MASTER_KEY_DERIVE_PARAMS);
 
-pub type CK_SSL3_MASTER_KEY_DERIVE_PARAMS_PTR = *const CK_SSL3_MASTER_KEY_DERIVE_PARAMS;
+pub type CK_SSL3_MASTER_KEY_DERIVE_PARAMS_PTR = *mut CK_SSL3_MASTER_KEY_DERIVE_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1979,7 +1979,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_SSL3_KEY_MAT_OUT);
 
-pub type CK_SSL3_KEY_MAT_OUT_PTR = *const CK_SSL3_KEY_MAT_OUT;
+pub type CK_SSL3_KEY_MAT_OUT_PTR = *mut CK_SSL3_KEY_MAT_OUT;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -1994,7 +1994,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_SSL3_KEY_MAT_PARAMS);
 
-pub type CK_SSL3_KEY_MAT_PARAMS_PTR = *const CK_SSL3_KEY_MAT_PARAMS;
+pub type CK_SSL3_KEY_MAT_PARAMS_PTR = *mut CK_SSL3_KEY_MAT_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2009,7 +2009,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_TLS_PRF_PARAMS);
 
-pub type CK_TLS_PRF_PARAMS_PTR = *const CK_TLS_PRF_PARAMS;
+pub type CK_TLS_PRF_PARAMS_PTR = *mut CK_TLS_PRF_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2022,7 +2022,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_WTLS_RANDOM_DATA);
 
-pub type CK_WTLS_RANDOM_DATA_PTR = *const CK_WTLS_RANDOM_DATA;
+pub type CK_WTLS_RANDOM_DATA_PTR = *mut CK_WTLS_RANDOM_DATA;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2034,7 +2034,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_WTLS_MASTER_KEY_DERIVE_PARAMS);
 
-pub type CK_WTLS_MASTER_KEY_DERIVE_PARAMS_PTR = *const CK_WTLS_MASTER_KEY_DERIVE_PARAMS;
+pub type CK_WTLS_MASTER_KEY_DERIVE_PARAMS_PTR = *mut CK_WTLS_MASTER_KEY_DERIVE_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2050,7 +2050,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_WTLS_PRF_PARAMS);
 
-pub type CK_WTLS_PRF_PARAMS_PTR = *const CK_WTLS_PRF_PARAMS;
+pub type CK_WTLS_PRF_PARAMS_PTR = *mut CK_WTLS_PRF_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2062,7 +2062,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_WTLS_KEY_MAT_OUT);
 
-pub type CK_WTLS_KEY_MAT_OUT_PTR = *const CK_WTLS_KEY_MAT_OUT;
+pub type CK_WTLS_KEY_MAT_OUT_PTR = *mut CK_WTLS_KEY_MAT_OUT;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2079,7 +2079,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_WTLS_KEY_MAT_PARAMS);
 
-pub type CK_WTLS_KEY_MAT_PARAMS_PTR = *const CK_WTLS_KEY_MAT_PARAMS;
+pub type CK_WTLS_KEY_MAT_PARAMS_PTR = *mut CK_WTLS_KEY_MAT_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2096,7 +2096,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_CMS_SIG_PARAMS);
 
-pub type CK_CMS_SIG_PARAMS_PTR = *const CK_CMS_SIG_PARAMS;
+pub type CK_CMS_SIG_PARAMS_PTR = *mut CK_CMS_SIG_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2107,7 +2107,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_KEY_DERIVATION_STRING_DATA);
 
-pub type CK_KEY_DERIVATION_STRING_DATA_PTR = *const CK_KEY_DERIVATION_STRING_DATA;
+pub type CK_KEY_DERIVATION_STRING_DATA_PTR = *mut CK_KEY_DERIVATION_STRING_DATA;
 
 
 /// The CK_EXTRACT_PARAMS is used for the
@@ -2116,14 +2116,14 @@ pub type CK_KEY_DERIVATION_STRING_DATA_PTR = *const CK_KEY_DERIVATION_STRING_DAT
 /// derived key
 pub type CK_EXTRACT_PARAMS = CK_ULONG;
 
-pub type CK_EXTRACT_PARAMS_PTR = *const CK_EXTRACT_PARAMS;
+pub type CK_EXTRACT_PARAMS_PTR = *mut CK_EXTRACT_PARAMS;
 
 /// CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE is used to
 /// indicate the Pseudo-Random Function (PRF) used to generate
 /// key bits using PKCS #5 PBKDF2.
 pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = CK_ULONG;
 
-pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE_PTR = *const CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE;
+pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE_PTR = *mut CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE;
 
 pub const CKP_PKCS5_PBKD2_HMAC_SHA1: CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = 0x00000001;
 pub const CKP_PKCS5_PBKD2_HMAC_GOSTR3411: CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = 0x00000002;
@@ -2139,7 +2139,7 @@ pub const CKP_PKCS5_PBKD2_HMAC_SHA512_256: CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION
 /// PBKDF2.
 pub type CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE = CK_ULONG;
 
-pub type CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE_PTR = *const CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE;
+pub type CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE_PTR = *mut CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE;
 
 /// The following salt value sources are defined in PKCS #5 v2.0.
 pub const CKZ_SALT_SPECIFIED: CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE = 0x00000001;
@@ -2162,7 +2162,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_PKCS5_PBKD2_PARAMS);
 
-pub type CK_PKCS5_PBKD2_PARAMS_PTR = *const CK_PKCS5_PBKD2_PARAMS;
+pub type CK_PKCS5_PBKD2_PARAMS_PTR = *mut CK_PKCS5_PBKD2_PARAMS;
 
 /// CK_PKCS5_PBKD2_PARAMS2 is a corrected version of the CK_PKCS5_PBKD2_PARAMS
 /// structure that provides the parameters to the CKM_PKCS5_PBKD2 mechanism
@@ -2183,7 +2183,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_PKCS5_PBKD2_PARAMS2);
 
-pub type CK_PKCS5_PBKD2_PARAMS2_PTR = *const CK_PKCS5_PBKD2_PARAMS2;
+pub type CK_PKCS5_PBKD2_PARAMS2_PTR = *mut CK_PKCS5_PBKD2_PARAMS2;
 
 pub type CK_OTP_PARAM_TYPE = CK_ULONG;
 /// backward compatibility
@@ -2199,7 +2199,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_OTP_PARAM);
 
-pub type CK_OTP_PARAM_PTR = *const CK_OTP_PARAM;
+pub type CK_OTP_PARAM_PTR = *mut CK_OTP_PARAM;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2210,7 +2210,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_OTP_PARAMS);
 
-pub type CK_OTP_PARAMS_PTR = *const CK_OTP_PARAMS;
+pub type CK_OTP_PARAMS_PTR = *mut CK_OTP_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2221,7 +2221,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_OTP_SIGNATURE_INFO);
 
-pub type CK_OTP_SIGNATURE_INFO_PTR = *const CK_OTP_SIGNATURE_INFO;
+pub type CK_OTP_SIGNATURE_INFO_PTR = *mut CK_OTP_SIGNATURE_INFO;
 
 pub const CK_OTP_VALUE: CK_ULONG = 0;
 pub const CK_OTP_PIN: CK_ULONG = 1;
@@ -2250,7 +2250,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_KIP_PARAMS);
 
-pub type CK_KIP_PARAMS_PTR = *const CK_KIP_PARAMS;
+pub type CK_KIP_PARAMS_PTR = *mut CK_KIP_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2261,7 +2261,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_AES_CTR_PARAMS);
 
-pub type CK_AES_CTR_PARAMS_PTR = *const CK_AES_CTR_PARAMS;
+pub type CK_AES_CTR_PARAMS_PTR = *mut CK_AES_CTR_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2276,7 +2276,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_GCM_PARAMS);
 
-pub type CK_GCM_PARAMS_PTR = *const CK_GCM_PARAMS;
+pub type CK_GCM_PARAMS_PTR = *mut CK_GCM_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2291,7 +2291,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_CCM_PARAMS);
 
-pub type CK_CCM_PARAMS_PTR = *const CK_CCM_PARAMS;
+pub type CK_CCM_PARAMS_PTR = *mut CK_CCM_PARAMS;
 
 /// Deprecated. Use CK_GCM_PARAMS
 cryptoki_aligned! {
@@ -2307,7 +2307,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_AES_GCM_PARAMS);
 
-pub type CK_AES_GCM_PARAMS_PTR = *const CK_AES_GCM_PARAMS;
+pub type CK_AES_GCM_PARAMS_PTR = *mut CK_AES_GCM_PARAMS;
 
 /// Deprecated. Use CK_CCM_PARAMS
 cryptoki_aligned! {
@@ -2323,7 +2323,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_AES_CCM_PARAMS);
 
-pub type CK_AES_CCM_PARAMS_PTR = *const CK_AES_CCM_PARAMS;
+pub type CK_AES_CCM_PARAMS_PTR = *mut CK_AES_CCM_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2334,7 +2334,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_CAMELLIA_CTR_PARAMS);
 
-pub type CK_CAMELLIA_CTR_PARAMS_PTR = *const CK_CAMELLIA_CTR_PARAMS;
+pub type CK_CAMELLIA_CTR_PARAMS_PTR = *mut CK_CAMELLIA_CTR_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2346,7 +2346,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS);
 
-pub type CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS;
+pub type CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2358,7 +2358,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_ARIA_CBC_ENCRYPT_DATA_PARAMS);
 
-pub type CK_ARIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_ARIA_CBC_ENCRYPT_DATA_PARAMS;
+pub type CK_ARIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_ARIA_CBC_ENCRYPT_DATA_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2371,7 +2371,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_DSA_PARAMETER_GEN_PARAM);
 
-pub type CK_DSA_PARAMETER_GEN_PARAM_PTR = *const CK_DSA_PARAMETER_GEN_PARAM;
+pub type CK_DSA_PARAMETER_GEN_PARAM_PTR = *mut CK_DSA_PARAMETER_GEN_PARAM;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2384,7 +2384,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_ECDH_AES_KEY_WRAP_PARAMS);
 
-pub type CK_ECDH_AES_KEY_WRAP_PARAMS_PTR = *const CK_ECDH_AES_KEY_WRAP_PARAMS;
+pub type CK_ECDH_AES_KEY_WRAP_PARAMS_PTR = *mut CK_ECDH_AES_KEY_WRAP_PARAMS;
 
 pub type CK_JAVA_MIDP_SECURITY_DOMAIN = CK_ULONG;
 
@@ -2399,7 +2399,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_RSA_AES_KEY_WRAP_PARAMS);
 
-pub type CK_RSA_AES_KEY_WRAP_PARAMS_PTR = *const CK_RSA_AES_KEY_WRAP_PARAMS;
+pub type CK_RSA_AES_KEY_WRAP_PARAMS_PTR = *mut CK_RSA_AES_KEY_WRAP_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2411,7 +2411,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_TLS12_MASTER_KEY_DERIVE_PARAMS);
 
-pub type CK_TLS12_MASTER_KEY_DERIVE_PARAMS_PTR = *const CK_TLS12_MASTER_KEY_DERIVE_PARAMS;
+pub type CK_TLS12_MASTER_KEY_DERIVE_PARAMS_PTR = *mut CK_TLS12_MASTER_KEY_DERIVE_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2427,7 +2427,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_TLS12_KEY_MAT_PARAMS);
 
-pub type CK_TLS12_KEY_MAT_PARAMS_PTR = *const CK_TLS12_KEY_MAT_PARAMS;
+pub type CK_TLS12_KEY_MAT_PARAMS_PTR = *mut CK_TLS12_KEY_MAT_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2442,7 +2442,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_TLS_KDF_PARAMS);
 
-pub type CK_TLS_KDF_PARAMS_PTR = *const CK_TLS_KDF_PARAMS;
+pub type CK_TLS_KDF_PARAMS_PTR = *mut CK_TLS_KDF_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2454,7 +2454,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_TLS_MAC_PARAMS);
 
-pub type CK_TLS_MAC_PARAMS_PTR = *const CK_TLS_MAC_PARAMS;
+pub type CK_TLS_MAC_PARAMS_PTR = *mut CK_TLS_MAC_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2468,7 +2468,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_GOSTR3410_DERIVE_PARAMS);
 
-pub type CK_GOSTR3410_DERIVE_PARAMS_PTR = *const CK_GOSTR3410_DERIVE_PARAMS;
+pub type CK_GOSTR3410_DERIVE_PARAMS_PTR = *mut CK_GOSTR3410_DERIVE_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2482,7 +2482,7 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_GOSTR3410_KEY_WRAP_PARAMS);
 
-pub type CK_GOSTR3410_KEY_WRAP_PARAMS_PTR = *const CK_GOSTR3410_KEY_WRAP_PARAMS;
+pub type CK_GOSTR3410_KEY_WRAP_PARAMS_PTR = *mut CK_GOSTR3410_KEY_WRAP_PARAMS;
 
 cryptoki_aligned! {
   #[derive(Debug, Copy)]
@@ -2494,4 +2494,4 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_SEED_CBC_ENCRYPT_DATA_PARAMS);
 
-pub type CK_SEED_CBC_ENCRYPT_DATA_PARAMS_PTR = *const CK_SEED_CBC_ENCRYPT_DATA_PARAMS;
+pub type CK_SEED_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_SEED_CBC_ENCRYPT_DATA_PARAMS;
