@@ -13,7 +13,7 @@
 # limitations under the License.
 [package]
 name = "pkcs11"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Marcus Heese <marcus.heese@gmail.com>"]
 description = "Rust PKCS#11 Library"
 #documentation = "https://github.com/mheese/rust-pkcs11"
@@ -29,7 +29,7 @@ exclude = [
 
 [dependencies]
 libloading = "^0.4"
-num-bigint = "^0.1"
+num-bigint = "^0.2"
 #libc = "0.2.33"
 
 [dev-dependencies]
