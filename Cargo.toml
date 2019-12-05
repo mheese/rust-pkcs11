@@ -28,7 +28,7 @@ exclude = [
 ]
 
 [dependencies]
-libloading = "^0.4"
+libloading = "^0.5"
 num-bigint = "^0.2"
 #libc = "0.2.33"
 
