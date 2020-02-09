@@ -1,4 +1,13 @@
 language: rust
+dist: bionic
+
+# Caching based off of https://levans.fr/rust_travis_cache.html
+cache:
+  directories:
+    - /home/travis/.cargo
+
+before_cache:
+  - rm -rf /home/travis/.cargo/registry
 
 addons:
   apt:
