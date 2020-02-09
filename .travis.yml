@@ -17,3 +17,7 @@ addons:
 env:
   global:
     - PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
+
+script:
+  - cargo build
+  - cargo test
