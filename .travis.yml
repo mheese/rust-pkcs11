@@ -1,0 +1,10 @@
+language: rust
+
+addons:
+  apt:
+    packages:
+      - libsofthsm2
+
+env:
+  global:
+    - PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
