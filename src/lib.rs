@@ -168,13 +168,13 @@ impl Ctx {
       let mut list = mem::MaybeUninit::uninit();
       {
         let func: libloading::Symbol<unsafe extern "C" fn(CK_FUNCTION_LIST_PTR_PTR) -> CK_RV> = lib.get(b"C_GetFunctionList")?;
-        match func(&mut list.as_mut_ptr()) {
+        match func(list.as_mut_ptr()) {
           CKR_OK => (),
           err => return Err(Error::Pkcs11(err)),
         }
       }
 
-      let list_ptr = list.as_ptr();
+      let list_ptr = *list.as_ptr();
 
       Ok(Ctx {
         lib: lib,
