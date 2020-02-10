@@ -1,11 +1,5 @@
 language: rust
 
-# Caching based off of https://levans.fr/rust_travis_cache.html
-cache:
-  directories:
-    - /home/travis/.cargo
-    - /home/travis/.rustup
-
 before_cache:
   - rm -rf /home/travis/.cargo/registry
 
@@ -22,11 +16,17 @@ jobs:
       script: # See https://docs.travis-ci.com/user/reference/trusty/#group-membership for why we need to do this
         - sudo usermod -a -G softhsm $USER # So we have enough permissions to make the tokens directory
         - sudo -E su $USER -c 'export PATH=${TRAVIS_HOME}/.cargo/bin:$PATH && export PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so && cargo build && cargo test' # So we have the group added
+      cache:
+        directories:
+          - /home/travis/.cargo
+          - /home/travis/.rustup
     - os: osx
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
           - /usr/local/Homebrew
+          - $HOME/.cargo
+          - $HOME/.rustup
       env: HOMEBREW_NO_INSTALL_CLEANUP=1
       addons:
         homebrew:
