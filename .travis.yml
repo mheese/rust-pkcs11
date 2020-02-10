@@ -15,6 +15,8 @@ jobs:
       dist: bionic
       addons:
         apt:
+          sources:
+            - sourceline: "deb http://archive.ubuntu.com/ubuntu/ disco universe" # for libsofthsm2 2.4.0
           packages:
             - libsofthsm2
       script: # See https://docs.travis-ci.com/user/reference/trusty/#group-membership for why we need to do this
