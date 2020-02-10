@@ -15,7 +15,7 @@ before_cache:
 addons:
   apt:
     sources:
-      - sourceline: "deb http://archive.ubuntu.com/ubuntu/ disco universe" # for libsofthsm2 2.4.0
+      - sourceline: "deb http://archive.ubuntu.com/ubuntu/ eoan universe" # for libsofthsm2 2.5.0
     packages:
       - libsofthsm2
 
