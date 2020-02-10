@@ -15,8 +15,6 @@ jobs:
       dist: bionic
       addons:
         apt:
-          sources:
-            - sourceline: "deb http://archive.ubuntu.com/ubuntu/ eoan universe" # for libsofthsm2 2.5.0
           packages:
             - libsofthsm2
       script: # See https://docs.travis-ci.com/user/reference/trusty/#group-membership for why we need to do this
@@ -34,4 +32,4 @@ jobs:
           - softhsm
       script:
         - cargo build
-        - cargo test -- --nocapture --test-threads 1
+        - cargo test
