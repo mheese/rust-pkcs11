@@ -19,15 +19,13 @@ jobs:
             - sourceline: "deb http://archive.ubuntu.com/ubuntu/ eoan universe" # for libsofthsm2 2.5.0
           packages:
             - libsofthsm2
-      env:
-        global:
-          - PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so
-          - RUST_BACKTRACE=1
+      env: PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so RUST_BACKTRACE=1
     - os: osx
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
           - /usr/local/Homebrew
+      env: HOMEBREW_NO_INSTALL_CLEANUP=1
       addons:
         homebrew:
           packages:
