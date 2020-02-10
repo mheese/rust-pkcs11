@@ -25,5 +25,8 @@ env:
     - RUST_BACKTRACE: 1
 
 script:
+  - apt-cache policy libsofthsm2 softhsm2-common softhsm2
+  - dpkg -L libsofthsm2
+  - ls -l /usr/lib/softhsm/libsofthsm2.so
   - cargo build
   - cargo test -- --nocapture --test-threads 1
