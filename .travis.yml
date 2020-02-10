@@ -1,7 +1,4 @@
 language: rust
-dist: bionic
-
-os: linux
 
 # Caching based off of https://levans.fr/rust_travis_cache.html
 cache:
@@ -12,21 +9,26 @@ cache:
 before_cache:
   - rm -rf /home/travis/.cargo/registry
 
-addons:
-  apt:
-    sources:
-      - sourceline: "deb http://archive.ubuntu.com/ubuntu/ eoan universe" # for libsofthsm2 2.5.0
-    packages:
-      - libsofthsm2
-
-env:
-  global:
-    - PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
-    - RUST_BACKTRACE: 1
+jobs:
+  include:
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - sourceline: "deb http://archive.ubuntu.com/ubuntu/ eoan universe" # for libsofthsm2 2.5.0
+          packages:
+            - libsofthsm2
+      env:
+        global:
+          - PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
+          - RUST_BACKTRACE: 1
+    - os: osx
+      addons:
+        homebrew:
+          packages:
+          - softhsm
 
 script:
-  - apt-cache policy libsofthsm2 softhsm2-common softhsm2
-  - dpkg -L libsofthsm2
-  - ls -l /usr/lib/softhsm/libsofthsm2.so
   - cargo build
   - cargo test -- --nocapture --test-threads 1
