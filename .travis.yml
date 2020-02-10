@@ -20,8 +20,9 @@ jobs:
           packages:
             - libsofthsm2
       env: PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so RUST_BACKTRACE=1
-      before_script:
+      script: # See https://docs.travis-ci.com/user/reference/trusty/#group-membership for why we need to do this
         - sudo usermod -a -G softhsm $USER # So we have enough permissions to make the tokens directory
+        - sudo -E su $USER -c 'cargo build; cargo test' # So we have the group added
     - os: osx
       cache:
         directories:
@@ -32,7 +33,6 @@ jobs:
         homebrew:
           packages:
           - softhsm
-
-script:
-  - cargo build
-  - cargo test -- --nocapture --test-threads 1
+      script:
+        - cargo build
+        - cargo test -- --nocapture --test-threads 1
