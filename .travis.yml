@@ -19,10 +19,9 @@ jobs:
             - sourceline: "deb http://archive.ubuntu.com/ubuntu/ eoan universe" # for libsofthsm2 2.5.0
           packages:
             - libsofthsm2
-      env: PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so RUST_BACKTRACE=1
       script: # See https://docs.travis-ci.com/user/reference/trusty/#group-membership for why we need to do this
         - sudo usermod -a -G softhsm $USER # So we have enough permissions to make the tokens directory
-        - sudo -E su $USER -c 'cargo build; cargo test' # So we have the group added
+        - sudo -E su $USER -c 'export PATH=${TRAVIS_HOME}/.cargo/bin:$PATH && export PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so && cargo build && cargo test' # So we have the group added
     - os: osx
       cache:
         directories:
