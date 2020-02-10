@@ -26,4 +26,4 @@ env:
 
 script:
   - cargo build
-  - cargo test -- --nocapture
+  - cargo test -- --nocapture --test-threads 1
