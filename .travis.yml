@@ -20,6 +20,8 @@ jobs:
           packages:
             - libsofthsm2
       env: PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so RUST_BACKTRACE=1
+      before_script:
+        - sudo usermod -a -G softhsm $USER # So we have enough permissions to make the tokens directory
     - os: osx
       cache:
         directories:
