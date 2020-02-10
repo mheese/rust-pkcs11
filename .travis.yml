@@ -21,9 +21,13 @@ jobs:
             - libsofthsm2
       env:
         global:
-          - PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
-          - RUST_BACKTRACE: 1
+          - PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so
+          - RUST_BACKTRACE=1
     - os: osx
+      cache:
+        directories:
+          - $HOME/Library/Caches/Homebrew
+          - /usr/local/Homebrew
       addons:
         homebrew:
           packages:
