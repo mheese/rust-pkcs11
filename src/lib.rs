@@ -562,11 +562,11 @@ impl Ctx {
   // login if a NUL containing PIN is truncated. Combined with poor PIN gen
   // algorithms which insert NULs into the PIN, you might need a way to supply
   // raw bytes for a PIN, instead of converting from a UTF8 string as per spec
-  pub fn login_with_raw<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&Vec<CK_BYTE>>) -> Result<(), Error> {
+  pub fn login_with_raw<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&[CK_BYTE]>) -> Result<(), Error> {
     self.initialized()?;
     match pin {
       Some(pin) => {
-        let mut pin = pin.clone();
+        let mut pin = pin.to_vec();
         match (self.C_Login)(session, user_type, pin.as_mut_ptr(), pin.len() as CK_ULONG) {
           CKR_OK => Ok(()),
           err => Err(Error::Pkcs11(err)),
