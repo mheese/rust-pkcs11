@@ -728,13 +728,13 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn with_biginteger(mut self, val: &[u8]) -> Self {
-    self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
+    self.pValue = val.as_ptr() as CK_VOID_PTR;
     self.ulValueLen = val.len() as CK_ULONG;
     self
   }
 
   pub fn set_biginteger(&mut self, val: &[u8]) {
-    self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
+    self.pValue = val.as_ptr() as CK_VOID_PTR;
     if self.ulValueLen == 0 {
       self.ulValueLen = val.len() as CK_ULONG;
     }
