@@ -795,7 +795,7 @@ impl Ctx {
     match (self.C_DecryptUpdate)(session, encrypted_part.as_mut_ptr(), encrypted_part.len() as CK_ULONG, ptr::null_mut(), &mut partLen) {
       CKR_OK => {
         let mut part: Vec<CK_BYTE> = Vec::with_capacity(partLen as usize);
-        match (self.C_Decrypt)(session, encrypted_part.as_mut_ptr(), encrypted_part.len() as CK_ULONG, part.as_mut_ptr(), &mut partLen) {
+        match (self.C_DecryptUpdate)(session, encrypted_part.as_mut_ptr(), encrypted_part.len() as CK_ULONG, part.as_mut_ptr(), &mut partLen) {
           CKR_OK => {
             unsafe {
               part.set_len(partLen as usize);
