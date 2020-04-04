@@ -1245,7 +1245,6 @@ pub const CKM_VENDOR_DEFINED: CK_MECHANISM_TYPE = 0x80000000;
 
 pub type CK_MECHANISM_TYPE_PTR = *mut CK_MECHANISM_TYPE;
 
-
 cryptoki_aligned! {
   /// CK_MECHANISM is a structure that specifies a particular
   /// mechanism
@@ -1746,7 +1745,6 @@ pub type CK_RC2_PARAMS = CK_ULONG;
 
 pub type CK_RC2_PARAMS_PTR = *mut CK_RC2_PARAMS;
 
-
 cryptoki_aligned! {
   /// CK_RC2_CBC_PARAMS provides the parameters to the CKM_RC2_CBC
   /// mechanism
@@ -1925,7 +1923,6 @@ cryptoki_aligned! {
 packed_clone!(CK_PBE_PARAMS);
 
 pub type CK_PBE_PARAMS_PTR = *mut CK_PBE_PARAMS;
-
 
 cryptoki_aligned! {
   /// CK_KEY_WRAP_SET_OAEP_PARAMS provides the parameters to the
