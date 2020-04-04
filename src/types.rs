@@ -727,14 +727,14 @@ impl CK_ATTRIBUTE {
     unsafe { mem::transmute_copy(&*self.pValue) }
   }
 
-  pub fn with_biginteger(mut self, val: &Vec<u8>) -> Self {
-    self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
+  pub fn with_biginteger(mut self, val: &[u8]) -> Self {
+    self.pValue = val.as_ptr() as CK_VOID_PTR;
     self.ulValueLen = val.len() as CK_ULONG;
     self
   }
 
-  pub fn set_biginteger(&mut self, val: &Vec<u8>) {
-    self.pValue = val.as_slice().as_ptr() as CK_VOID_PTR;
+  pub fn set_biginteger(&mut self, val: &[u8]) {
+    self.pValue = val.as_ptr() as CK_VOID_PTR;
     if self.ulValueLen == 0 {
       self.ulValueLen = val.len() as CK_ULONG;
     }

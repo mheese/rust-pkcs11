@@ -558,15 +558,15 @@ impl Ctx {
     }
   }
 
-  // Some dongle drivers (such as Safenet) allow NUL bytes in PINs, and fail
-  // login if a NUL containing PIN is truncated. Combined with poor PIN gen
-  // algorithms which insert NULs into the PIN, you might need a way to supply
-  // raw bytes for a PIN, instead of converting from a UTF8 string as per spec
-  pub fn login_with_raw<'a>(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&Vec<CK_BYTE>>) -> Result<(), Error> {
+  /// Some dongle drivers (such as Safenet) allow NUL bytes in PINs, and fail
+  /// login if a NUL containing PIN is truncated. Combined with poor PIN gen
+  /// algorithms which insert NULs into the PIN, you might need a way to supply
+  /// raw bytes for a PIN, instead of converting from a UTF8 string as per spec
+  pub fn login_with_raw(&self, session: CK_SESSION_HANDLE, user_type: CK_USER_TYPE, pin: Option<&[CK_BYTE]>) -> Result<(), Error> {
     self.initialized()?;
     match pin {
       Some(pin) => {
-        let mut pin = pin.clone();
+        let mut pin = pin.to_vec();
         match (self.C_Login)(session, user_type, pin.as_mut_ptr(), pin.len() as CK_ULONG) {
           CKR_OK => Ok(()),
           err => Err(Error::Pkcs11(err)),
@@ -587,9 +587,9 @@ impl Ctx {
     }
   }
 
-  pub fn create_object(&self, session: CK_SESSION_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+  pub fn create_object(&self, session: CK_SESSION_HANDLE, template: &[CK_ATTRIBUTE]) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
-    let mut template = template.clone();
+    let mut template = template.to_vec();
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_CreateObject)(session, template.as_mut_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
@@ -597,9 +597,9 @@ impl Ctx {
     }
   }
 
-  pub fn copy_object(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+  pub fn copy_object(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &[CK_ATTRIBUTE]) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
-    let mut template = template.clone();
+    let mut template = template.to_vec();
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_CopyObject)(session, object, template.as_mut_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
@@ -642,18 +642,18 @@ impl Ctx {
     }
   }
 
-  pub fn set_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
+  pub fn set_attribute_value(&self, session: CK_SESSION_HANDLE, object: CK_OBJECT_HANDLE, template: &[CK_ATTRIBUTE]) -> Result<(), Error> {
     self.initialized()?;
-    let mut template = template.clone();
+    let mut template = template.to_vec();
     match (self.C_SetAttributeValue)(session, object, template.as_mut_ptr(), template.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
   }
 
-  pub fn find_objects_init(&self, session: CK_SESSION_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<(), Error> {
+  pub fn find_objects_init(&self, session: CK_SESSION_HANDLE, template: &[CK_ATTRIBUTE]) -> Result<(), Error> {
     self.initialized()?;
-    let mut template = template.clone();
+    let mut template = template.to_vec();
     match (self.C_FindObjectsInit)(session, template.as_mut_ptr(), template.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -692,9 +692,9 @@ impl Ctx {
     }
   }
 
-  pub fn encrypt(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn encrypt(&self, session: CK_SESSION_HANDLE, data: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut data = data.clone();
+    let mut data = data.to_vec();
     let mut encryptedDataLen: CK_ULONG = 0;
     match (self.C_Encrypt)(session, data.as_mut_ptr(), data.len() as CK_ULONG, ptr::null_mut(), &mut encryptedDataLen) {
       CKR_OK => {
@@ -713,9 +713,9 @@ impl Ctx {
     }
   }
 
-  pub fn encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn encrypt_update(&self, session: CK_SESSION_HANDLE, part: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut part = part.clone();
+    let mut part = part.to_vec();
     let mut encryptedPartLen: CK_ULONG = 0;
     match (self.C_EncryptUpdate)(session, part.as_mut_ptr(), part.len() as CK_ULONG, ptr::null_mut(), &mut encryptedPartLen) {
       CKR_OK => {
@@ -767,9 +767,9 @@ impl Ctx {
     }
   }
 
-  pub fn decrypt(&self, session: CK_SESSION_HANDLE, encryptedData: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn decrypt(&self, session: CK_SESSION_HANDLE, encryptedData: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut encrypted_data = encryptedData.clone();
+    let mut encrypted_data = encryptedData.to_vec();
     let mut dataLen: CK_ULONG = 0;
     match (self.C_Decrypt)(session, encrypted_data.as_mut_ptr(), encrypted_data.len() as CK_ULONG, ptr::null_mut(), &mut dataLen) {
       CKR_OK => {
@@ -788,9 +788,9 @@ impl Ctx {
     }
   }
 
-  pub fn decrypt_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn decrypt_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut encrypted_part = encryptedPart.clone();
+    let mut encrypted_part = encryptedPart.to_vec();
     let mut partLen: CK_ULONG = 0;
     match (self.C_DecryptUpdate)(session, encrypted_part.as_mut_ptr(), encrypted_part.len() as CK_ULONG, ptr::null_mut(), &mut partLen) {
       CKR_OK => {
@@ -842,9 +842,9 @@ impl Ctx {
     }
   }
 
-  pub fn digest(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn digest(&self, session: CK_SESSION_HANDLE, data: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut data = data.clone();
+    let mut data = data.to_vec();
     let mut digestLen: CK_ULONG = 0;
     match (self.C_Digest)(session, data.as_mut_ptr(), data.len() as CK_ULONG, ptr::null_mut(), &mut digestLen) {
       CKR_OK => {
@@ -863,8 +863,8 @@ impl Ctx {
     }
   }
 
-  pub fn digest_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
-    let mut part = part.clone();
+  pub fn digest_update(&self, session: CK_SESSION_HANDLE, part: &[CK_BYTE]) -> Result<(), Error> {
+    let mut part = part.to_vec();
     match (self.C_DigestUpdate)(session, part.as_mut_ptr(), part.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -908,9 +908,9 @@ impl Ctx {
     }
   }
 
-  pub fn sign(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn sign(&self, session: CK_SESSION_HANDLE, data: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut data = data.clone();
+    let mut data = data.to_vec();
     let mut signatureLen: CK_ULONG = 0;
     match (self.C_Sign)(session, data.as_mut_ptr(), data.len() as CK_ULONG, ptr::null_mut(), &mut signatureLen) {
       CKR_OK => {
@@ -929,9 +929,9 @@ impl Ctx {
     }
   }
 
-  pub fn sign_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
+  pub fn sign_update(&self, session: CK_SESSION_HANDLE, part: &[CK_BYTE]) -> Result<(), Error> {
     self.initialized()?;
-    let mut part = part.clone();
+    let mut part = part.to_vec();
     match (self.C_SignUpdate)(session, part.as_mut_ptr(), part.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -967,9 +967,9 @@ impl Ctx {
     }
   }
 
-  pub fn sign_recover(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn sign_recover(&self, session: CK_SESSION_HANDLE, data: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut data = data.clone();
+    let mut data = data.to_vec();
     let mut signatureLen: CK_ULONG = 0;
     match (self.C_SignRecover)(session, data.as_mut_ptr(), data.len() as CK_ULONG, ptr::null_mut(), &mut signatureLen) {
       CKR_OK => {
@@ -997,28 +997,28 @@ impl Ctx {
     }
   }
 
-  pub fn verify(&self, session: CK_SESSION_HANDLE, data: &Vec<CK_BYTE>, signature: &Vec<CK_BYTE>) -> Result<(), Error> {
+  pub fn verify(&self, session: CK_SESSION_HANDLE, data: &[CK_BYTE], signature: &[CK_BYTE]) -> Result<(), Error> {
     self.initialized()?;
-    let mut data = data.clone();
-    let mut signature = signature.clone();
+    let mut data = data.to_vec();
+    let mut signature = signature.to_vec();
     match (self.C_Verify)(session, data.as_mut_ptr(), data.len() as CK_ULONG, signature.as_mut_ptr(), signature.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
   }
 
-  pub fn verify_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<(), Error> {
+  pub fn verify_update(&self, session: CK_SESSION_HANDLE, part: &[CK_BYTE]) -> Result<(), Error> {
     self.initialized()?;
-    let mut part = part.clone();
+    let mut part = part.to_vec();
     match (self.C_VerifyUpdate)(session, part.as_mut_ptr(), part.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
     }
   }
 
-  pub fn verify_final(&self, session: CK_SESSION_HANDLE, signature: &Vec<CK_BYTE>) -> Result<(), Error> {
+  pub fn verify_final(&self, session: CK_SESSION_HANDLE, signature: &[CK_BYTE]) -> Result<(), Error> {
     self.initialized()?;
-    let mut signature = signature.clone();
+    let mut signature = signature.to_vec();
     match (self.C_VerifyFinal)(session, signature.as_mut_ptr(), signature.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -1034,9 +1034,9 @@ impl Ctx {
     }
   }
 
-  pub fn verify_recover(&self, session: CK_SESSION_HANDLE, signature: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn verify_recover(&self, session: CK_SESSION_HANDLE, signature: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut signature = signature.clone();
+    let mut signature = signature.to_vec();
     let mut dataLen: CK_ULONG = 0;
     match (self.C_VerifyRecover)(session, signature.as_mut_ptr(), signature.len() as CK_ULONG, ptr::null_mut(), &mut dataLen) {
       CKR_OK => {
@@ -1055,9 +1055,9 @@ impl Ctx {
     }
   }
 
-  pub fn digest_encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn digest_encrypt_update(&self, session: CK_SESSION_HANDLE, part: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut part = part.clone();
+    let mut part = part.to_vec();
     let mut encryptedPartLen: CK_ULONG = 0;
     match (self.C_DigestEncryptUpdate)(session, part.as_mut_ptr(), part.len() as CK_ULONG, ptr::null_mut(), &mut encryptedPartLen) {
       CKR_OK => {
@@ -1076,9 +1076,9 @@ impl Ctx {
     }
   }
 
-  pub fn decrypt_digest_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn decrypt_digest_update(&self, session: CK_SESSION_HANDLE, encryptedPart: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut encrypted_part = encryptedPart.clone();
+    let mut encrypted_part = encryptedPart.to_vec();
     let mut partLen: CK_ULONG = 0;
     match (self.C_DecryptDigestUpdate)(session, encrypted_part.as_mut_ptr(), encrypted_part.len() as CK_ULONG, ptr::null_mut(), &mut partLen) {
       CKR_OK => {
@@ -1097,9 +1097,9 @@ impl Ctx {
     }
   }
 
-  pub fn sign_encrypt_update(&self, session: CK_SESSION_HANDLE, part: &Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
+  pub fn sign_encrypt_update(&self, session: CK_SESSION_HANDLE, part: &[CK_BYTE]) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut part = part.clone();
+    let mut part = part.to_vec();
     let mut encryptedPartLen: CK_ULONG = 0;
     match (self.C_SignEncryptUpdate)(session, part.as_mut_ptr(), part.len() as CK_ULONG, ptr::null_mut(), &mut encryptedPartLen) {
       CKR_OK => {
@@ -1139,10 +1139,10 @@ impl Ctx {
     }
   }
 
-  pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+  pub fn generate_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, template: &[CK_ATTRIBUTE]) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut mechanism = *mechanism;
-    let mut template = template.clone();
+    let mut template = template.to_vec();
     let mut object: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_GenerateKey)(session, &mut mechanism, template.as_mut_ptr(), template.len() as CK_ULONG, &mut object) {
       CKR_OK => Ok(object),
@@ -1154,13 +1154,13 @@ impl Ctx {
     &self,
     session: CK_SESSION_HANDLE,
     mechanism: &CK_MECHANISM,
-    publicKeyTemplate: &Vec<CK_ATTRIBUTE>,
-    privateKeyTemplate: &Vec<CK_ATTRIBUTE>,
+    publicKeyTemplate: &[CK_ATTRIBUTE],
+    privateKeyTemplate: &[CK_ATTRIBUTE],
   ) -> Result<(CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
     self.initialized()?;
     let mut mechanism = *mechanism;
-    let mut public_key_template = publicKeyTemplate.clone();
-    let mut private_key_template = privateKeyTemplate.clone();
+    let mut public_key_template = publicKeyTemplate.to_vec();
+    let mut private_key_template = privateKeyTemplate.to_vec();
     let mut pubOh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     let mut privOh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_GenerateKeyPair)(
@@ -1206,13 +1206,13 @@ impl Ctx {
     session: CK_SESSION_HANDLE,
     mechanism: &CK_MECHANISM,
     unwrappingKey: CK_OBJECT_HANDLE,
-    wrappedKey: &Vec<CK_BYTE>,
-    template: &Vec<CK_ATTRIBUTE>,
+    wrappedKey: &[CK_BYTE],
+    template: &[CK_ATTRIBUTE],
   ) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut mechanism= *mechanism;
-    let mut wrapped_key = wrappedKey.clone();
-    let mut template = template.clone();
+    let mut wrapped_key = wrappedKey.to_vec();
+    let mut template = template.to_vec();
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_UnwrapKey)(
       session,
@@ -1229,10 +1229,10 @@ impl Ctx {
     }
   }
 
-  pub fn derive_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, baseKey: CK_OBJECT_HANDLE, template: &Vec<CK_ATTRIBUTE>) -> Result<CK_OBJECT_HANDLE, Error> {
+  pub fn derive_key(&self, session: CK_SESSION_HANDLE, mechanism: &CK_MECHANISM, baseKey: CK_OBJECT_HANDLE, template: &[CK_ATTRIBUTE]) -> Result<CK_OBJECT_HANDLE, Error> {
     self.initialized()?;
     let mut mechanism = *mechanism;
-    let mut template = template.clone();
+    let mut template = template.to_vec();
     let mut oh: CK_OBJECT_HANDLE = CK_INVALID_HANDLE;
     match (self.C_DeriveKey)(session, &mut mechanism, baseKey, template.as_mut_ptr(), template.len() as CK_ULONG, &mut oh) {
       CKR_OK => Ok(oh),
@@ -1240,8 +1240,8 @@ impl Ctx {
     }
   }
 
-  pub fn seed_random(&self, session: CK_SESSION_HANDLE, seed: &Vec<CK_BYTE>) -> Result<(), Error> {
-    let mut seed = seed.clone();
+  pub fn seed_random(&self, session: CK_SESSION_HANDLE, seed: &[CK_BYTE]) -> Result<(), Error> {
+    let mut seed = seed.to_vec();
     match (self.C_SeedRandom)(session, seed.as_mut_ptr(), seed.len() as CK_ULONG) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
