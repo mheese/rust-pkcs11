@@ -32,7 +32,7 @@ fn pkcs11_module_name() -> PathBuf {
   let default_path = option_env!("PKCS11_SOFTHSM2_MODULE")
     .unwrap_or("/usr/local/lib/softhsm/libsofthsm2.so");
   let path = env::var_os("PKCS11_SOFTHSM2_MODULE")
-    .unwrap_or(default_path.into());
+    .unwrap_or_else(|| default_path.into());
   let path_buf = PathBuf::from(path);
 
   if !path_buf.exists() {
@@ -169,7 +169,7 @@ fn ctx_get_slot_list() {
 fn ctx_get_slot_infos() {
   let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
   let slots = ctx.get_slot_list(false).unwrap();
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     let res = ctx.get_slot_info(slot);
     assert!(
@@ -188,7 +188,7 @@ fn ctx_get_slot_infos() {
 fn ctx_get_token_infos() {
   let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
   let slots = ctx.get_slot_list(false).unwrap();
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     let res = ctx.get_token_info(slot);
     assert!(
@@ -207,7 +207,7 @@ fn ctx_get_token_infos() {
 fn ctx_get_mechanism_lists() {
   let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
   let slots = ctx.get_slot_list(false).unwrap();
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     let res = ctx.get_mechanism_list(slot);
     assert!(
@@ -226,7 +226,7 @@ fn ctx_get_mechanism_lists() {
 fn ctx_get_mechanism_infos() {
   let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
   let slots = ctx.get_slot_list(false).unwrap();
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     let mechanisms = ctx.get_mechanism_list(slot).unwrap();
     for mechanism in mechanisms {
@@ -251,7 +251,7 @@ fn ctx_init_token() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     let res = ctx.init_token(slot, pin, LABEL);
     assert!(
@@ -277,7 +277,7 @@ fn ctx_init_pin() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let sh = ctx
@@ -304,7 +304,7 @@ fn ctx_set_pin() {
   let pin = Some("1234");
   let new_pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let sh = ctx
@@ -331,7 +331,7 @@ fn ctx_open_session() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let res = ctx.open_session(slot, CKF_SERIAL_SESSION, None, None);
@@ -353,7 +353,7 @@ fn ctx_close_session() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let sh = ctx
@@ -377,7 +377,7 @@ fn ctx_close_all_sessions() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     ctx
@@ -401,7 +401,7 @@ fn ctx_get_session_info() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let sh = ctx
@@ -426,7 +426,7 @@ fn ctx_login() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let sh = ctx
@@ -451,7 +451,7 @@ fn ctx_logout() {
   let slots = ctx.get_slot_list(false).unwrap();
   let pin = Some("1234");
   const LABEL: &str = "rust-unit-test";
-  for slot in slots[..1].into_iter() {
+  for slot in slots[..1].iter() {
     let slot = *slot;
     ctx.init_token(slot, pin, LABEL).unwrap();
     let sh = ctx

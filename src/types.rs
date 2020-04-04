@@ -760,7 +760,7 @@ impl CK_ATTRIBUTE {
 
   pub fn get_bytes(&self) -> Vec<CK_BYTE> {
     let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    Vec::from(slice).clone()
+    Vec::from(slice)
   }
 
   pub fn with_string(mut self, str: &String) -> Self {
@@ -778,7 +778,7 @@ impl CK_ATTRIBUTE {
 
   pub fn get_string(&self) -> String {
     let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    String::from_utf8_lossy(slice).into_owned().clone()
+    String::from_utf8_lossy(slice).into_owned()
   }
 
   pub fn with_date(mut self, date: &CK_DATE) -> Self {
@@ -1514,6 +1514,12 @@ packed_clone!(CK_C_INITIALIZE_ARGS);
 
 // TODO: we need to make this the default and implement a new
 // function
+impl Default for CK_C_INITIALIZE_ARGS {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CK_C_INITIALIZE_ARGS {
   pub fn new() -> CK_C_INITIALIZE_ARGS {
     CK_C_INITIALIZE_ARGS {

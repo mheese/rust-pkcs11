@@ -47,9 +47,10 @@ trait CkFrom<T> {
 
 impl CkFrom<bool> for CK_BBOOL {
   fn from(b: bool) -> Self {
-    match b {
-      true => 1,
-      false => 0,
+    if b {
+      1
+    } else {
+      0
     }
   }
 }
@@ -72,7 +73,7 @@ fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {
       let mut buf = [0; 4];
       let bytes = c.encode_utf8(&mut buf).as_bytes();
       for b in bytes {
-        lab[i] = b.clone();
+        lab[i] = *b;
         i += 1;
       }
     } else {
@@ -177,9 +178,9 @@ impl Ctx {
       let list_ptr = *list.as_ptr();
 
       Ok(Ctx {
-        lib: lib,
+        lib,
         _is_initialized: false,
-        version: (*list_ptr).version.clone(),
+        version: (*list_ptr).version,
         C_Initialize: (*list_ptr).C_Initialize.ok_or(Error::Module("C_Initialize function not found"))?,
         C_Finalize: (*list_ptr).C_Finalize.ok_or(Error::Module("C_Finalize function not found"))?,
         C_GetInfo: (*list_ptr).C_GetInfo.ok_or(Error::Module("C_GetInfo function not found"))?,
@@ -321,7 +322,7 @@ impl Ctx {
   pub fn get_function_list(&self) -> Result<CK_FUNCTION_LIST, Error> {
     let mut list = mem::MaybeUninit::uninit();
     match (self.C_GetFunctionList)(&mut list.as_mut_ptr()) {
-      CKR_OK => unsafe { Ok((*list.as_ptr()).clone()) },
+      CKR_OK => unsafe { Ok(*list.as_ptr()) },
       err => Err(Error::Pkcs11(err)),
     }
   }
@@ -534,7 +535,7 @@ impl Ctx {
     authentication_key: Option<CK_OBJECT_HANDLE>,
   ) -> Result<(), Error> {
     self.initialized()?;
-    let mut operation_state = operation_state.clone();
+    let mut operation_state = operation_state;
     match (self.C_SetOperationState)(session, operation_state.as_mut_ptr(), operation_state.len() as CK_ULONG, encryption_key.unwrap_or(0), authentication_key.unwrap_or(0)) {
       CKR_OK => Ok(()),
       err => Err(Error::Pkcs11(err)),
@@ -1122,7 +1123,7 @@ impl Ctx {
 
   pub fn decrypt_verify_update(&self, session: CK_SESSION_HANDLE, encryptedPart: Vec<CK_BYTE>) -> Result<Vec<CK_BYTE>, Error> {
     self.initialized()?;
-    let mut encrypted_part = encryptedPart.clone();
+    let mut encrypted_part = encryptedPart;
     let mut partLen: CK_ULONG = 0;
     match (self.C_DecryptVerifyUpdate)(session, encrypted_part.as_mut_ptr(), encrypted_part.len() as CK_ULONG, ptr::null_mut(), &mut partLen) {
       CKR_OK => {
