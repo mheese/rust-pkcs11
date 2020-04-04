@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 # Rust PKCS#11 Library
-[![Build Status](https://travis-ci.org/palfrey/rust-pkcs11.svg?branch=master)](https://travis-ci.org/palfrey/rust-pkcs11)
+[![Build Status](https://travis-ci.org/mheese/rust-pkcs11.svg?branch=master](https://travis-ci.org/mheese/rust-pkcs11.svg?branch=master)
 
 This is a library which brings support for PKCS#11 to Rust. It is aiming at having both a very low-level API to map the PKCS#11 functionality to Rust as well as having a higher-level API for more easy usage as well as bringing more safety for programming against PKCS#11.
 
