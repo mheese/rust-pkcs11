@@ -1883,7 +1883,6 @@ packed_clone!(CK_SKIPJACK_PRIVATE_WRAP_PARAMS);
 
 pub type CK_SKIPJACK_PRIVATE_WRAP_PARAMS_PTR = *mut CK_SKIPJACK_PRIVATE_WRAP_PARAMS;
 
-
 cryptoki_aligned! {
   /// CK_SKIPJACK_RELAYX_PARAMS provides the parameters to the
   /// CKM_SKIPJACK_RELAYX mechanism
