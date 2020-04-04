@@ -731,7 +731,7 @@ fn ctx_get_attribute_value() {
     ];
     println!("Template: {:?}", template);
     {
-      let res = ctx.get_attribute_value(sh, oh, &mut template);
+      let res = ctx.get_attribute_value(sh, oh, &mut template); 
       if !res.is_ok() {
         // Doing this not as an assert so we can both unwrap_err with the mut template and re-borrow template
         let err = res.unwrap_err();

@@ -21,6 +21,7 @@ jobs:
           - /home/travis/.cargo
           - /home/travis/.rustup
     - os: osx
+      osx_image: xcode11
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
