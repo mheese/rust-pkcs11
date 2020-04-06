@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+
 # Collection of PKCS#11 Documentation
 
 The purpose of this section is to provide all possible available documentation that makes programming against PKCS#11 easier.
@@ -20,20 +21,23 @@ The purpose of this section is to provide all possible available documentation t
 ## Reference Documentation
 
 When one first starts to explore the PKCS#11 world, there will be obstacles. The biggest one is to know and discover what documentation to read so that one can get familiar with the standard. It is best to read up on it in the following order:
+
 1. [Usage Guide](http://docs.oasis-open.org/pkcs11/pkcs11-ug/v2.40/pkcs11-ug-v2.40.html "PKCS#11 v2.40 Usage Guide") - I discovered this unfortunately way too late for some reason. Giving this a read - before doing anything else - one gets actually a really good architectural overview of the standard.
 2. [Base Specification](http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html "PKCS#11 v2.40 Base Specification") - This is the most important document for implementation of this library - in particular for the low-level API. It explains in detail how the C interface is structured and how to interact with it. Following this will provide all the details on how to write the FFI wrapper.
 3. [Current Mechanisms](http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/pkcs11-curr-v2.40.html "PKCS#11 v2.40 Current Mechanisms") - This document is in particular important for our higher-leval API. It explains in detail on how to interface in detail with all the cryptographic algorithms. E.g. go here if you need help on how to generate and use an RSA key or how to use the token for digital signatures.
 
 Here are the links to the documents that are also saved for reference in this repository (in case they become unavailable at some time):
-- http://docs.oasis-open.org/pkcs11/pkcs11-ug/v2.40/pkcs11-ug-v2.40.html
-- http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
-- http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/pkcs11-curr-v2.40.html
 
+- <http://docs.oasis-open.org/pkcs11/pkcs11-ug/v2.40/pkcs11-ug-v2.40.html>
+- <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html>
+- <http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/pkcs11-curr-v2.40.html>
 
 ## C Header Files
+
 The C header files in this folder have been downloaded from the following links below.
 
 Normative computer language definition files for PKCS #11 v2.40:
-- http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/errata01/os/include/pkcs11-v2.40/pkcs11.h
-- http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/errata01/os/include/pkcs11-v2.40/pkcs11t.h
-- http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/errata01/os/include/pkcs11-v2.40/pkcs11f.h
+
+- <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/errata01/os/include/pkcs11-v2.40/pkcs11.h>
+- <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/errata01/os/include/pkcs11-v2.40/pkcs11t.h>
+- <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/errata01/os/include/pkcs11-v2.40/pkcs11f.h>
