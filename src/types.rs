@@ -675,12 +675,14 @@ impl CK_ATTRIBUTE {
     }
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn with_bool(mut self, b: &CK_BBOOL) -> Self {
     self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
     self.ulValueLen = 1;
     self
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn set_bool(&mut self, b: &CK_BBOOL) {
     self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
     if self.ulValueLen == 0 {
@@ -693,12 +695,14 @@ impl CK_ATTRIBUTE {
     CkFrom::from(data)
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn with_ck_ulong(mut self, val: &CK_ULONG) -> Self {
     self.pValue = val as *const _ as CK_VOID_PTR;
     self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
     self
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn set_ck_ulong(&mut self, val: &CK_ULONG) {
     self.pValue = val as *const _ as CK_VOID_PTR;
     if self.ulValueLen == 0 {
@@ -710,12 +714,14 @@ impl CK_ATTRIBUTE {
     unsafe { mem::transmute_copy(&*self.pValue) }
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn with_ck_long(mut self, val: &CK_LONG) -> Self {
     self.pValue = val as *const _ as CK_VOID_PTR;
     self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
     self
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn set_ck_long(&mut self, val: &CK_LONG) {
     self.pValue = val as *const _ as CK_VOID_PTR;
     if self.ulValueLen == 0 {
@@ -763,13 +769,13 @@ impl CK_ATTRIBUTE {
     Vec::from(slice)
   }
 
-  pub fn with_string(mut self, str: &String) -> Self {
+  pub fn with_string(mut self, str: &str) -> Self {
     self.pValue = str.as_ptr() as CK_VOID_PTR;
     self.ulValueLen = str.len() as CK_ULONG;
     self
   }
 
-  pub fn set_string(&mut self, str: &String) {
+  pub fn set_string(&mut self, str: &str) {
     self.pValue = str.as_ptr() as CK_VOID_PTR;
     if self.ulValueLen == 0 {
       self.ulValueLen = str.len() as CK_ULONG;
@@ -781,12 +787,14 @@ impl CK_ATTRIBUTE {
     String::from_utf8_lossy(slice).into_owned()
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn with_date(mut self, date: &CK_DATE) -> Self {
     self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
     self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
     self
   }
 
+  #[allow(clippy::trivially_copy_pass_by_ref)]
   pub fn set_date(&mut self, date: &CK_DATE) {
     self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
     if self.ulValueLen == 0 {
