@@ -38,6 +38,7 @@ use std::slice;
 use std::ptr;
 use num_bigint::BigUint;
 
+use errors::Error;
 use functions::*;
 use super::CkFrom;
 
@@ -656,7 +657,12 @@ impl Default for CK_ATTRIBUTE {
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
     let attrType = format!("0x{:x}", self.attrType);
-    let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) };
+    let data = if self.has_invalid_value() {
+      // That allows to still debug invalid values
+      &[]
+    } else {
+      unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) }
+    };
     fmt
       .debug_struct("CK_ATTRIBUTE")
       .field("attrType", &attrType)
@@ -690,9 +696,13 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_bool(&self) -> bool {
-    let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
-    CkFrom::from(data)
+  pub fn get_bool(&self) -> Result<bool, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
+      Ok(CkFrom::from(data))
+    }
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -710,8 +720,12 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_ck_ulong(&self) -> CK_ULONG {
-    unsafe { mem::transmute_copy(&*self.pValue) }
+  pub fn get_ck_ulong(&self) -> Result<CK_ULONG, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+    }
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -729,8 +743,12 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_ck_long(&self) -> CK_LONG {
-    unsafe { mem::transmute_copy(&*self.pValue) }
+  pub fn get_ck_long(&self) -> Result<CK_LONG, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+    }
   }
 
   pub fn with_biginteger(mut self, val: &[u8]) -> Self {
@@ -746,9 +764,13 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_biginteger(&self) -> BigUint {
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    BigUint::from_bytes_le(slice)
+  pub fn get_biginteger(&self) -> Result<BigUint, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+      Ok(BigUint::from_bytes_le(slice))
+    }
   }
 
   pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
@@ -764,9 +786,13 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_bytes(&self) -> Vec<CK_BYTE> {
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    Vec::from(slice)
+  pub fn get_bytes(&self) -> Result<Vec<CK_BYTE>, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+      Ok(Vec::from(slice))
+    }
   }
 
   pub fn with_string(mut self, str: &str) -> Self {
@@ -782,9 +808,13 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_string(&self) -> String {
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    String::from_utf8_lossy(slice).into_owned()
+  pub fn get_string(&self) -> Result<String, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+      Ok(String::from_utf8_lossy(slice).into_owned())
+    }
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -802,8 +832,21 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_date(&self) -> CK_DATE {
-    unsafe { mem::transmute_copy(&*self.pValue) }
+  pub fn get_date(&self) -> Result<CK_DATE, Error> {
+    if self.has_invalid_value() {
+      Err(Error::InvalidInput("Attribute has invalid value"))
+    } else {
+      Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+    }
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable.
+  /// This function needs to be called to safely interpret the bytes the attribute contains with
+  /// `from_raw_parts`.
+  pub fn has_invalid_value(&self) -> bool {
+    // get_attribute_value can set the ulValueLen field of this attribute to
+    // CK_UNAVAILABLE_INFORMATION
+    self.ulValueLen == CK_UNAVAILABLE_INFORMATION
   }
 
   // this works for C structs and primitives, but not for vectors, slices, strings
