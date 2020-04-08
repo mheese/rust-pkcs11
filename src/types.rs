@@ -38,6 +38,7 @@ use std::slice;
 use std::ptr;
 use num_bigint::BigUint;
 
+use errors::Error;
 use functions::*;
 use super::CkFrom;
 
@@ -656,7 +657,12 @@ impl Default for CK_ATTRIBUTE {
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
     let attrType = format!("0x{:x}", self.attrType);
-    let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) };
+    let data = if self.is_value_unavailable() {
+      // That allows to still debug unavailable values
+      &[]
+    } else {
+      unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) }
+    };
     fmt
       .debug_struct("CK_ATTRIBUTE")
       .field("attrType", &attrType)
@@ -690,9 +696,10 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_bool(&self) -> bool {
+  pub fn get_bool(&self) -> Result<bool, Error> {
+    self.available_value()?;
     let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
-    CkFrom::from(data)
+    Ok(CkFrom::from(data))
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -710,8 +717,9 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_ck_ulong(&self) -> CK_ULONG {
-    unsafe { mem::transmute_copy(&*self.pValue) }
+  pub fn get_ck_ulong(&self) -> Result<CK_ULONG, Error> {
+    self.available_value()?;
+    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -729,8 +737,9 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_ck_long(&self) -> CK_LONG {
-    unsafe { mem::transmute_copy(&*self.pValue) }
+  pub fn get_ck_long(&self) -> Result<CK_LONG, Error> {
+    self.available_value()?;
+    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
   }
 
   pub fn with_biginteger(mut self, val: &[u8]) -> Self {
@@ -746,9 +755,10 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_biginteger(&self) -> BigUint {
+  pub fn get_biginteger(&self) -> Result<BigUint, Error> {
+    self.available_value()?;
     let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    BigUint::from_bytes_le(slice)
+    Ok(BigUint::from_bytes_le(slice))
   }
 
   pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
@@ -764,9 +774,10 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_bytes(&self) -> Vec<CK_BYTE> {
+  pub fn get_bytes(&self) -> Result<Vec<CK_BYTE>, Error> {
+    self.available_value()?;
     let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    Vec::from(slice)
+    Ok(Vec::from(slice))
   }
 
   pub fn with_string(mut self, str: &str) -> Self {
@@ -782,9 +793,10 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_string(&self) -> String {
+  pub fn get_string(&self) -> Result<String, Error> {
+    self.available_value()?;
     let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    String::from_utf8_lossy(slice).into_owned()
+    Ok(String::from_utf8_lossy(slice).into_owned())
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -802,8 +814,43 @@ impl CK_ATTRIBUTE {
     }
   }
 
-  pub fn get_date(&self) -> CK_DATE {
-    unsafe { mem::transmute_copy(&*self.pValue) }
+  pub fn get_date(&self) -> Result<CK_DATE, Error> {
+    self.available_value()?;
+    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable.
+  /// This function needs to be called to safely interpret the bytes the attribute contains with
+  /// `from_raw_parts`.
+  /// Same function that `is_value_unavailable`.
+  pub fn is_value_invalid(&self) -> bool {
+      self.is_value_unavailable()
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable.
+  /// This function needs to be called to safely interpret the bytes the attribute contains with
+  /// `from_raw_parts`.
+  /// Same function that `is_value_invalid`.
+  pub fn is_value_unavailable(&self) -> bool {
+    // get_attribute_value can set the ulValueLen field of this attribute to
+    // CK_UNAVAILABLE_INFORMATION
+    self.ulValueLen == CK_UNAVAILABLE_INFORMATION
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
+  /// Same as `valid_value`.
+  pub fn available_value(&self) -> Result<(), Error> {
+    if self.is_value_unavailable() {
+      Err(Error::UnavailableInformation)
+    } else {
+        Ok(())
+    }
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
+  /// Same as `available_value`.
+  pub fn valid_value(&self) -> Result<(), Error> {
+      self.available_value()
   }
 
   // this works for C structs and primitives, but not for vectors, slices, strings
