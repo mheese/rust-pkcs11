@@ -657,8 +657,8 @@ impl Default for CK_ATTRIBUTE {
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
     let attrType = format!("0x{:x}", self.attrType);
-    let data = if self.has_invalid_value() {
-      // That allows to still debug invalid values
+    let data = if self.is_value_unavailable() {
+      // That allows to still debug unavailable values
       &[]
     } else {
       unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) }
@@ -697,12 +697,9 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_bool(&self) -> Result<bool, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
-      Ok(CkFrom::from(data))
-    }
+    self.available_value()?;
+    let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
+    Ok(CkFrom::from(data))
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -721,11 +718,8 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_ck_ulong(&self) -> Result<CK_ULONG, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      Ok(unsafe { mem::transmute_copy(&*self.pValue) })
-    }
+    self.available_value()?;
+    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -744,11 +738,8 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_ck_long(&self) -> Result<CK_LONG, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      Ok(unsafe { mem::transmute_copy(&*self.pValue) })
-    }
+    self.available_value()?;
+    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
   }
 
   pub fn with_biginteger(mut self, val: &[u8]) -> Self {
@@ -765,12 +756,9 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_biginteger(&self) -> Result<BigUint, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-      Ok(BigUint::from_bytes_le(slice))
-    }
+    self.available_value()?;
+    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+    Ok(BigUint::from_bytes_le(slice))
   }
 
   pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
@@ -787,12 +775,9 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_bytes(&self) -> Result<Vec<CK_BYTE>, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-      Ok(Vec::from(slice))
-    }
+    self.available_value()?;
+    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+    Ok(Vec::from(slice))
   }
 
   pub fn with_string(mut self, str: &str) -> Self {
@@ -809,12 +794,9 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_string(&self) -> Result<String, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-      Ok(String::from_utf8_lossy(slice).into_owned())
-    }
+    self.available_value()?;
+    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+    Ok(String::from_utf8_lossy(slice).into_owned())
   }
 
   #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -833,20 +815,42 @@ impl CK_ATTRIBUTE {
   }
 
   pub fn get_date(&self) -> Result<CK_DATE, Error> {
-    if self.has_invalid_value() {
-      Err(Error::InvalidInput("Attribute has invalid value"))
-    } else {
-      Ok(unsafe { mem::transmute_copy(&*self.pValue) })
-    }
+    self.available_value()?;
+    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
   }
 
   /// Check if the value contained by this attribute is invalid or unavailable.
   /// This function needs to be called to safely interpret the bytes the attribute contains with
   /// `from_raw_parts`.
-  pub fn has_invalid_value(&self) -> bool {
+  /// Same function that `is_value_unavailable`.
+  pub fn is_value_invalid(&self) -> bool {
+      self.is_value_unavailable()
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable.
+  /// This function needs to be called to safely interpret the bytes the attribute contains with
+  /// `from_raw_parts`.
+  /// Same function that `is_value_invalid`.
+  pub fn is_value_unavailable(&self) -> bool {
     // get_attribute_value can set the ulValueLen field of this attribute to
     // CK_UNAVAILABLE_INFORMATION
     self.ulValueLen == CK_UNAVAILABLE_INFORMATION
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
+  /// Same as `valid_value`.
+  pub fn available_value(&self) -> Result<(), Error> {
+    if self.is_value_unavailable() {
+      Err(Error::UnavailableInformation)
+    } else {
+        Ok(())
+    }
+  }
+
+  /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
+  /// Same as `available_value`.
+  pub fn valid_value(&self) -> Result<(), Error> {
+      self.available_value()
   }
 
   // this works for C structs and primitives, but not for vectors, slices, strings

@@ -21,6 +21,9 @@ pub enum Error {
   Module(&'static str),
   InvalidInput(&'static str),
   Pkcs11(CK_RV),
+  /// This error happens when trying to get an attribute's value which is unavailable, because the
+  /// constant `CK_UNAVAILABLE_INFORMATION` is set in the `ulValueLen` attribute field
+  UnavailableInformation,
 }
 
 impl From<std::io::Error> for Error {
@@ -36,6 +39,7 @@ impl std::fmt::Display for Error {
       Error::Module(ref err) => write!(f, "PKCS#11 Module: {}", err),
       Error::InvalidInput(ref err) => write!(f, "PKCS#11 Invalid Input: {}", err),
       Error::Pkcs11(ref err) => write!(f, "PKCS#11: {} (0x{:x})", strerror(*err), err),
+      Error::UnavailableInformation => write!(f, "Attribute value is unavailable"),
     }
   }
 }
