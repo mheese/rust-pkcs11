@@ -47,6 +47,29 @@ fn pkcs11_module_name() -> PathBuf {
 
 #[test]
 #[serial]
+fn test_str_from_blank_padded() {
+  let nothing_removed = b"no padding blanks to remove";
+  let trailing_blanks_removed = b"a few removed     ";
+  let leading_blanks_not_removed = b"     untouched";
+  let trailing_nonblanks_not_removed = b"only spaces removed\t\t\t\t";
+  let invalid_utf8 = b"\xffinvalid";
+
+  assert_eq!(nothing_removed, str_from_blank_padded(nothing_removed).unwrap().as_bytes());
+  assert_eq!(
+    b"a few removed", str_from_blank_padded(trailing_blanks_removed).unwrap().as_bytes());
+  assert_eq!(
+    leading_blanks_not_removed,
+    str_from_blank_padded(leading_blanks_not_removed).unwrap().as_bytes());
+  assert_eq!(
+    trailing_nonblanks_not_removed,
+    str_from_blank_padded(trailing_nonblanks_not_removed).unwrap().as_bytes());
+  assert_eq!(
+    "PKCS#11 Invalid Input: field isn't UTF-8",
+    str_from_blank_padded(invalid_utf8).unwrap_err().to_string());
+}
+
+#[test]
+#[serial]
 fn test_label_from_str() {
   let s30 = "Löwe 老虎 Léopar虎d虎aaa";
   let s32 = "Löwe 老虎 Léopar虎d虎aaaö";
