@@ -64,6 +64,15 @@ impl CkFrom<CK_BBOOL> for bool {
   }
 }
 
+fn str_from_blank_padded(field: &[CK_UTF8CHAR]) -> Result<&str, Error> {
+  let decoded_str = match std::str::from_utf8(field) {
+    Ok(decoded_str) => decoded_str,
+    Err(_) => return Err(Error::InvalidInput("field isn't UTF-8")),
+  };
+
+  Ok(decoded_str.trim_end_matches(' '))
+}
+
 fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {
   // initialize a fixed-size array with whitespace characters
   let mut lab: [CK_UTF8CHAR; 32] = [32; 32];

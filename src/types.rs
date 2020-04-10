@@ -40,7 +40,7 @@ use num_bigint::BigUint;
 
 use errors::Error;
 use functions::*;
-use super::CkFrom;
+use super::{CkFrom, str_from_blank_padded};
 
 
 pub const CK_TRUE: CK_BBOOL = 1;
@@ -106,6 +106,12 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_VERSION);
 
+impl std::fmt::Display for CK_VERSION {
+  fn fmt(&self, f: &mut std::fmt::Formatter<>) -> std::fmt::Result {
+      write!(f, "{}.{}", self.major, self.minor)
+  }
+}
+
 pub type CK_VERSION_PTR = *mut CK_VERSION;
 
 cryptoki_aligned! {
@@ -131,6 +137,14 @@ impl CK_INFO {
       libraryDescription: [32; 32],
       libraryVersion: Default::default(),
     }
+  }
+
+  pub fn manufacturer_id_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.manufacturerID)
+  }
+
+  pub fn library_description_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.libraryDescription)
   }
 }
 
@@ -159,6 +173,16 @@ cryptoki_aligned! {
     pub hardwareVersion: CK_VERSION, /* version of hardware */
     /// version of firmware
     pub firmwareVersion: CK_VERSION, /* version of firmware */
+  }
+}
+
+impl CK_SLOT_INFO {
+  pub fn slot_description_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.slotDescription)
+  }
+
+  pub fn manufacturer_id_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.manufacturerID)
   }
 }
 
@@ -223,6 +247,24 @@ cryptoki_aligned! {
   }
 }
 packed_clone!(CK_TOKEN_INFO);
+
+impl CK_TOKEN_INFO {
+  pub fn label_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.label)
+  }
+
+  pub fn manufacturer_id_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.manufacturerID)
+  }
+
+  pub fn model_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.model)
+  }
+
+  pub fn serial_number_str(&self) -> Result<&str, Error> {
+    str_from_blank_padded(&self.serialNumber)
+  }
+}
 
 impl Default for CK_TOKEN_INFO {
   fn default() -> CK_TOKEN_INFO {
