@@ -839,18 +839,12 @@ impl CK_ATTRIBUTE {
 
   /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
   /// Same as `valid_value`.
-  pub fn available_value(&self) -> Result<(), Error> {
+  fn available_value(&self) -> Result<(), Error> {
     if self.is_value_unavailable() {
       Err(Error::UnavailableInformation)
     } else {
         Ok(())
     }
-  }
-
-  /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
-  /// Same as `available_value`.
-  pub fn valid_value(&self) -> Result<(), Error> {
-      self.available_value()
   }
 
   // this works for C structs and primitives, but not for vectors, slices, strings
