@@ -16,13 +16,13 @@ jobs:
     - uses: actions/checkout@v2
     - name: "SoftHSM installation (macOS)"
       if: matrix.os == 'macos-latest'
-      run: brew install softhsm
+      run: brew install -f softhsm
     - name: "SoftHSM installation (Linux)"
       if: matrix.os == 'ubuntu-latest'
-      run: apt-get install -f libsofthsm2
+      run: sudo apt-get install -f libsofthsm2
     - name: "SoftHSM installation (Windows)"
       if: matrix.os == 'windows-latest'
-      run: choco install softhsm
+      run: choco install -f softhsm
     # PKCS11_SOFTHSM2_MODULE=/usr/lib/softhsm/libsofthsm2.so
     - name: Build
       run: cargo build --verbose
