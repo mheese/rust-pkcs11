@@ -28,7 +28,4 @@ jobs:
       run: cargo build --verbose
     - name: test
       run: |
-        cargo test --verbose
-        rc=$?
-        cat /var/log/messages
-        exit $rc
+        sg softhsm -c 'cargo test --verbose'
