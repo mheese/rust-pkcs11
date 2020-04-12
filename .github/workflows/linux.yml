@@ -17,15 +17,9 @@ jobs:
       run: |
         sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ disco universe"
         sudo apt-get install -f libsofthsm2
-        sudo cat /etc/softhsm/softhsm2.conf
-        sudo chmod -R 0777 /var/lib/softhsm
-        sudo ls -ld /var/lib/softhsm
-        sudo ls -ld /var/lib/softhsm/tokens
-        export ORIG_USER="$USER"
-        echo ORIG_USER: $ORIG_USER
-        sudo usermod -a -G softhsm $ORIG_USER
     - name: build
       run: cargo build --verbose
     - name: test
       run: |
-        sg softhsm -c 'cargo test --verbose'
+        sg softhsm -c \
+          'cargo test --verbose'
