@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
-      run: sudo apt-get install -f libsofthsm2
+      run: sudo apt-get install -f libsofthsm2 && sudo usermod -a -G softhsm $(whoami)
     - name: build
       run: cargo build --verbose
     - name: test
