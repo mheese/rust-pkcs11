@@ -19,7 +19,7 @@ jobs:
         sudo apt-get install -f libsofthsm2
         export ORIG_USER="$USER"
         sudo usermod -a -G root,softhsm $ORIG_USER
-        cat /etc/softhsm/softhsm2.conf
+        sudo ls -l /etc/softhsm/softhsm2.conf && sudo cat /etc/softhsm/softhsm2.conf
     - name: build
       run: cargo build --verbose
     - name: test
