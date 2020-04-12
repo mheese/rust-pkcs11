@@ -16,6 +16,6 @@ jobs:
     - name: SoftHSM installation
       run: sudo apt-get install -f libsofthsm2
     - name: build
-      run: cargo build
+      run: cargo build --verbose
     - name: test
-      run: cargo test
+      run: cargo test --verbose

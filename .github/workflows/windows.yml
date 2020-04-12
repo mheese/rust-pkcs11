@@ -16,6 +16,6 @@ jobs:
     - name: SoftHSM installation
       run: choco install -f softhsm
     - name: build
-      run: cargo build
+      run: cargo build --verbose
     - name: test
-      run: cargo test
+      run: cargo test --verbose
