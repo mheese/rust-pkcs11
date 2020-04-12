@@ -16,8 +16,9 @@ limitations under the License.
 
 # Rust PKCS#11 Library
 
-![Build status](https://github.com/mheese/rust-pkcs11/workflows/cargo%20build%20and%20test/badge.svg)
-[![Build Status](https://travis-ci.org/mheese/rust-pkcs11.svg?branch=master)](https://travis-ci.org/mheese/rust-pkcs11)
+![Build status](https://github.com/mheese/rust-pkcs11/workflows/linux/badge.svg)
+![Build status](https://github.com/mheese/rust-pkcs11/workflows/macOS/badge.svg)
+![Build status](https://github.com/mheese/rust-pkcs11/workflows/windows/badge.svg)
 
 This is a library which brings support for PKCS#11 to Rust. It is aiming at having both a very low-level API to map the PKCS#11 functionality to Rust as well as having a higher-level API for more easy usage as well as bringing more safety for programming against PKCS#11.
 

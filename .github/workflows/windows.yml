@@ -1,0 +1,21 @@
+name: windows
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    env:
+      PKCS11_SOFTHSM2_MODULE: "C:\\SoftHSM2\\lib\\softhsm2-x64.dll"
+    steps:
+    - uses: actions/checkout@v2
+    - name: SoftHSM installation
+      run: choco install -f softhsm
+    - name: build
+      run: cargo build
+    - name: test
+      run: cargo test
