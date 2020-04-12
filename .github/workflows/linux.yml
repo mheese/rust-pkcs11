@@ -17,7 +17,8 @@ jobs:
       run: |
         sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ disco universe"
         sudo apt-get install -f libsofthsm2
-        sudo usermod -a -G softhsm $(whoami)
+        export ORIG_USER="$USER"
+        sudo usermod -a -G softhsm $ORIG_USER
     - name: build
       run: cargo build --verbose
     - name: test
