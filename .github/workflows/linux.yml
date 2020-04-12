@@ -14,7 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
-      run: sudo apt-get install -f libsofthsm2 && sudo usermod -a -G softhsm $(whoami)
+      run: |
+        sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ disco universe"
+        sudo apt-get install -f libsofthsm2
+        sudo usermod -a -G softhsm $(whoami)
     - name: build
       run: cargo build --verbose
     - name: test
