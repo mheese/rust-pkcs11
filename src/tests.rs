@@ -157,6 +157,9 @@ fn ctx_get_info() {
   );
   let info = res.unwrap();
   println!("{:?}", info);
+
+  assert_eq!("SoftHSM", String::from(info.manufacturerID));
+  assert_eq!("Implementation of PKCS11", String::from(info.libraryDescription));
 }
 
 #[test]
