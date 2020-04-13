@@ -13,6 +13,10 @@ jobs:
       PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
     steps:
     - uses: actions/checkout@v2
+    - name: tarpaulin installation
+      run: |
+        sudo apt-get install -f libssl-dev
+        cargo install cargo-tarpaulin
     - name: SoftHSM installation
       run: |
         sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ disco universe"
@@ -24,3 +28,8 @@ jobs:
       run: |
         sg softhsm -c \
           'cargo test --verbose'
+    - name: coverage
+      run: |
+        sg softhsm -c \
+          'cargo tarpaulin --out Xml'
+        bash <(curl -s https://codecov.io/bash)
