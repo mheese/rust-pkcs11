@@ -55,7 +55,11 @@ pub type C_GetFunctionList = extern "C" fn(ppFunctionList: CK_FUNCTION_LIST_PTR_
 /// * `pSlotList`: receives array of slot IDs
 /// * `pulCount`: receives number of slots
 ///
-pub type C_GetSlotList = extern "C" fn(tokenPresent: CK_BBOOL, pSlotList: CK_SLOT_ID_PTR, pulCount: CK_ULONG_PTR) -> CK_RV;
+pub type C_GetSlotList = extern "C" fn(
+    tokenPresent: CK_BBOOL,
+    pSlotList: CK_SLOT_ID_PTR,
+    pulCount: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_GetSlotInfo` obtains information about a particular slot in the system.
 ///
@@ -83,7 +87,11 @@ pub type C_GetTokenInfo = extern "C" fn(slotID: CK_SLOT_ID, pInfo: CK_TOKEN_INFO
 /// * `pMechanismList`: gets mech. array
 /// * `pulCount`: gets # of mechs.
 ///
-pub type C_GetMechanismList = extern "C" fn(slotID: CK_SLOT_ID, pMechanismList: CK_MECHANISM_TYPE_PTR, pulCount: CK_ULONG_PTR) -> CK_RV;
+pub type C_GetMechanismList = extern "C" fn(
+    slotID: CK_SLOT_ID,
+    pMechanismList: CK_MECHANISM_TYPE_PTR,
+    pulCount: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_GetMechanismInfo` obtains information about a particular mechanism possibly supported by a token.
 ///
@@ -93,7 +101,11 @@ pub type C_GetMechanismList = extern "C" fn(slotID: CK_SLOT_ID, pMechanismList: 
 /// * `mechType`: type of mechanism
 /// * `pInfo`: receives mechanism info
 ///
-pub type C_GetMechanismInfo = extern "C" fn(slotID: CK_SLOT_ID, mechType: CK_MECHANISM_TYPE, pInfo: CK_MECHANISM_INFO_PTR) -> CK_RV;
+pub type C_GetMechanismInfo = extern "C" fn(
+    slotID: CK_SLOT_ID,
+    mechType: CK_MECHANISM_TYPE,
+    pInfo: CK_MECHANISM_INFO_PTR,
+) -> CK_RV;
 
 /// `C_InitToken` initializes a token.
 ///
@@ -104,7 +116,12 @@ pub type C_GetMechanismInfo = extern "C" fn(slotID: CK_SLOT_ID, mechType: CK_MEC
 /// * `ulPinLen`: length in bytes of the PIN
 /// * `pLabel`: 32-byte token label (blank padded)
 ///
-pub type C_InitToken = extern "C" fn(slotID: CK_SLOT_ID, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG, pLabel: CK_UTF8CHAR_PTR) -> CK_RV;
+pub type C_InitToken = extern "C" fn(
+    slotID: CK_SLOT_ID,
+    pPin: CK_UTF8CHAR_PTR,
+    ulPinLen: CK_ULONG,
+    pLabel: CK_UTF8CHAR_PTR,
+) -> CK_RV;
 
 /// `C_InitPIN` initializes the normal user's PIN.
 ///
@@ -114,7 +131,8 @@ pub type C_InitToken = extern "C" fn(slotID: CK_SLOT_ID, pPin: CK_UTF8CHAR_PTR, 
 /// * `pPin`: the normal user's PIN
 /// * `ulPinLen`: length in bytes of the PIN
 ///
-pub type C_InitPIN = extern "C" fn(hSession: CK_SESSION_HANDLE, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG) -> CK_RV;
+pub type C_InitPIN =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG) -> CK_RV;
 
 /// `C_SetPIN` modifies the PIN of the user who is logged in.
 ///
@@ -126,7 +144,13 @@ pub type C_InitPIN = extern "C" fn(hSession: CK_SESSION_HANDLE, pPin: CK_UTF8CHA
 /// * `pNewPin`: the new PIN
 /// * `ulNewLen`: length of the new PIN
 ///
-pub type C_SetPIN = extern "C" fn(hSession: CK_SESSION_HANDLE, pOldPin: CK_UTF8CHAR_PTR, ulOldLen: CK_ULONG, pNewPin: CK_UTF8CHAR_PTR, ulNewLen: CK_ULONG) -> CK_RV;
+pub type C_SetPIN = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pOldPin: CK_UTF8CHAR_PTR,
+    ulOldLen: CK_ULONG,
+    pNewPin: CK_UTF8CHAR_PTR,
+    ulNewLen: CK_ULONG,
+) -> CK_RV;
 
 /// `C_OpenSession` opens a session between an application and a token.
 ///
@@ -138,7 +162,13 @@ pub type C_SetPIN = extern "C" fn(hSession: CK_SESSION_HANDLE, pOldPin: CK_UTF8C
 /// * `Notify`: callback function
 /// * `phSession`: gets session handle
 ///
-pub type C_OpenSession = extern "C" fn(slotID: CK_SLOT_ID, flags: CK_FLAGS, pApplication: CK_VOID_PTR, Notify: CK_NOTIFY, phSession: CK_SESSION_HANDLE_PTR) -> CK_RV;
+pub type C_OpenSession = extern "C" fn(
+    slotID: CK_SLOT_ID,
+    flags: CK_FLAGS,
+    pApplication: CK_VOID_PTR,
+    Notify: CK_NOTIFY,
+    phSession: CK_SESSION_HANDLE_PTR,
+) -> CK_RV;
 
 /// `C_CloseSession` closes a session between an application and a token.
 ///
@@ -163,7 +193,8 @@ pub type C_CloseAllSessions = extern "C" fn(slotID: CK_SLOT_ID) -> CK_RV;
 /// * `hSession`: the session's handle
 /// * `pInfo`: receives session info
 ///
-pub type C_GetSessionInfo = extern "C" fn(hSession: CK_SESSION_HANDLE, pInfo: CK_SESSION_INFO_PTR) -> CK_RV;
+pub type C_GetSessionInfo =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pInfo: CK_SESSION_INFO_PTR) -> CK_RV;
 
 /// `C_GetOperationState` obtains the state of the cryptographic operation in a session.
 ///
@@ -173,7 +204,11 @@ pub type C_GetSessionInfo = extern "C" fn(hSession: CK_SESSION_HANDLE, pInfo: CK
 /// * `pOperationState`: gets state
 /// * `pulOperationStateLen`: gets state length
 ///
-pub type C_GetOperationState = extern "C" fn(hSession: CK_SESSION_HANDLE, pOperationState: CK_BYTE_PTR, pulOperationStateLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_GetOperationState = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pOperationState: CK_BYTE_PTR,
+    pulOperationStateLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_SetOperationState` restores the state of the cryptographic operation in a session.
 ///
@@ -186,11 +221,11 @@ pub type C_GetOperationState = extern "C" fn(hSession: CK_SESSION_HANDLE, pOpera
 /// * `hAuthenticationKey`: sign/verify key
 ///
 pub type C_SetOperationState = extern "C" fn(
-  hSession: CK_SESSION_HANDLE,
-  pOperationState: CK_BYTE_PTR,
-  ulOperationStateLen: CK_ULONG,
-  hEncryptionKey: CK_OBJECT_HANDLE,
-  hAuthenticationKey: CK_OBJECT_HANDLE,
+    hSession: CK_SESSION_HANDLE,
+    pOperationState: CK_BYTE_PTR,
+    ulOperationStateLen: CK_ULONG,
+    hEncryptionKey: CK_OBJECT_HANDLE,
+    hAuthenticationKey: CK_OBJECT_HANDLE,
 ) -> CK_RV;
 
 /// `C_Login` logs a user into a token.
@@ -202,7 +237,12 @@ pub type C_SetOperationState = extern "C" fn(
 /// * `pPin`: the user's PIN
 /// * `ulPinLen`: the length of the PIN
 ///
-pub type C_Login = extern "C" fn(hSession: CK_SESSION_HANDLE, userType: CK_USER_TYPE, pPin: CK_UTF8CHAR_PTR, ulPinLen: CK_ULONG) -> CK_RV;
+pub type C_Login = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    userType: CK_USER_TYPE,
+    pPin: CK_UTF8CHAR_PTR,
+    ulPinLen: CK_ULONG,
+) -> CK_RV;
 
 /// `C_Logout` logs a user out from a token.
 ///
@@ -220,7 +260,12 @@ pub type C_Logout = extern "C" fn(hSession: CK_SESSION_HANDLE) -> CK_RV;
 /// * `ulCount`: attributes in template
 /// * `phObject`: gets new object's handle.
 ///
-pub type C_CreateObject = extern "C" fn(hSession: CK_SESSION_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG, phObject: CK_OBJECT_HANDLE_PTR) -> CK_RV;
+pub type C_CreateObject = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulCount: CK_ULONG,
+    phObject: CK_OBJECT_HANDLE_PTR,
+) -> CK_RV;
 
 /// `C_CopyObject` copies an object, creating a new object for the copy.
 ///
@@ -232,7 +277,13 @@ pub type C_CreateObject = extern "C" fn(hSession: CK_SESSION_HANDLE, pTemplate: 
 /// * `ulCount`: attributes in template
 /// * `phNewObject`: receives handle of copy
 ///
-pub type C_CopyObject = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG, phNewObject: CK_OBJECT_HANDLE_PTR) -> CK_RV;
+pub type C_CopyObject = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    hObject: CK_OBJECT_HANDLE,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulCount: CK_ULONG,
+    phNewObject: CK_OBJECT_HANDLE_PTR,
+) -> CK_RV;
 
 /// `C_DestroyObject` destroys an object.
 ///
@@ -241,7 +292,8 @@ pub type C_CopyObject = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_O
 /// * `hSession`: the session's handle
 /// * `hObject`: the object's handle
 ///
-pub type C_DestroyObject = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_DestroyObject =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE) -> CK_RV;
 
 /// `C_GetObjectSize` gets the size of an object in bytes.
 ///
@@ -251,7 +303,11 @@ pub type C_DestroyObject = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: C
 /// * `hObject`: the object's handle
 /// * `pulSize`: receives size of object
 ///
-pub type C_GetObjectSize = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pulSize: CK_ULONG_PTR) -> CK_RV;
+pub type C_GetObjectSize = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    hObject: CK_OBJECT_HANDLE,
+    pulSize: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_GetAttributeValue` obtains the value of one or more object attributes.
 ///
@@ -262,7 +318,12 @@ pub type C_GetObjectSize = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: C
 /// * `pTemplate`: specifies attrs; gets vals
 /// * `ulCount`: attributes in template
 ///
-pub type C_GetAttributeValue = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG) -> CK_RV;
+pub type C_GetAttributeValue = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    hObject: CK_OBJECT_HANDLE,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulCount: CK_ULONG,
+) -> CK_RV;
 
 /// `C_SetAttributeValue` modifies the value of one or more object attributes.
 ///
@@ -273,7 +334,12 @@ pub type C_GetAttributeValue = extern "C" fn(hSession: CK_SESSION_HANDLE, hObjec
 /// * `pTemplate`: specifies attrs and values
 /// * `ulCount`: attributes in template
 ///
-pub type C_SetAttributeValue = extern "C" fn(hSession: CK_SESSION_HANDLE, hObject: CK_OBJECT_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG) -> CK_RV;
+pub type C_SetAttributeValue = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    hObject: CK_OBJECT_HANDLE,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulCount: CK_ULONG,
+) -> CK_RV;
 
 /// `C_FindObjectsInit` initializes a search for token and session objects that match a template.
 ///
@@ -283,7 +349,11 @@ pub type C_SetAttributeValue = extern "C" fn(hSession: CK_SESSION_HANDLE, hObjec
 /// * `pTemplate`: attribute values to match
 /// * `ulCount`: attrs in search template
 ///
-pub type C_FindObjectsInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG) -> CK_RV;
+pub type C_FindObjectsInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulCount: CK_ULONG,
+) -> CK_RV;
 
 /// `C_FindObjects` continues a search for token and session objects that match a template, obtaining additional object handles.
 ///
@@ -294,7 +364,12 @@ pub type C_FindObjectsInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pTemplat
 /// * `ulMaxObjectCount`: max handles to get
 /// * `pulObjectCount`: actual # returned
 ///
-pub type C_FindObjects = extern "C" fn(hSession: CK_SESSION_HANDLE, phObject: CK_OBJECT_HANDLE_PTR, ulMaxObjectCount: CK_ULONG, pulObjectCount: CK_ULONG_PTR) -> CK_RV;
+pub type C_FindObjects = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    phObject: CK_OBJECT_HANDLE_PTR,
+    ulMaxObjectCount: CK_ULONG,
+    pulObjectCount: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_FindObjectsFinal` finishes a search for token and session objects.
 ///
@@ -312,7 +387,11 @@ pub type C_FindObjectsFinal = extern "C" fn(hSession: CK_SESSION_HANDLE) -> CK_R
 /// * `pMechanism`: the encryption mechanism
 /// * `hKey`: handle of encryption key
 ///
-pub type C_EncryptInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, hKey: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_EncryptInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
 
 /// `C_Encrypt` encrypts single-part data.
 ///
@@ -324,7 +403,13 @@ pub type C_EncryptInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: 
 /// * `pEncryptedData`: gets ciphertext
 /// * `pulEncryptedDataLen`: gets c-text size
 ///
-pub type C_Encrypt = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PTR, ulDataLen: CK_ULONG, pEncryptedData: CK_BYTE_PTR, pulEncryptedDataLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_Encrypt = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pData: CK_BYTE_PTR,
+    ulDataLen: CK_ULONG,
+    pEncryptedData: CK_BYTE_PTR,
+    pulEncryptedDataLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_EncryptUpdate` continues a multiple-part encryption operation.
 ///
@@ -336,7 +421,13 @@ pub type C_Encrypt = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_P
 /// * `pEncryptedPart`: gets ciphertext
 /// * `pulEncryptedPartLen`: gets c-text size
 ///
-pub type C_EncryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG, pEncryptedPart: CK_BYTE_PTR, pulEncryptedPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_EncryptUpdate = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pPart: CK_BYTE_PTR,
+    ulPartLen: CK_ULONG,
+    pEncryptedPart: CK_BYTE_PTR,
+    pulEncryptedPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_EncryptFinal` finishes a multiple-part encryption operation
 ///
@@ -346,7 +437,11 @@ pub type C_EncryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_
 /// * `pLastEncryptedPart` last c-text
 /// * `pulLastEncryptedPartLen`: gets last size
 ///
-pub type C_EncryptFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pLastEncryptedPart: CK_BYTE_PTR, pulLastEncryptedPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_EncryptFinal = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pLastEncryptedPart: CK_BYTE_PTR,
+    pulLastEncryptedPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DecryptInit` initializes a decryption operation.
 ///
@@ -356,7 +451,11 @@ pub type C_EncryptFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pLastEncryp
 /// * `pMechanism`: the decryption mechanism
 /// * `hKey`: handle of decryption key
 ///
-pub type C_DecryptInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, hKey: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_DecryptInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
 
 /// `C_Decrypt` decrypts encrypted data in a single part.
 ///
@@ -368,7 +467,13 @@ pub type C_DecryptInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: 
 /// * `pData`: gets plaintext
 /// * `pulDataLen`: gets p-text size
 ///
-pub type C_Decrypt = extern "C" fn(hSession: CK_SESSION_HANDLE, pEncryptedData: CK_BYTE_PTR, ulEncryptedDataLen: CK_ULONG, pData: CK_BYTE_PTR, pulDataLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_Decrypt = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pEncryptedData: CK_BYTE_PTR,
+    ulEncryptedDataLen: CK_ULONG,
+    pData: CK_BYTE_PTR,
+    pulDataLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DecryptUpdate` continues a multiple-part decryption operation.
 ///
@@ -380,7 +485,13 @@ pub type C_Decrypt = extern "C" fn(hSession: CK_SESSION_HANDLE, pEncryptedData: 
 /// * `pPart`: gets plaintext
 /// * `pulPartLen`: p-text size
 ///
-pub type C_DecryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pEncryptedPart: CK_BYTE_PTR, ulEncryptedPartLen: CK_ULONG, pPart: CK_BYTE_PTR, pulPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_DecryptUpdate = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pEncryptedPart: CK_BYTE_PTR,
+    ulEncryptedPartLen: CK_ULONG,
+    pPart: CK_BYTE_PTR,
+    pulPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DecryptFinal` finishes a multiple-part decryption operation.
 ///
@@ -390,7 +501,11 @@ pub type C_DecryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pEncrypted
 /// * `pLastPart`: gets plaintext
 /// * `pulLastPartLen`: p-text size
 ///
-pub type C_DecryptFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pLastPart: CK_BYTE_PTR, pulLastPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_DecryptFinal = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pLastPart: CK_BYTE_PTR,
+    pulLastPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DigestInit` initializes a message-digesting operation.
 ///
@@ -399,7 +514,8 @@ pub type C_DecryptFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pLastPart: 
 /// * `hSession`: the session's handle
 /// * `pMechanism`: the digesting mechanism
 ///
-pub type C_DigestInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR) -> CK_RV;
+pub type C_DigestInit =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR) -> CK_RV;
 
 /// `C_Digest` digests data in a single part.
 ///
@@ -411,7 +527,13 @@ pub type C_DigestInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: C
 /// * `pDigest`: gets the message digest
 /// * `pulDigestLen`: gets digest length
 ///
-pub type C_Digest = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PTR, ulDataLen: CK_ULONG, pDigest: CK_BYTE_PTR, pulDigestLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_Digest = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pData: CK_BYTE_PTR,
+    ulDataLen: CK_ULONG,
+    pDigest: CK_BYTE_PTR,
+    pulDigestLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DigestUpdate` continues a multiple-part message-digesting operation.
 ///
@@ -421,7 +543,8 @@ pub type C_Digest = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PT
 /// * `pPart`: data to be digested
 /// * `ulPartLen`: bytes of data to be digested
 ///
-pub type C_DigestUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG) -> CK_RV;
+pub type C_DigestUpdate =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG) -> CK_RV;
 
 /// `C_DigestKey` continues a multi-part message-digesting operation, by digesting the value of a secret key as part of the data already digested.
 ///
@@ -439,7 +562,11 @@ pub type C_DigestKey = extern "C" fn(hSession: CK_SESSION_HANDLE, hKey: CK_OBJEC
 /// * `pDigest`: gets the message digest
 /// * `pulDigestLen`: gets byte count of digest
 ///
-pub type C_DigestFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pDigest: CK_BYTE_PTR, pulDigestLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_DigestFinal = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pDigest: CK_BYTE_PTR,
+    pulDigestLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_SignInit` initializes a signature (private key encryption) operation, where the signature is (will be) an appendix to the data, and plaintext cannot be recovered from the signature.
 ///
@@ -449,7 +576,11 @@ pub type C_DigestFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pDigest: CK_
 /// * `pMechanism`: the signature mechanism
 /// * `hKey`: handle of signature key
 ///
-pub type C_SignInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, hKey: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_SignInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
 
 /// `C_Sign` signs (encrypts with private key) data in a single part, where the signature is (will be) an appendix to the data, and plaintext cannot be recovered from the signature.
 ///
@@ -461,7 +592,13 @@ pub type C_SignInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_
 /// * `pSignature`: gets the signature
 /// * `pulSignatureLen`: gets signature length
 ///
-pub type C_Sign = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PTR, ulDataLen: CK_ULONG, pSignature: CK_BYTE_PTR, pulSignatureLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_Sign = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pData: CK_BYTE_PTR,
+    ulDataLen: CK_ULONG,
+    pSignature: CK_BYTE_PTR,
+    pulSignatureLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_SignUpdate` continues a multiple-part signature operation, where the signature is (will be) an appendix to the data, and plaintext cannot be recovered from the signature.
 ///
@@ -471,7 +608,8 @@ pub type C_Sign = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PTR,
 /// * `pPart`: the data to sign
 /// * `ulPartLen`: count of bytes to sign
 ///
-pub type C_SignUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG) -> CK_RV;
+pub type C_SignUpdate =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG) -> CK_RV;
 
 /// `C_SignFinal` finishes a multiple-part signature operation, returning the signature.
 ///
@@ -481,13 +619,21 @@ pub type C_SignUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYT
 /// * `pSignature`: gets the signature
 /// * `pulSignatureLen`: gets signature length
 ///
-pub type C_SignFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pSignature: CK_BYTE_PTR, pulSignatureLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_SignFinal = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pSignature: CK_BYTE_PTR,
+    pulSignatureLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_SignRecoverInit` initializes a signature operation, where the data can be recovered from the signature.
 /// `hSession`: the session's handle
 /// `pMechanism`: the signature mechanism
 /// `hKey`: handle of the signature key
-pub type C_SignRecoverInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, hKey: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_SignRecoverInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
 
 /// `C_SignRecover` signs data in a single operation, where the data can be recovered from the signature.
 ///
@@ -499,7 +645,13 @@ pub type C_SignRecoverInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechani
 /// * `pSignature`: gets the signature
 /// * `pulSignatureLen`: gets signature length
 ///
-pub type C_SignRecover = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PTR, ulDataLen: CK_ULONG, pSignature: CK_BYTE_PTR, pulSignatureLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_SignRecover = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pData: CK_BYTE_PTR,
+    ulDataLen: CK_ULONG,
+    pSignature: CK_BYTE_PTR,
+    pulSignatureLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_VerifyInit` initializes a verification operation, where the signature is an appendix to the data, and plaintext cannot cannot be recovered from the signature (e.g. DSA).
 ///
@@ -509,7 +661,11 @@ pub type C_SignRecover = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BY
 /// * `pMechanism`: the verification mechanism
 /// * `hKey`: verification key
 ///
-pub type C_VerifyInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, hKey: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_VerifyInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
 
 /// `C_Verify` verifies a signature in a single-part operation, where the signature is an appendix to the data, and plaintext cannot be recovered from the signature.
 ///
@@ -521,7 +677,13 @@ pub type C_VerifyInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: C
 /// * `pSignature`: signature
 /// * `ulSignatureLen`: signature length
 ///
-pub type C_Verify = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PTR, ulDataLen: CK_ULONG, pSignature: CK_BYTE_PTR, ulSignatureLen: CK_ULONG) -> CK_RV;
+pub type C_Verify = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pData: CK_BYTE_PTR,
+    ulDataLen: CK_ULONG,
+    pSignature: CK_BYTE_PTR,
+    ulSignatureLen: CK_ULONG,
+) -> CK_RV;
 
 /// `C_VerifyUpdate` continues a multiple-part verification operation, where the signature is an appendix to the data, and plaintext cannot be recovered from the signature.
 ///
@@ -531,7 +693,8 @@ pub type C_Verify = extern "C" fn(hSession: CK_SESSION_HANDLE, pData: CK_BYTE_PT
 /// * `pPart`: signed data
 /// * `ulPartLen`: length of signed data
 ///
-pub type C_VerifyUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG) -> CK_RV;
+pub type C_VerifyUpdate =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG) -> CK_RV;
 
 /// `C_VerifyFinal` finishes a multiple-part verification operation, checking the signature.
 ///
@@ -541,7 +704,11 @@ pub type C_VerifyUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_B
 /// * `pSignature`: signature to verify
 /// * `ulSignatureLen`: signature length
 ///
-pub type C_VerifyFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pSignature: CK_BYTE_PTR, ulSignatureLen: CK_ULONG) -> CK_RV;
+pub type C_VerifyFinal = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pSignature: CK_BYTE_PTR,
+    ulSignatureLen: CK_ULONG,
+) -> CK_RV;
 
 /// `C_VerifyRecoverInit` initializes a signature verification operation, where the data is recovered from the signature.
 ///
@@ -551,7 +718,11 @@ pub type C_VerifyFinal = extern "C" fn(hSession: CK_SESSION_HANDLE, pSignature: 
 /// * `pMechanism`: the verification mechanism
 /// * `hKey`: verification key
 ///
-pub type C_VerifyRecoverInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, hKey: CK_OBJECT_HANDLE) -> CK_RV;
+pub type C_VerifyRecoverInit = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hKey: CK_OBJECT_HANDLE,
+) -> CK_RV;
 
 /// `C_VerifyRecover` verifies a signature in a single-part operation, where the data is recovered from the signature.
 ///
@@ -563,7 +734,13 @@ pub type C_VerifyRecoverInit = extern "C" fn(hSession: CK_SESSION_HANDLE, pMecha
 /// * `pData`: gets signed data
 /// * `pulDataLen`: gets signed data len
 ///
-pub type C_VerifyRecover = extern "C" fn(hSession: CK_SESSION_HANDLE, pSignature: CK_BYTE_PTR, ulSignatureLen: CK_ULONG, pData: CK_BYTE_PTR, pulDataLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_VerifyRecover = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pSignature: CK_BYTE_PTR,
+    ulSignatureLen: CK_ULONG,
+    pData: CK_BYTE_PTR,
+    pulDataLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DigestEncryptUpdate` continues a multiple-part digesting and encryption operation.
 ///
@@ -575,7 +752,13 @@ pub type C_VerifyRecover = extern "C" fn(hSession: CK_SESSION_HANDLE, pSignature
 /// * `pEncryptedPart`: gets ciphertext
 /// * `pulEncryptedPartLen`: gets c-text length
 ///
-pub type C_DigestEncryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG, pEncryptedPart: CK_BYTE_PTR, pulEncryptedPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_DigestEncryptUpdate = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pPart: CK_BYTE_PTR,
+    ulPartLen: CK_ULONG,
+    pEncryptedPart: CK_BYTE_PTR,
+    pulEncryptedPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DecryptDigestUpdate` continues a multiple-part decryption and digesting operation.
 ///
@@ -587,7 +770,13 @@ pub type C_DigestEncryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPar
 /// * `pPart:`: gets plaintext
 /// * `pulPartLen`: gets plaintext len
 ///
-pub type C_DecryptDigestUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pEncryptedPart: CK_BYTE_PTR, ulEncryptedPartLen: CK_ULONG, pPart: CK_BYTE_PTR, pulPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_DecryptDigestUpdate = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pEncryptedPart: CK_BYTE_PTR,
+    ulEncryptedPartLen: CK_ULONG,
+    pPart: CK_BYTE_PTR,
+    pulPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_SignEncryptUpdate` continues a multiple-part signing and encryption operation.
 ///
@@ -599,7 +788,13 @@ pub type C_DecryptDigestUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pEnc
 /// * `pEncryptedPart`: gets ciphertext
 /// * `pulEncryptedPartLen`: gets c-text length
 ///
-pub type C_SignEncryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart: CK_BYTE_PTR, ulPartLen: CK_ULONG, pEncryptedPart: CK_BYTE_PTR, pulEncryptedPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_SignEncryptUpdate = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pPart: CK_BYTE_PTR,
+    ulPartLen: CK_ULONG,
+    pEncryptedPart: CK_BYTE_PTR,
+    pulEncryptedPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_DecryptVerifyUpdate` continues a multiple-part decryption and verify operation.
 ///
@@ -611,7 +806,13 @@ pub type C_SignEncryptUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pPart:
 /// * `pPart`: gets plaintext
 /// * `pulPartLen`: gets p-text length
 ///
-pub type C_DecryptVerifyUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pEncryptedPart: CK_BYTE_PTR, ulEncryptedPartLen: CK_ULONG, pPart: CK_BYTE_PTR, pulPartLen: CK_ULONG_PTR) -> CK_RV;
+pub type C_DecryptVerifyUpdate = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pEncryptedPart: CK_BYTE_PTR,
+    ulEncryptedPartLen: CK_ULONG,
+    pPart: CK_BYTE_PTR,
+    pulPartLen: CK_ULONG_PTR,
+) -> CK_RV;
 
 /// `C_GenerateKey` generates a secret key, creating a new key object.
 ///
@@ -623,7 +824,13 @@ pub type C_DecryptVerifyUpdate = extern "C" fn(hSession: CK_SESSION_HANDLE, pEnc
 /// * `ulCount`: # of attrs in template
 /// * `phKey`: gets handle of new key
 ///
-pub type C_GenerateKey = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: CK_MECHANISM_PTR, pTemplate: CK_ATTRIBUTE_PTR, ulCount: CK_ULONG, phKey: CK_OBJECT_HANDLE_PTR) -> CK_RV;
+pub type C_GenerateKey = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulCount: CK_ULONG,
+    phKey: CK_OBJECT_HANDLE_PTR,
+) -> CK_RV;
 
 /// `C_GenerateKeyPair` generates a public-key/private-key pair, creating new key objects.
 ///
@@ -639,14 +846,14 @@ pub type C_GenerateKey = extern "C" fn(hSession: CK_SESSION_HANDLE, pMechanism: 
 /// * `phPrivateKey`: gets priv. key handle
 ///
 pub type C_GenerateKeyPair = extern "C" fn(
-  hSession: CK_SESSION_HANDLE,
-  pMechanism: CK_MECHANISM_PTR,
-  pPublicKeyTemplate: CK_ATTRIBUTE_PTR,
-  ulPublicKeyAttributeCount: CK_ULONG,
-  pPrivateKeyTemplate: CK_ATTRIBUTE_PTR,
-  ulPrivateKeyAttributeCount: CK_ULONG,
-  phPublicKey: CK_OBJECT_HANDLE_PTR,
-  phPrivateKey: CK_OBJECT_HANDLE_PTR,
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    pPublicKeyTemplate: CK_ATTRIBUTE_PTR,
+    ulPublicKeyAttributeCount: CK_ULONG,
+    pPrivateKeyTemplate: CK_ATTRIBUTE_PTR,
+    ulPrivateKeyAttributeCount: CK_ULONG,
+    phPublicKey: CK_OBJECT_HANDLE_PTR,
+    phPrivateKey: CK_OBJECT_HANDLE_PTR,
 ) -> CK_RV;
 
 /// `C_WrapKey` wraps (i.e., encrypts) a key.
@@ -661,12 +868,12 @@ pub type C_GenerateKeyPair = extern "C" fn(
 /// * `pulWrappedKeyLen`: gets wrapped key size
 ///
 pub type C_WrapKey = extern "C" fn(
-  hSession: CK_SESSION_HANDLE,
-  pMechanism: CK_MECHANISM_PTR,
-  hWrappingKey: CK_OBJECT_HANDLE,
-  hKey: CK_OBJECT_HANDLE,
-  pWrappedKey: CK_BYTE_PTR,
-  pulWrappedKeyLen: CK_ULONG_PTR,
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hWrappingKey: CK_OBJECT_HANDLE,
+    hKey: CK_OBJECT_HANDLE,
+    pWrappedKey: CK_BYTE_PTR,
+    pulWrappedKeyLen: CK_ULONG_PTR,
 ) -> CK_RV;
 
 /// `C_UnwrapKey` unwraps (decrypts) a wrapped key, creating a new key object.
@@ -683,14 +890,14 @@ pub type C_WrapKey = extern "C" fn(
 /// * `phKey`: gets new handle
 ///
 pub type C_UnwrapKey = extern "C" fn(
-  hSession: CK_SESSION_HANDLE,
-  pMechanism: CK_MECHANISM_PTR,
-  hUnwrappingKey: CK_OBJECT_HANDLE,
-  pWrappedKey: CK_BYTE_PTR,
-  ulWrappedKeyLen: CK_ULONG,
-  pTemplate: CK_ATTRIBUTE_PTR,
-  ulAttributeCount: CK_ULONG,
-  phKey: CK_OBJECT_HANDLE_PTR,
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hUnwrappingKey: CK_OBJECT_HANDLE,
+    pWrappedKey: CK_BYTE_PTR,
+    ulWrappedKeyLen: CK_ULONG,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulAttributeCount: CK_ULONG,
+    phKey: CK_OBJECT_HANDLE_PTR,
 ) -> CK_RV;
 
 /// `C_DeriveKey` derives a key from a base key, creating a new key object.
@@ -705,12 +912,12 @@ pub type C_UnwrapKey = extern "C" fn(
 /// * `phKey`: gets new handle
 ///
 pub type C_DeriveKey = extern "C" fn(
-  hSession: CK_SESSION_HANDLE,
-  pMechanism: CK_MECHANISM_PTR,
-  hBaseKey: CK_OBJECT_HANDLE,
-  pTemplate: CK_ATTRIBUTE_PTR,
-  ulAttributeCount: CK_ULONG,
-  phKey: CK_OBJECT_HANDLE_PTR,
+    hSession: CK_SESSION_HANDLE,
+    pMechanism: CK_MECHANISM_PTR,
+    hBaseKey: CK_OBJECT_HANDLE,
+    pTemplate: CK_ATTRIBUTE_PTR,
+    ulAttributeCount: CK_ULONG,
+    phKey: CK_OBJECT_HANDLE_PTR,
 ) -> CK_RV;
 
 /// `C_SeedRandom` mixes additional seed material into the token's random number generator.
@@ -721,7 +928,8 @@ pub type C_DeriveKey = extern "C" fn(
 /// * `pSeed`: the seed material
 /// * `ulSeedLen`: length of seed material
 ///
-pub type C_SeedRandom = extern "C" fn(hSession: CK_SESSION_HANDLE, pSeed: CK_BYTE_PTR, ulSeedLen: CK_ULONG) -> CK_RV;
+pub type C_SeedRandom =
+    extern "C" fn(hSession: CK_SESSION_HANDLE, pSeed: CK_BYTE_PTR, ulSeedLen: CK_ULONG) -> CK_RV;
 
 /// `C_GenerateRandom` generates random data.
 ///
@@ -731,7 +939,11 @@ pub type C_SeedRandom = extern "C" fn(hSession: CK_SESSION_HANDLE, pSeed: CK_BYT
 /// * `RandomData`: receives the random data
 /// * `ulRandomLen`: # of bytes to generate
 ///
-pub type C_GenerateRandom = extern "C" fn(hSession: CK_SESSION_HANDLE, RandomData: CK_BYTE_PTR, ulRandomLen: CK_ULONG) -> CK_RV;
+pub type C_GenerateRandom = extern "C" fn(
+    hSession: CK_SESSION_HANDLE,
+    RandomData: CK_BYTE_PTR,
+    ulRandomLen: CK_ULONG,
+) -> CK_RV;
 
 /// `C_GetFunctionStatus` is a legacy function; it obtains an updated status of a function running in parallel with an application.
 ///
@@ -757,4 +969,5 @@ pub type C_CancelFunction = extern "C" fn(hSession: CK_SESSION_HANDLE) -> CK_RV;
 /// * `pSlot`: location that receives the slot ID
 /// * `pRserved`: reserved.  Should be NULL_PTR
 ///
-pub type C_WaitForSlotEvent = extern "C" fn(flags: CK_FLAGS, pSlot: CK_SLOT_ID_PTR, pRserved: CK_VOID_PTR) -> CK_RV;
+pub type C_WaitForSlotEvent =
+    extern "C" fn(flags: CK_FLAGS, pSlot: CK_SLOT_ID_PTR, pRserved: CK_VOID_PTR) -> CK_RV;
