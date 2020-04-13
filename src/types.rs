@@ -181,7 +181,7 @@ impl std::fmt::Debug for CK_SLOT_INFO {
       .debug_struct("CK_SLOT_INFO")
       .field("slotDescription", &sd)
       .field("manufacturerID", &self.manufacturerID)
-      .field("flags", {&self.flags})
+      .field("flags", &{self.flags})
       .field("hardwareVersion", &self.hardwareVersion)
       .field("firmwareVersion", &self.firmwareVersion)
       .finish()
@@ -656,7 +656,7 @@ impl Default for CK_ATTRIBUTE {
 
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let attrType = format!("0x{:x}", self.attrType);
+    let attrType = format!("0x{:x}", {self.attrType});
     let data = if self.is_value_unavailable() {
       // That allows to still debug unavailable values
       &[]
@@ -667,7 +667,7 @@ impl std::fmt::Debug for CK_ATTRIBUTE {
       .debug_struct("CK_ATTRIBUTE")
       .field("attrType", &attrType)
       .field("pValue", &data)
-      .field("ulValueLen", {&self.ulValueLen})
+      .field("ulValueLen", &{self.ulValueLen})
       .finish()
   }
 }
