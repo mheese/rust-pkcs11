@@ -180,7 +180,7 @@ impl std::fmt::Debug for CK_SLOT_INFO {
       .debug_struct("CK_SLOT_INFO")
       .field("slotDescription", &sd)
       .field("manufacturerID", &self.manufacturerID)
-      .field("flags", &self.flags)
+      .field("flags", {&self.flags})
       .field("hardwareVersion", &self.hardwareVersion)
       .field("firmwareVersion", &self.firmwareVersion)
       .finish()
