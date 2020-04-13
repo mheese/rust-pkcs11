@@ -98,6 +98,11 @@ pub type CK_VOID_PTR_PTR = *mut CK_VOID_PTR;
 /// handle or object handle
 pub const CK_INVALID_HANDLE: CK_ULONG = 0;
 
+/* NOTE: The newtypes in this module are manual expansions of variants
+ * of [CK_UTF8CHAR; N].
+ * A future version of this library should replace these with PaddingStr<N>
+ * for const N, once Rust stablizes the constant generics feature.
+ */
 pub mod padding {
   use types::CK_UTF8CHAR;
   use ::str_from_blank_padded;
