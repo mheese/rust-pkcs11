@@ -64,13 +64,9 @@ impl CkFrom<CK_BBOOL> for bool {
   }
 }
 
-fn str_from_blank_padded(field: &[CK_UTF8CHAR]) -> Result<&str, Error> {
-  let decoded_str = match std::str::from_utf8(field) {
-    Ok(decoded_str) => decoded_str,
-    Err(_) => return Err(Error::InvalidInput("field isn't UTF-8")),
-  };
-
-  Ok(decoded_str.trim_end_matches(' '))
+fn str_from_blank_padded(field: &[CK_UTF8CHAR]) -> String {
+  let decoded_str = String::from_utf8_lossy(field);
+  decoded_str.trim_end_matches(' ').to_string()
 }
 
 fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {

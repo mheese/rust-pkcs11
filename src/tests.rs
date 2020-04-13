@@ -54,18 +54,18 @@ fn test_str_from_blank_padded() {
   let trailing_nonblanks_not_removed = b"only spaces removed\t\t\t\t";
   let invalid_utf8 = b"\xffinvalid";
 
-  assert_eq!(nothing_removed, str_from_blank_padded(nothing_removed).unwrap().as_bytes());
+  assert_eq!(nothing_removed, str_from_blank_padded(nothing_removed).as_bytes());
   assert_eq!(
-    b"a few removed", str_from_blank_padded(trailing_blanks_removed).unwrap().as_bytes());
+    b"a few removed", str_from_blank_padded(trailing_blanks_removed).as_bytes());
   assert_eq!(
     leading_blanks_not_removed,
-    str_from_blank_padded(leading_blanks_not_removed).unwrap().as_bytes());
+    str_from_blank_padded(leading_blanks_not_removed).as_bytes());
   assert_eq!(
     trailing_nonblanks_not_removed,
-    str_from_blank_padded(trailing_nonblanks_not_removed).unwrap().as_bytes());
+    str_from_blank_padded(trailing_nonblanks_not_removed).as_bytes());
   assert_eq!(
-    "PKCS#11 Invalid Input: field isn't UTF-8",
-    str_from_blank_padded(invalid_utf8).unwrap_err().to_string());
+    "�invalid",
+    str_from_blank_padded(invalid_utf8).to_string());
 }
 
 #[test]
@@ -754,7 +754,7 @@ fn ctx_get_attribute_value() {
     ];
     println!("Template: {:?}", template);
     {
-      let res = ctx.get_attribute_value(sh, oh, &mut template); 
+      let res = ctx.get_attribute_value(sh, oh, &mut template);
       if !res.is_ok() {
         // Doing this not as an assert so we can both unwrap_err with the mut template and re-borrow template
         let err = res.unwrap_err();
@@ -1602,7 +1602,7 @@ fn ctx_get_invalid_attribute_value() {
 
     println!("Template: {:?}", template);
 
-    let res = ctx.get_attribute_value(sh, oh, &mut template); 
+    let res = ctx.get_attribute_value(sh, oh, &mut template);
     if !res.is_ok() {
       // Doing this not as an assert so we can both unwrap_err with the mut template and re-borrow template
       let err = res.unwrap_err();

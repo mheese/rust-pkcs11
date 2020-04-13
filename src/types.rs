@@ -139,11 +139,11 @@ impl CK_INFO {
     }
   }
 
-  pub fn manufacturer_id_str(&self) -> Result<&str, Error> {
+  pub fn manufacturer_id_str(&self) -> String {
     str_from_blank_padded(&self.manufacturerID)
   }
 
-  pub fn library_description_str(&self) -> Result<&str, Error> {
+  pub fn library_description_str(&self) -> String {
     str_from_blank_padded(&self.libraryDescription)
   }
 }
@@ -177,11 +177,11 @@ cryptoki_aligned! {
 }
 
 impl CK_SLOT_INFO {
-  pub fn slot_description_str(&self) -> Result<&str, Error> {
+  pub fn slot_description_str(&self) -> String {
     str_from_blank_padded(&self.slotDescription)
   }
 
-  pub fn manufacturer_id_str(&self) -> Result<&str, Error> {
+  pub fn manufacturer_id_str(&self) -> String {
     str_from_blank_padded(&self.manufacturerID)
   }
 }
@@ -249,19 +249,19 @@ cryptoki_aligned! {
 packed_clone!(CK_TOKEN_INFO);
 
 impl CK_TOKEN_INFO {
-  pub fn label_str(&self) -> Result<&str, Error> {
+  pub fn label_str(&self) -> String {
     str_from_blank_padded(&self.label)
   }
 
-  pub fn manufacturer_id_str(&self) -> Result<&str, Error> {
+  pub fn manufacturer_id_str(&self) -> String {
     str_from_blank_padded(&self.manufacturerID)
   }
 
-  pub fn model_str(&self) -> Result<&str, Error> {
+  pub fn model_str(&self) -> String {
     str_from_blank_padded(&self.model)
   }
 
-  pub fn serial_number_str(&self) -> Result<&str, Error> {
+  pub fn serial_number_str(&self) -> String {
     str_from_blank_padded(&self.serialNumber)
   }
 }
