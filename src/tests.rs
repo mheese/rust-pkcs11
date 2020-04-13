@@ -474,14 +474,14 @@ fn attr_bool() {
   let b: CK_BBOOL = CK_FALSE;
   let attr = CK_ATTRIBUTE::new(CKA_OTP_USER_IDENTIFIER).with_bool(&b);
   println!("{:?}", attr);
-  let ret: bool = attr.get_bool();
+  let ret: bool = attr.get_bool().unwrap();
   println!("{}", ret);
   assert_eq!(false, ret, "attr.get_bool() should have been false");
 
   let b: CK_BBOOL = CK_TRUE;
   let attr = CK_ATTRIBUTE::new(CKA_OTP_USER_IDENTIFIER).with_bool(&b);
   println!("{:?}", attr);
-  let ret: bool = attr.get_bool();
+  let ret: bool = attr.get_bool().unwrap();
   println!("{}", ret);
   assert_eq!(true, ret, "attr.get_bool() should have been true");
 }
@@ -491,7 +491,7 @@ fn attr_ck_ulong() {
   let val: CK_ULONG = 42;
   let attr = CK_ATTRIBUTE::new(CKA_RESOLUTION).with_ck_ulong(&val);
   println!("{:?}", attr);
-  let ret: CK_ULONG = attr.get_ck_ulong();
+  let ret: CK_ULONG = attr.get_ck_ulong().unwrap();
   println!("{}", ret);
   assert_eq!(val, ret, "attr.get_ck_ulong() shouls have been {}", val);
 }
@@ -501,7 +501,7 @@ fn attr_ck_long() {
   let val: CK_LONG = -42;
   let attr = CK_ATTRIBUTE::new(CKA_RESOLUTION).with_ck_long(&val);
   println!("{:?}", attr);
-  let ret: CK_LONG = attr.get_ck_long();
+  let ret: CK_LONG = attr.get_ck_long().unwrap();
   println!("{}", ret);
   assert_eq!(val, ret, "attr.get_ck_long() shouls have been {}", val);
 }
@@ -511,7 +511,7 @@ fn attr_bytes() {
   let val = vec![0, 1, 2, 3, 3, 4, 5];
   let attr = CK_ATTRIBUTE::new(CKA_VALUE).with_bytes(val.as_slice());
   println!("{:?}", attr);
-  let ret: Vec<CK_BYTE> = attr.get_bytes();
+  let ret: Vec<CK_BYTE> = attr.get_bytes().unwrap();
   println!("{:?}", ret);
   assert_eq!(
     val,
@@ -526,7 +526,7 @@ fn attr_string() {
   let val = String::from("Löwe 老虎");
   let attr = CK_ATTRIBUTE::new(CKA_LABEL).with_string(&val);
   println!("{:?}", attr);
-  let ret = attr.get_string();
+  let ret = attr.get_string().unwrap();
   println!("{:?}", ret);
   assert_eq!(val, ret, "attr.get_string() shouls have been {}", val);
 }
@@ -536,7 +536,7 @@ fn attr_date() {
   let val: CK_DATE = Default::default();
   let attr = CK_ATTRIBUTE::new(CKA_LABEL).with_date(&val);
   println!("{:?}", attr);
-  let ret = attr.get_date();
+  let ret = attr.get_date().unwrap();
   println!("{:?}", ret);
   assert_eq!(
     val.day,
@@ -565,7 +565,7 @@ fn attr_biginteger() {
   let slice = val.to_bytes_le();
   let attr = CK_ATTRIBUTE::new(CKA_LABEL).with_biginteger(&slice);
   println!("{:?}", attr);
-  let ret = attr.get_biginteger();
+  let ret = attr.get_biginteger().unwrap();
   println!("{:?}", ret);
   assert_eq!(ret, val, "attr.get_biginteger() should have been {:?}", val);
   assert_eq!(
@@ -771,10 +771,10 @@ fn ctx_get_attribute_value() {
     let (rv, _) = res.unwrap();
     println!("CK_RV: 0x{:x}, Retrieved Attributes: {:?}", rv, &template);
 
-    assert_eq!(CKO_DATA, template[0].get_ck_ulong());
-    assert_eq!(true, template[1].get_bool());
-    assert_eq!(String::from("rust-unit-test"), template[2].get_string());
-    assert_eq!(Vec::from("Hello World!"), template[3].get_bytes());
+    assert_eq!(CKO_DATA, template[0].get_ck_ulong().unwrap());
+    assert_eq!(true, template[1].get_bool().unwrap());
+    assert_eq!(String::from("rust-unit-test"), template[2].get_string().unwrap());
+    assert_eq!(Vec::from("Hello World!"), template[3].get_bytes().unwrap());
   }
   println!("The end");
 }
@@ -800,7 +800,7 @@ fn ctx_set_attribute_value() {
   let str: Vec<CK_BYTE> = Vec::from("aaaaaaaaaaaaaaaa");
   let mut template2 = vec![CK_ATTRIBUTE::new(CKA_LABEL).with_bytes(&str.as_slice())];
   ctx.get_attribute_value(sh, oh, &mut template2).unwrap();
-  assert_eq!(Vec::from("Hello New World!"), template2[0].get_bytes());
+  assert_eq!(Vec::from("Hello New World!"), template2[0].get_bytes().unwrap());
 }
 
 #[test]
@@ -1375,7 +1375,7 @@ fn ctx_derive_key() {
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, pubOh1, &mut template).unwrap();
 
-  let pub1Bytes = template[0].get_bytes();
+  let pub1Bytes = template[0].get_bytes().unwrap();
 
   let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
   ctx.get_attribute_value(sh, pubOh2, &mut template).unwrap();
@@ -1383,7 +1383,7 @@ fn ctx_derive_key() {
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, pubOh2, &mut template).unwrap();
 
-  let pub2Bytes = template[0].get_bytes();
+  let pub2Bytes = template[0].get_bytes().unwrap();
 
   // 3. derive the first secret key
   let mechanism = CK_MECHANISM {
@@ -1456,7 +1456,7 @@ fn ctx_derive_key() {
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, secOh1, &mut template).unwrap();
 
-  let sec1Bytes = template[0].get_bytes();
+  let sec1Bytes = template[0].get_bytes().unwrap();
 
   let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
   ctx.get_attribute_value(sh, secOh2, &mut template).unwrap();
@@ -1464,7 +1464,7 @@ fn ctx_derive_key() {
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, secOh2, &mut template).unwrap();
 
-  let sec2Bytes = template[0].get_bytes();
+  let sec2Bytes = template[0].get_bytes().unwrap();
 
   println!("1st Derived Key Bytes: {:?}", sec1Bytes);
   println!("2nd Derived Key Bytes: {:?}", sec2Bytes);
@@ -1555,4 +1555,47 @@ fn ctx_wait_for_slot_event() {
       res.unwrap_err()
     );
   }
+}
+
+#[test]
+#[serial]
+fn ctx_get_invalid_attribute_value() {
+  {
+    let (ctx, sh, oh) = fixture_token_and_object().unwrap();
+
+    // Wrong size to trigger an error.
+    let label: String = String::with_capacity(1);
+    // Length is not important as it should fail before: the attribute does not exist in the
+    // object.
+    let public_exponent: Vec<CK_BYTE> = Vec::with_capacity(3);
+
+    let mut template = vec![
+      CK_ATTRIBUTE::new(CKA_LABEL),
+      CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT),
+    ];
+
+    template[0].set_string(&label);
+    template[1].set_bytes(&public_exponent.as_slice());
+
+    println!("Template: {:?}", template);
+
+    let res = ctx.get_attribute_value(sh, oh, &mut template); 
+    if !res.is_ok() {
+      // Doing this not as an assert so we can both unwrap_err with the mut template and re-borrow template
+      let err = res.unwrap_err();
+      panic!(
+        "failed to call C_GetAttributeValue({}, {}, {:?}): {}",
+        sh,
+        oh,
+        &template,
+        err
+      );
+    }
+    let (rv, _) = res.unwrap();
+    println!("CK_RV: 0x{:x}, Template: {:?}", rv, &template);
+
+    template[0].get_string().unwrap_err();
+    template[1].get_bytes().unwrap_err();
+  }
+  println!("The end");
 }
