@@ -14,7 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
-      run: choco install -f softhsm
+      run: |
+        choco install -f softhsm
+        ls -l $PKCS11_SOFTHSM2_MODULE
     - name: build
       run: cargo build --verbose
     - name: test
