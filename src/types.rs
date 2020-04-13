@@ -254,11 +254,11 @@ cryptoki_aligned! {
   pub struct CK_INFO {
     /* manufacturerID and libraryDecription have been changed from
     * CK_CHAR to CK_UTF8CHAR for v2.10 */
-    pub cryptokiVersion: CK_VERSION,           /* Cryptoki interface ver */
+    pub cryptokiVersion: CK_VERSION,                    /* Cryptoki interface ver */
     pub manufacturerID: BlankPaddedUtf8String32,        /* blank padded */
-    pub flags: CK_FLAGS,                       /* must be zero */
+    pub flags: CK_FLAGS,                                /* must be zero */
     pub libraryDescription: BlankPaddedUtf8String32,    /* blank padded */
-    pub libraryVersion: CK_VERSION,            /* version of library */
+    pub libraryVersion: CK_VERSION,                     /* version of library */
   }
 }
 packed_clone!(CK_INFO);
@@ -322,21 +322,21 @@ cryptoki_aligned! {
     pub label: BlankPaddedUtf8String32,             /* blank padded */
     pub manufacturerID: BlankPaddedUtf8String32,    /* blank padded */
     pub model: BlankPaddedUtf8String16,             /* blank padded */
-    pub serialNumber: BlankPaddedString16,      /* blank padded */
-    pub flags: CK_FLAGS,                   /* see below */
-    pub ulMaxSessionCount: CK_ULONG,       /* max open sessions */
-    pub ulSessionCount: CK_ULONG,          /* sess. now open */
-    pub ulMaxRwSessionCount: CK_ULONG,     /* max R/W sessions */
-    pub ulRwSessionCount: CK_ULONG,        /* R/W sess. now open */
-    pub ulMaxPinLen: CK_ULONG,             /* in bytes */
-    pub ulMinPinLen: CK_ULONG,             /* in bytes */
-    pub ulTotalPublicMemory: CK_ULONG,     /* in bytes */
-    pub ulFreePublicMemory: CK_ULONG,      /* in bytes */
-    pub ulTotalPrivateMemory: CK_ULONG,    /* in bytes */
-    pub ulFreePrivateMemory: CK_ULONG,     /* in bytes */
-    pub hardwareVersion: CK_VERSION,       /* version of hardware */
-    pub firmwareVersion: CK_VERSION,       /* version of firmware */
-    pub utcTime: [CK_CHAR; 16],            /* time */
+    pub serialNumber: BlankPaddedString16,          /* blank padded */
+    pub flags: CK_FLAGS,                            /* see below */
+    pub ulMaxSessionCount: CK_ULONG,                /* max open sessions */
+    pub ulSessionCount: CK_ULONG,                   /* sess. now open */
+    pub ulMaxRwSessionCount: CK_ULONG,              /* max R/W sessions */
+    pub ulRwSessionCount: CK_ULONG,                 /* R/W sess. now open */
+    pub ulMaxPinLen: CK_ULONG,                      /* in bytes */
+    pub ulMinPinLen: CK_ULONG,                      /* in bytes */
+    pub ulTotalPublicMemory: CK_ULONG,              /* in bytes */
+    pub ulFreePublicMemory: CK_ULONG,               /* in bytes */
+    pub ulTotalPrivateMemory: CK_ULONG,             /* in bytes */
+    pub ulFreePrivateMemory: CK_ULONG,              /* in bytes */
+    pub hardwareVersion: CK_VERSION,                /* version of hardware */
+    pub firmwareVersion: CK_VERSION,                /* version of firmware */
+    pub utcTime: [CK_CHAR; 16],                     /* time */
   }
 }
 packed_clone!(CK_TOKEN_INFO);
