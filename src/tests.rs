@@ -207,6 +207,11 @@ fn ctx_get_slot_infos() {
     );
     let info = res.unwrap();
     println!("Slot {} {:?}", slot, info);
+    assert_eq!("SoftHSM project", String::from(info.manufacturerID));
+    assert_eq!(
+      format!("SoftHSM slot ID {:#x}", slot),
+      String::from(info.slotDescription)
+    );
   }
 }
 
@@ -226,6 +231,9 @@ fn ctx_get_token_infos() {
     );
     let info = res.unwrap();
     println!("Slot {} {:?}", slot, info);
+    assert_eq!("rust-unit-test", String::from(info.label));
+    assert_eq!("SoftHSM project", String::from(info.manufacturerID));
+    assert_eq!("SoftHSM v2", String::from(info.model));
   }
 }
 
