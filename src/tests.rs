@@ -15,6 +15,7 @@
 
 use std::env;
 use std::path::PathBuf;
+use std::convert::TryInto;
 
 /// Tests need to be run with `RUST_TEST_THREADS=1` currently to pass.
 extern crate num_traits;
@@ -749,8 +750,8 @@ fn ctx_get_attribute_value() {
 
     let class: CK_ULONG = 0;
     let private: CK_BBOOL = 1;
-    let label: String = String::with_capacity(template[2].ulValueLen);
-    let value: Vec<CK_BYTE> = Vec::with_capacity(template[3].ulValueLen);
+    let label: String = String::with_capacity(template[2].ulValueLen.try_into().unwrap());
+    let value: Vec<CK_BYTE> = Vec::with_capacity(template[3].ulValueLen.try_into().unwrap());
     template[0].set_ck_ulong(&class);
     template[1].set_bool(&private);
     template[2].set_string(&label);
@@ -1371,7 +1372,7 @@ fn ctx_derive_key() {
   // 2. retrieve the public key bytes from both
   let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
   ctx.get_attribute_value(sh, pubOh1, &mut template).unwrap();
-  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen.try_into().unwrap());
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, pubOh1, &mut template).unwrap();
 
@@ -1379,7 +1380,7 @@ fn ctx_derive_key() {
 
   let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
   ctx.get_attribute_value(sh, pubOh2, &mut template).unwrap();
-  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen.try_into().unwrap());
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, pubOh2, &mut template).unwrap();
 
@@ -1389,7 +1390,7 @@ fn ctx_derive_key() {
   let mechanism = CK_MECHANISM {
     mechanism: CKM_DH_PKCS_DERIVE,
     pParameter: pub2Bytes.as_slice().as_ptr() as CK_VOID_PTR,
-    ulParameterLen: pub2Bytes.len(),
+    ulParameterLen: pub2Bytes.len().try_into().unwrap(),
   };
 
   let class = CKO_SECRET_KEY;
@@ -1421,7 +1422,7 @@ fn ctx_derive_key() {
   let mechanism = CK_MECHANISM {
     mechanism: CKM_DH_PKCS_DERIVE,
     pParameter: pub1Bytes.as_slice().as_ptr() as CK_VOID_PTR,
-    ulParameterLen: pub1Bytes.len(),
+    ulParameterLen: pub1Bytes.len().try_into().unwrap(),
   };
 
   let class = CKO_SECRET_KEY;
@@ -1452,7 +1453,7 @@ fn ctx_derive_key() {
   // 5. retrieve the derived private keys from both
   let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
   ctx.get_attribute_value(sh, secOh1, &mut template).unwrap();
-  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen.try_into().unwrap());
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, secOh1, &mut template).unwrap();
 
@@ -1460,7 +1461,7 @@ fn ctx_derive_key() {
 
   let mut template = vec![CK_ATTRIBUTE::new(CKA_VALUE)];
   ctx.get_attribute_value(sh, secOh2, &mut template).unwrap();
-  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen);
+  let value: Vec<CK_BYTE> = Vec::with_capacity(template[0].ulValueLen.try_into().unwrap());
   template[0].set_bytes(&value.as_slice());
   ctx.get_attribute_value(sh, secOh2, &mut template).unwrap();
 
