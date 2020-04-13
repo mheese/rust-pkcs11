@@ -15,9 +15,13 @@
 
 // Cryptoki's packed structs interfere with the Clone trait, so we implement Copy and use this
 macro_rules! packed_clone {
-    ($name:ty) => (
-        impl Clone for $name { fn clone(&self) -> $name { *self } }
-    )
+    ($name:ty) => {
+        impl Clone for $name {
+            fn clone(&self) -> $name {
+                *self
+            }
+        }
+    };
 }
 
 // packed structs only needed on Windows, pkcs11.h mentions
@@ -32,17 +36,16 @@ macro_rules! cryptoki_aligned {
     }
 }
 
+use num_bigint::BigUint;
 use std;
 use std::mem;
-use std::slice;
 use std::ptr;
-use num_bigint::BigUint;
+use std::slice;
 
+use super::CkFrom;
 use errors::Error;
 use functions::*;
-use super::CkFrom;
 use types::padding::*;
-
 
 pub const CK_TRUE: CK_BBOOL = 1;
 pub const CK_FALSE: CK_BBOOL = 0;
@@ -75,7 +78,6 @@ pub type CK_LONG = i32;
 #[cfg(not(windows))]
 pub type CK_LONG = i64;
 
-
 /// at least 32 bits; each bit is a Boolean flag
 pub type CK_FLAGS = CK_ULONG;
 
@@ -86,8 +88,10 @@ pub const CK_EFFECTIVELY_INFINITE: CK_ULONG = 0;
 #[derive(Debug)]
 #[repr(u8)]
 pub enum CK_VOID {
-  #[doc(hidden)] __Variant1,
-  #[doc(hidden)] __Variant2,
+    #[doc(hidden)]
+    __Variant1,
+    #[doc(hidden)]
+    __Variant2,
 }
 pub type CK_VOID_PTR = *mut CK_VOID;
 
@@ -104,132 +108,132 @@ pub const CK_INVALID_HANDLE: CK_ULONG = 0;
  * for const N, once Rust stablizes the constant generics feature.
  */
 pub mod padding {
-  use types::{CK_CHAR, CK_UTF8CHAR};
-  use ::str_from_blank_padded;
+    use str_from_blank_padded;
+    use types::{CK_CHAR, CK_UTF8CHAR};
 
-  cryptoki_aligned!{
-    /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
-    #[derive(Copy)]
-    pub struct BlankPaddedString16(pub [CK_CHAR; 16]);
-  }
-  packed_clone!{BlankPaddedString16}
-
-  impl std::convert::From<BlankPaddedString16> for String {
-    fn from(field: BlankPaddedString16) -> String {
-      str_from_blank_padded(&field.0)
+    cryptoki_aligned! {
+      /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
+      #[derive(Copy)]
+      pub struct BlankPaddedString16(pub [CK_CHAR; 16]);
     }
-  }
+    packed_clone! {BlankPaddedString16}
 
-  impl Default for BlankPaddedString16 {
-    fn default() -> Self {
-      Self { 0: [32; 16] }
+    impl std::convert::From<BlankPaddedString16> for String {
+        fn from(field: BlankPaddedString16) -> String {
+            str_from_blank_padded(&field.0)
+        }
     }
-  }
 
-  impl std::fmt::Display for BlankPaddedString16 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "{}", String::from(*self))
+    impl Default for BlankPaddedString16 {
+        fn default() -> Self {
+            Self { 0: [32; 16] }
+        }
     }
-  }
 
-  impl std::fmt::Debug for BlankPaddedString16 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "CK_CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    impl std::fmt::Display for BlankPaddedString16 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "{}", String::from(*self))
+        }
     }
-  }
-  
-  cryptoki_aligned!{
-    /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
-    #[derive(Copy)]
-    pub struct BlankPaddedUtf8String16(pub [CK_UTF8CHAR; 16]);
-  }
-  packed_clone!{BlankPaddedUtf8String16}
 
-  impl std::convert::From<BlankPaddedUtf8String16> for String {
-    fn from(field: BlankPaddedUtf8String16) -> String {
-      str_from_blank_padded(&field.0)
+    impl std::fmt::Debug for BlankPaddedString16 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "CK_CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+        }
     }
-  }
 
-  impl Default for BlankPaddedUtf8String16 {
-    fn default() -> Self {
-      Self { 0: [32; 16] }
+    cryptoki_aligned! {
+      /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
+      #[derive(Copy)]
+      pub struct BlankPaddedUtf8String16(pub [CK_UTF8CHAR; 16]);
     }
-  }
+    packed_clone! {BlankPaddedUtf8String16}
 
-  impl std::fmt::Display for BlankPaddedUtf8String16 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "{}", String::from(*self))
+    impl std::convert::From<BlankPaddedUtf8String16> for String {
+        fn from(field: BlankPaddedUtf8String16) -> String {
+            str_from_blank_padded(&field.0)
+        }
     }
-  }
 
-  impl std::fmt::Debug for BlankPaddedUtf8String16 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    impl Default for BlankPaddedUtf8String16 {
+        fn default() -> Self {
+            Self { 0: [32; 16] }
+        }
     }
-  }
 
-  cryptoki_aligned!{
-    /// Encapsulates a blank-padded 32-byte UTF-8 string for conversion purposes.
-    #[derive(Copy)]
-    pub struct BlankPaddedUtf8String32(pub [CK_UTF8CHAR; 32]);
-  }
-  packed_clone!{BlankPaddedUtf8String32}
-
-  impl std::convert::From<BlankPaddedUtf8String32> for String {
-    fn from(field: BlankPaddedUtf8String32) -> String {
-      str_from_blank_padded(&field.0)
+    impl std::fmt::Display for BlankPaddedUtf8String16 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "{}", String::from(*self))
+        }
     }
-  }
 
-  impl Default for BlankPaddedUtf8String32 {
-    fn default() -> Self {
-      Self { 0: [32; 32] }
+    impl std::fmt::Debug for BlankPaddedUtf8String16 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+        }
     }
-  }
 
-  impl std::fmt::Display for BlankPaddedUtf8String32 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "{}", String::from(*self))
+    cryptoki_aligned! {
+      /// Encapsulates a blank-padded 32-byte UTF-8 string for conversion purposes.
+      #[derive(Copy)]
+      pub struct BlankPaddedUtf8String32(pub [CK_UTF8CHAR; 32]);
     }
-  }
+    packed_clone! {BlankPaddedUtf8String32}
 
-  impl std::fmt::Debug for BlankPaddedUtf8String32 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    impl std::convert::From<BlankPaddedUtf8String32> for String {
+        fn from(field: BlankPaddedUtf8String32) -> String {
+            str_from_blank_padded(&field.0)
+        }
     }
-  }
 
-  cryptoki_aligned!{
-    /// Encapsulates a blank-padded 64-byte UTF-8 string for conversion purposes.
-    #[derive(Copy)]
-    pub struct BlankPaddedUtf8String64(pub [CK_UTF8CHAR; 64]);
-  }
-  packed_clone!{BlankPaddedUtf8String64}
-
-  impl std::convert::From<BlankPaddedUtf8String64> for String {
-    fn from(field: BlankPaddedUtf8String64) -> String {
-      str_from_blank_padded(&field.0)
+    impl Default for BlankPaddedUtf8String32 {
+        fn default() -> Self {
+            Self { 0: [32; 32] }
+        }
     }
-  }
 
-  impl Default for BlankPaddedUtf8String64 {
-    fn default() -> Self {
-      Self { 0: [32; 64] }
+    impl std::fmt::Display for BlankPaddedUtf8String32 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "{}", String::from(*self))
+        }
     }
-  }
 
-  impl std::fmt::Display for BlankPaddedUtf8String64 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "{}", String::from(*self))
+    impl std::fmt::Debug for BlankPaddedUtf8String32 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+        }
     }
-  }
 
-  impl std::fmt::Debug for BlankPaddedUtf8String64 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-      write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    cryptoki_aligned! {
+      /// Encapsulates a blank-padded 64-byte UTF-8 string for conversion purposes.
+      #[derive(Copy)]
+      pub struct BlankPaddedUtf8String64(pub [CK_UTF8CHAR; 64]);
     }
-  }
+    packed_clone! {BlankPaddedUtf8String64}
+
+    impl std::convert::From<BlankPaddedUtf8String64> for String {
+        fn from(field: BlankPaddedUtf8String64) -> String {
+            str_from_blank_padded(&field.0)
+        }
+    }
+
+    impl Default for BlankPaddedUtf8String64 {
+        fn default() -> Self {
+            Self { 0: [32; 64] }
+        }
+    }
+
+    impl std::fmt::Display for BlankPaddedUtf8String64 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "{}", String::from(*self))
+        }
+    }
+
+    impl std::fmt::Debug for BlankPaddedUtf8String64 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+            write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+        }
+    }
 }
 
 cryptoki_aligned! {
@@ -242,9 +246,9 @@ cryptoki_aligned! {
 packed_clone!(CK_VERSION);
 
 impl std::fmt::Display for CK_VERSION {
-  fn fmt(&self, f: &mut std::fmt::Formatter<>) -> std::fmt::Result {
-      write!(f, "{}.{}", self.major, self.minor)
-  }
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}.{}", self.major, self.minor)
+    }
 }
 
 pub type CK_VERSION_PTR = *mut CK_VERSION;
@@ -264,15 +268,15 @@ cryptoki_aligned! {
 packed_clone!(CK_INFO);
 
 impl CK_INFO {
-  pub fn new() -> CK_INFO {
-    CK_INFO {
-      cryptokiVersion: Default::default(),
-      manufacturerID: Default::default(),
-      flags: 0,
-      libraryDescription: Default::default(),
-      libraryVersion: Default::default(),
+    pub fn new() -> CK_INFO {
+        CK_INFO {
+            cryptokiVersion: Default::default(),
+            manufacturerID: Default::default(),
+            flags: 0,
+            libraryDescription: Default::default(),
+            libraryVersion: Default::default(),
+        }
     }
-  }
 }
 
 pub type CK_INFO_PTR = *mut CK_INFO;
@@ -303,7 +307,7 @@ cryptoki_aligned! {
     pub firmwareVersion: CK_VERSION, /* version of firmware */
   }
 }
-packed_clone!{CK_SLOT_INFO}
+packed_clone! {CK_SLOT_INFO}
 
 /// a token is there
 pub const CKF_TOKEN_PRESENT: CK_FLAGS = 0x00000001;
@@ -737,212 +741,214 @@ packed_clone!(CK_ATTRIBUTE);
 pub type CK_ATTRIBUTE_PTR = *mut CK_ATTRIBUTE;
 
 impl Default for CK_ATTRIBUTE {
-  fn default() -> Self {
-    Self {
-      attrType: CKA_VENDOR_DEFINED,
-      pValue: ptr::null_mut(),
-      ulValueLen: 0,
+    fn default() -> Self {
+        Self {
+            attrType: CKA_VENDOR_DEFINED,
+            pValue: ptr::null_mut(),
+            ulValueLen: 0,
+        }
     }
-  }
 }
 
 impl std::fmt::Debug for CK_ATTRIBUTE {
-  fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let attrType = format!("0x{:x}", {self.attrType});
-    let data = if self.is_value_unavailable() {
-      // That allows to still debug unavailable values
-      &[]
-    } else {
-      unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) }
-    };
-    fmt
-      .debug_struct("CK_ATTRIBUTE")
-      .field("attrType", &attrType)
-      .field("pValue", &data)
-      .field("ulValueLen", &{self.ulValueLen})
-      .finish()
-  }
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let attrType = format!("0x{:x}", { self.attrType });
+        let data = if self.is_value_unavailable() {
+            // That allows to still debug unavailable values
+            &[]
+        } else {
+            unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) }
+        };
+        fmt.debug_struct("CK_ATTRIBUTE")
+            .field("attrType", &attrType)
+            .field("pValue", &data)
+            .field("ulValueLen", &{ self.ulValueLen })
+            .finish()
+    }
 }
 
 impl CK_ATTRIBUTE {
-  pub fn new(attrType: CK_ATTRIBUTE_TYPE) -> Self {
-    Self {
-      attrType,
-      pValue: ptr::null_mut(),
-      ulValueLen: 0,
+    pub fn new(attrType: CK_ATTRIBUTE_TYPE) -> Self {
+        Self {
+            attrType,
+            pValue: ptr::null_mut(),
+            ulValueLen: 0,
+        }
     }
-  }
 
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn with_bool(mut self, b: &CK_BBOOL) -> Self {
-    self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
-    self.ulValueLen = 1;
-    self
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn set_bool(&mut self, b: &CK_BBOOL) {
-    self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = 1;
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn with_bool(mut self, b: &CK_BBOOL) -> Self {
+        self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
+        self.ulValueLen = 1;
+        self
     }
-  }
 
-  pub fn get_bool(&self) -> Result<bool, Error> {
-    self.available_value()?;
-    let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
-    Ok(CkFrom::from(data))
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn with_ck_ulong(mut self, val: &CK_ULONG) -> Self {
-    self.pValue = val as *const _ as CK_VOID_PTR;
-    self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
-    self
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn set_ck_ulong(&mut self, val: &CK_ULONG) {
-    self.pValue = val as *const _ as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn set_bool(&mut self, b: &CK_BBOOL) {
+        self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = 1;
+        }
     }
-  }
 
-  pub fn get_ck_ulong(&self) -> Result<CK_ULONG, Error> {
-    self.available_value()?;
-    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn with_ck_long(mut self, val: &CK_LONG) -> Self {
-    self.pValue = val as *const _ as CK_VOID_PTR;
-    self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
-    self
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn set_ck_long(&mut self, val: &CK_LONG) {
-    self.pValue = val as *const _ as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
+    pub fn get_bool(&self) -> Result<bool, Error> {
+        self.available_value()?;
+        let data: CK_BBOOL = unsafe { mem::transmute_copy(&*self.pValue) };
+        Ok(CkFrom::from(data))
     }
-  }
 
-  pub fn get_ck_long(&self) -> Result<CK_LONG, Error> {
-    self.available_value()?;
-    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
-  }
-
-  pub fn with_biginteger(mut self, val: &[u8]) -> Self {
-    self.pValue = val.as_ptr() as CK_VOID_PTR;
-    self.ulValueLen = val.len() as CK_ULONG;
-    self
-  }
-
-  pub fn set_biginteger(&mut self, val: &[u8]) {
-    self.pValue = val.as_ptr() as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = val.len() as CK_ULONG;
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn with_ck_ulong(mut self, val: &CK_ULONG) -> Self {
+        self.pValue = val as *const _ as CK_VOID_PTR;
+        self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
+        self
     }
-  }
 
-  pub fn get_biginteger(&self) -> Result<BigUint, Error> {
-    self.available_value()?;
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    Ok(BigUint::from_bytes_le(slice))
-  }
-
-  pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
-    self.pValue = val.as_ptr() as CK_VOID_PTR;
-    self.ulValueLen = val.len() as CK_ULONG;
-    self
-  }
-
-  pub fn set_bytes(&mut self, val: &[CK_BYTE]) {
-    self.pValue = val.as_ptr() as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = val.len() as CK_ULONG;
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn set_ck_ulong(&mut self, val: &CK_ULONG) {
+        self.pValue = val as *const _ as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
+        }
     }
-  }
 
-  pub fn get_bytes(&self) -> Result<Vec<CK_BYTE>, Error> {
-    self.available_value()?;
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    Ok(Vec::from(slice))
-  }
-
-  pub fn with_string(mut self, str: &str) -> Self {
-    self.pValue = str.as_ptr() as CK_VOID_PTR;
-    self.ulValueLen = str.len() as CK_ULONG;
-    self
-  }
-
-  pub fn set_string(&mut self, str: &str) {
-    self.pValue = str.as_ptr() as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = str.len() as CK_ULONG;
+    pub fn get_ck_ulong(&self) -> Result<CK_ULONG, Error> {
+        self.available_value()?;
+        Ok(unsafe { mem::transmute_copy(&*self.pValue) })
     }
-  }
 
-  pub fn get_string(&self) -> Result<String, Error> {
-    self.available_value()?;
-    let slice = unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
-    Ok(String::from_utf8_lossy(slice).into_owned())
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn with_date(mut self, date: &CK_DATE) -> Self {
-    self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
-    self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
-    self
-  }
-
-  #[allow(clippy::trivially_copy_pass_by_ref)]
-  pub fn set_date(&mut self, date: &CK_DATE) {
-    self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
-    if self.ulValueLen == 0 {
-      self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn with_ck_long(mut self, val: &CK_LONG) -> Self {
+        self.pValue = val as *const _ as CK_VOID_PTR;
+        self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
+        self
     }
-  }
 
-  pub fn get_date(&self) -> Result<CK_DATE, Error> {
-    self.available_value()?;
-    Ok(unsafe { mem::transmute_copy(&*self.pValue) })
-  }
-
-  /// Check if the value contained by this attribute is invalid or unavailable.
-  /// This function needs to be called to safely interpret the bytes the attribute contains with
-  /// `from_raw_parts`.
-  /// Same function that `is_value_unavailable`.
-  pub fn is_value_invalid(&self) -> bool {
-      self.is_value_unavailable()
-  }
-
-  /// Check if the value contained by this attribute is invalid or unavailable.
-  /// This function needs to be called to safely interpret the bytes the attribute contains with
-  /// `from_raw_parts`.
-  /// Same function that `is_value_invalid`.
-  pub fn is_value_unavailable(&self) -> bool {
-    // get_attribute_value can set the ulValueLen field of this attribute to
-    // CK_UNAVAILABLE_INFORMATION
-    self.ulValueLen == CK_UNAVAILABLE_INFORMATION
-  }
-
-  /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
-  /// Same as `valid_value`.
-  fn available_value(&self) -> Result<(), Error> {
-    if self.is_value_unavailable() {
-      Err(Error::UnavailableInformation)
-    } else {
-        Ok(())
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn set_ck_long(&mut self, val: &CK_LONG) {
+        self.pValue = val as *const _ as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
+        }
     }
-  }
 
-  // this works for C structs and primitives, but not for vectors, slices, strings
-  //pub fn set_ptr<T>(&mut self, val: &T) {
-  //  self.pValue = (val as *const T) as CK_VOID_PTR;
-  //}
+    pub fn get_ck_long(&self) -> Result<CK_LONG, Error> {
+        self.available_value()?;
+        Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+    }
+
+    pub fn with_biginteger(mut self, val: &[u8]) -> Self {
+        self.pValue = val.as_ptr() as CK_VOID_PTR;
+        self.ulValueLen = val.len() as CK_ULONG;
+        self
+    }
+
+    pub fn set_biginteger(&mut self, val: &[u8]) {
+        self.pValue = val.as_ptr() as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = val.len() as CK_ULONG;
+        }
+    }
+
+    pub fn get_biginteger(&self) -> Result<BigUint, Error> {
+        self.available_value()?;
+        let slice =
+            unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+        Ok(BigUint::from_bytes_le(slice))
+    }
+
+    pub fn with_bytes(mut self, val: &[CK_BYTE]) -> Self {
+        self.pValue = val.as_ptr() as CK_VOID_PTR;
+        self.ulValueLen = val.len() as CK_ULONG;
+        self
+    }
+
+    pub fn set_bytes(&mut self, val: &[CK_BYTE]) {
+        self.pValue = val.as_ptr() as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = val.len() as CK_ULONG;
+        }
+    }
+
+    pub fn get_bytes(&self) -> Result<Vec<CK_BYTE>, Error> {
+        self.available_value()?;
+        let slice =
+            unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+        Ok(Vec::from(slice))
+    }
+
+    pub fn with_string(mut self, str: &str) -> Self {
+        self.pValue = str.as_ptr() as CK_VOID_PTR;
+        self.ulValueLen = str.len() as CK_ULONG;
+        self
+    }
+
+    pub fn set_string(&mut self, str: &str) {
+        self.pValue = str.as_ptr() as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = str.len() as CK_ULONG;
+        }
+    }
+
+    pub fn get_string(&self) -> Result<String, Error> {
+        self.available_value()?;
+        let slice =
+            unsafe { slice::from_raw_parts(self.pValue as CK_BYTE_PTR, self.ulValueLen as usize) };
+        Ok(String::from_utf8_lossy(slice).into_owned())
+    }
+
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn with_date(mut self, date: &CK_DATE) -> Self {
+        self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
+        self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
+        self
+    }
+
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn set_date(&mut self, date: &CK_DATE) {
+        self.pValue = (date as *const CK_DATE) as CK_VOID_PTR;
+        if self.ulValueLen == 0 {
+            self.ulValueLen = mem::size_of::<CK_DATE>() as CK_ULONG;
+        }
+    }
+
+    pub fn get_date(&self) -> Result<CK_DATE, Error> {
+        self.available_value()?;
+        Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+    }
+
+    /// Check if the value contained by this attribute is invalid or unavailable.
+    /// This function needs to be called to safely interpret the bytes the attribute contains with
+    /// `from_raw_parts`.
+    /// Same function that `is_value_unavailable`.
+    pub fn is_value_invalid(&self) -> bool {
+        self.is_value_unavailable()
+    }
+
+    /// Check if the value contained by this attribute is invalid or unavailable.
+    /// This function needs to be called to safely interpret the bytes the attribute contains with
+    /// `from_raw_parts`.
+    /// Same function that `is_value_invalid`.
+    pub fn is_value_unavailable(&self) -> bool {
+        // get_attribute_value can set the ulValueLen field of this attribute to
+        // CK_UNAVAILABLE_INFORMATION
+        self.ulValueLen == CK_UNAVAILABLE_INFORMATION
+    }
+
+    /// Check if the value contained by this attribute is invalid or unavailable in a faillible way.
+    /// Same as `valid_value`.
+    fn available_value(&self) -> Result<(), Error> {
+        if self.is_value_unavailable() {
+            Err(Error::UnavailableInformation)
+        } else {
+            Ok(())
+        }
+    }
+
+    // this works for C structs and primitives, but not for vectors, slices, strings
+    //pub fn set_ptr<T>(&mut self, val: &T) {
+    //  self.pValue = (val as *const T) as CK_VOID_PTR;
+    //}
 }
 
 //trait CkAttributeFrom<T> {
@@ -1543,7 +1549,8 @@ pub const CKR_FUNCTION_REJECTED: CK_RV = 0x00000200;
 pub const CKR_VENDOR_DEFINED: CK_RV = 0x80000000;
 
 /// CK_NOTIFY is an application callback that processes events
-pub type CK_NOTIFY = Option<extern "C" fn(CK_SESSION_HANDLE, CK_NOTIFICATION, CK_VOID_PTR) -> CK_RV>;
+pub type CK_NOTIFY =
+    Option<extern "C" fn(CK_SESSION_HANDLE, CK_NOTIFICATION, CK_VOID_PTR) -> CK_RV>;
 
 cryptoki_aligned! {
   /// CK_FUNCTION_LIST is a structure holding a Cryptoki spec
@@ -1662,16 +1669,16 @@ impl Default for CK_C_INITIALIZE_ARGS {
 }
 
 impl CK_C_INITIALIZE_ARGS {
-  pub fn new() -> CK_C_INITIALIZE_ARGS {
-    CK_C_INITIALIZE_ARGS {
-      flags: CKF_OS_LOCKING_OK,
-      CreateMutex: None,
-      DestroyMutex: None,
-      LockMutex: None,
-      UnlockMutex: None,
-      pReserved: ptr::null_mut(),
+    pub fn new() -> CK_C_INITIALIZE_ARGS {
+        CK_C_INITIALIZE_ARGS {
+            flags: CKF_OS_LOCKING_OK,
+            CreateMutex: None,
+            DestroyMutex: None,
+            LockMutex: None,
+            UnlockMutex: None,
+            pReserved: ptr::null_mut(),
+        }
     }
-  }
 }
 
 pub const CKF_LIBRARY_CANT_CREATE_OS_THREADS: CK_FLAGS = 0x00000001;
@@ -1907,7 +1914,6 @@ packed_clone!(CK_RC2_CBC_PARAMS);
 
 pub type CK_RC2_CBC_PARAMS_PTR = *mut CK_RC2_CBC_PARAMS;
 
-
 cryptoki_aligned! {
   /// CK_RC2_MAC_GENERAL_PARAMS provides the parameters for the
   /// CKM_RC2_MAC_GENERAL mechanism
@@ -1923,7 +1929,6 @@ packed_clone!(CK_RC2_MAC_GENERAL_PARAMS);
 
 pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *mut CK_RC2_MAC_GENERAL_PARAMS;
 
-
 cryptoki_aligned! {
   /// CK_RC5_PARAMS provides the parameters to the CKM_RC5_ECB and
   /// CKM_RC5_MAC mechanisms
@@ -1938,7 +1943,6 @@ cryptoki_aligned! {
 packed_clone!(CK_RC5_PARAMS);
 
 pub type CK_RC5_PARAMS_PTR = *mut CK_RC5_PARAMS;
-
 
 cryptoki_aligned! {
   /// CK_RC5_CBC_PARAMS provides the parameters to the CKM_RC5_CBC
@@ -1958,7 +1962,6 @@ cryptoki_aligned! {
 packed_clone!(CK_RC5_CBC_PARAMS);
 
 pub type CK_RC5_CBC_PARAMS_PTR = *mut CK_RC5_CBC_PARAMS;
-
 
 cryptoki_aligned! {
   /// CK_RC5_MAC_GENERAL_PARAMS provides the parameters for the
@@ -2252,7 +2255,6 @@ packed_clone!(CK_KEY_DERIVATION_STRING_DATA);
 
 pub type CK_KEY_DERIVATION_STRING_DATA_PTR = *mut CK_KEY_DERIVATION_STRING_DATA;
 
-
 /// The CK_EXTRACT_PARAMS is used for the
 /// CKM_EXTRACT_KEY_FROM_KEY mechanism.  It specifies which bit
 /// of the base key should be used as the first bit of the
@@ -2266,7 +2268,8 @@ pub type CK_EXTRACT_PARAMS_PTR = *mut CK_EXTRACT_PARAMS;
 /// key bits using PKCS #5 PBKDF2.
 pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = CK_ULONG;
 
-pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE_PTR = *mut CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE;
+pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE_PTR =
+    *mut CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE;
 
 pub const CKP_PKCS5_PBKD2_HMAC_SHA1: CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = 0x00000001;
 pub const CKP_PKCS5_PBKD2_HMAC_GOSTR3411: CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = 0x00000002;
