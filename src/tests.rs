@@ -66,7 +66,7 @@ fn test_str_from_blank_padded() {
     str_from_blank_padded(trailing_nonblanks_not_removed).as_bytes());
   assert_eq!(
     "�invalid",
-    str_from_blank_padded(invalid_utf8).to_string());
+    str_from_blank_padded(invalid_utf8));
 }
 
 #[test]
