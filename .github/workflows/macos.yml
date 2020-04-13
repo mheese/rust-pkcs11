@@ -1,0 +1,21 @@
+name: macOS
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    env:
+      PKCS11_SOFTHSM2_MODULE: "/usr/local/lib/softhsm/libsofthsm2.so"
+    steps:
+    - uses: actions/checkout@v2
+    - name: SoftHSM installation
+      run: brew install -f softhsm
+    - name: build
+      run: cargo build --verbose
+    - name: test
+      run: cargo test --verbose
