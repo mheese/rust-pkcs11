@@ -11,12 +11,16 @@ jobs:
     runs-on: windows-latest
     env:
       PKCS11_SOFTHSM2_MODULE: "C:\\SoftHSM2\\lib\\softhsm2-x64.dll"
+      SOFTHSM2_CONF: "C:\\SoftHSM2\\etc\\softhsm2.conf"
     steps:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
       run: |
         choco install -f softhsm
         ls -l $PKCS11_SOFTHSM2_MODULE
+        ls -l C:\\SoftHSM2
+        cat $SOFTHSM2_CONF
+      # -rwxr-xr-x 1 runneradmin 197121 2786080 Nov  6  2018 C:\SoftHSM2\lib\softhsm2-x64.dll
       shell: bash
     - name: build
       run: cargo build --verbose
