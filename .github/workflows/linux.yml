@@ -13,6 +13,8 @@ jobs:
       PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
     steps:
     - uses: actions/checkout@v2
+    - name: audit installation
+      run: cargo install cargo-audit
     - name: tarpaulin installation
       run: |
         sudo apt-get install -f libssl-dev
@@ -37,3 +39,5 @@ jobs:
       run: cargo fmt -- --check
     - name: clippy 
       run: cargo clippy --all-targets --all-features -- -D warnings
+    - name: audit
+      run: cargo audit
