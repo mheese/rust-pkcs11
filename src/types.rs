@@ -655,13 +655,13 @@ impl Default for CK_ATTRIBUTE {
 
 impl std::fmt::Debug for CK_ATTRIBUTE {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let attrType = format!("0x{:x}", self.attrType);
+    let attrType = format!("0x{:x}", {self.attrType});
     let data = unsafe { slice::from_raw_parts(self.pValue as *const u8, self.ulValueLen as usize) };
     fmt
       .debug_struct("CK_ATTRIBUTE")
       .field("attrType", &attrType)
       .field("pValue", &data)
-      .field("ulValueLen", &self.ulValueLen)
+      .field("ulValueLen", {&self.ulValueLen})
       .finish()
   }
 }
