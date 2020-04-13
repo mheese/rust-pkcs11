@@ -35,3 +35,5 @@ jobs:
         bash <(curl -s https://codecov.io/bash)
     - name: rustfmt
       run: cargo fmt -- --check
+    - name: clippy 
+      run: cargo clippy --all-targets --all-features -- -D warnings
