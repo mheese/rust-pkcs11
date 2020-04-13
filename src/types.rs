@@ -41,6 +41,7 @@ use num_bigint::BigUint;
 use errors::Error;
 use functions::*;
 use super::CkFrom;
+use types::padding::*;
 
 
 pub const CK_TRUE: CK_BBOOL = 1;
@@ -97,6 +98,46 @@ pub type CK_VOID_PTR_PTR = *mut CK_VOID_PTR;
 /// handle or object handle
 pub const CK_INVALID_HANDLE: CK_ULONG = 0;
 
+/* NOTE: The newtypes in this module are manual expansions of variants
+ * of [CK_UTF8CHAR; N].
+ * A future version of this library should replace these with PaddingStr<N>
+ * for const N, once Rust stablizes the constant generics feature.
+ */
+pub mod padding {
+  use types::CK_UTF8CHAR;
+  use ::str_from_blank_padded;
+
+  /// Encapsulates a blank-padded 16-byte string for conversion purposes.
+  #[derive(Debug, Copy, Clone, Default)]
+  pub struct PaddedString16(pub [CK_UTF8CHAR; 16]);
+
+  impl std::convert::From<PaddedString16> for String {
+    fn from(field: PaddedString16) -> String {
+      str_from_blank_padded(&field.0)
+    }
+  }
+
+  /// Encapsulates a blank-padded 32-byte string for conversion purposes.
+  #[derive(Debug, Copy, Clone, Default)]
+  pub struct PaddedString32(pub [CK_UTF8CHAR; 32]);
+
+  impl std::convert::From<PaddedString32> for String {
+    fn from(field: PaddedString32) -> String {
+      str_from_blank_padded(&field.0)
+    }
+  }
+
+  /// Encapsulates a blank-padded 64-byte string for conversion purposes.
+  #[derive(Copy, Clone)]
+  pub struct PaddedString64(pub [CK_UTF8CHAR; 64]);
+
+  impl std::convert::From<PaddedString64> for String {
+    fn from(field: PaddedString64) -> String {
+      str_from_blank_padded(&field.0)
+    }
+  }
+}
+
 cryptoki_aligned! {
   #[derive(Debug, Copy, Default)]
   pub struct CK_VERSION {
@@ -106,6 +147,12 @@ cryptoki_aligned! {
 }
 packed_clone!(CK_VERSION);
 
+impl std::fmt::Display for CK_VERSION {
+  fn fmt(&self, f: &mut std::fmt::Formatter<>) -> std::fmt::Result {
+      write!(f, "{}.{}", self.major, self.minor)
+  }
+}
+
 pub type CK_VERSION_PTR = *mut CK_VERSION;
 
 cryptoki_aligned! {
@@ -114,9 +161,9 @@ cryptoki_aligned! {
     /* manufacturerID and libraryDecription have been changed from
     * CK_CHAR to CK_UTF8CHAR for v2.10 */
     pub cryptokiVersion: CK_VERSION,           /* Cryptoki interface ver */
-    pub manufacturerID: [CK_UTF8CHAR; 32],     /* blank padded */
+    pub manufacturerID: PaddedString32,        /* blank padded */
     pub flags: CK_FLAGS,                       /* must be zero */
-    pub libraryDescription: [CK_UTF8CHAR; 32], /* blank padded */
+    pub libraryDescription: PaddedString32,    /* blank padded */
     pub libraryVersion: CK_VERSION,            /* version of library */
   }
 }
@@ -126,9 +173,9 @@ impl CK_INFO {
   pub fn new() -> CK_INFO {
     CK_INFO {
       cryptokiVersion: Default::default(),
-      manufacturerID: [32; 32],
+      manufacturerID: PaddedString32 { 0: [32; 32] },
       flags: 0,
-      libraryDescription: [32; 32],
+      libraryDescription: PaddedString32 { 0: [32; 32] },
       libraryVersion: Default::default(),
     }
   }
@@ -151,8 +198,8 @@ cryptoki_aligned! {
   pub struct CK_SLOT_INFO {
     /// slotDescription and manufacturerID have been changed from
     /// CK_CHAR to CK_UTF8CHAR for v2.10
-    pub slotDescription: [CK_UTF8CHAR; 64], /* blank padded */
-    pub manufacturerID: [CK_UTF8CHAR; 32], /* blank padded */
+    pub slotDescription: PaddedString64, /* blank padded */
+    pub manufacturerID: PaddedString32,  /* blank padded */
     pub flags: CK_FLAGS,
 
     /// version of hardware
@@ -165,8 +212,8 @@ cryptoki_aligned! {
 impl Default for CK_SLOT_INFO {
   fn default() -> CK_SLOT_INFO {
     CK_SLOT_INFO {
-      slotDescription: [32; 64],
-      manufacturerID: [32; 32],
+      slotDescription: PaddedString64 { 0: [32; 64] },
+      manufacturerID: PaddedString32 { 0: [32; 32] },
       flags: 0,
       hardwareVersion: Default::default(),
       firmwareVersion: Default::default(),
@@ -176,7 +223,7 @@ impl Default for CK_SLOT_INFO {
 
 impl std::fmt::Debug for CK_SLOT_INFO {
   fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let sd = self.slotDescription.to_vec();
+    let sd = self.slotDescription.0.to_vec();
     fmt
       .debug_struct("CK_SLOT_INFO")
       .field("slotDescription", &sd)
@@ -202,10 +249,10 @@ cryptoki_aligned! {
   pub struct CK_TOKEN_INFO {
     /* label, manufacturerID, and model have been changed from
     * CK_CHAR to CK_UTF8CHAR for v2.10 */
-    pub label: [CK_UTF8CHAR; 32],          /* blank padded */
-    pub manufacturerID: [CK_UTF8CHAR; 32], /* blank padded */
-    pub model: [CK_UTF8CHAR; 16],          /* blank padded */
-    pub serialNumber: [CK_CHAR; 16],       /* blank padded */
+    pub label: PaddedString32,             /* blank padded */
+    pub manufacturerID: PaddedString32,    /* blank padded */
+    pub model: PaddedString16,             /* blank padded */
+    pub serialNumber: PaddedString16,      /* blank padded */
     pub flags: CK_FLAGS,                   /* see below */
     pub ulMaxSessionCount: CK_ULONG,       /* max open sessions */
     pub ulSessionCount: CK_ULONG,          /* sess. now open */
@@ -227,10 +274,10 @@ packed_clone!(CK_TOKEN_INFO);
 impl Default for CK_TOKEN_INFO {
   fn default() -> CK_TOKEN_INFO {
     CK_TOKEN_INFO {
-      label: [32; 32],
-      manufacturerID: [32; 32],
-      model: [32; 16],
-      serialNumber: [32; 16],
+      label: PaddedString32 { 0: [32; 32] },
+      manufacturerID: PaddedString32 { 0: [32; 32] },
+      model: PaddedString16 { 0: [32; 16] },
+      serialNumber: PaddedString16 { 0: [32; 16] },
       flags: 0,
       ulMaxSessionCount: 0,
       ulSessionCount: 0,

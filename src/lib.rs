@@ -64,6 +64,11 @@ impl CkFrom<CK_BBOOL> for bool {
   }
 }
 
+fn str_from_blank_padded(field: &[CK_UTF8CHAR]) -> String {
+  let decoded_str = String::from_utf8_lossy(field);
+  decoded_str.trim_end_matches(' ').to_string()
+}
+
 fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {
   // initialize a fixed-size array with whitespace characters
   let mut lab: [CK_UTF8CHAR; 32] = [32; 32];
