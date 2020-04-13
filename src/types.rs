@@ -111,12 +111,10 @@ pub mod padding {
     use str_from_blank_padded;
     use types::{CK_CHAR, CK_UTF8CHAR};
 
-    cryptoki_aligned! {
-      /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
-      #[derive(Copy)]
-      pub struct BlankPaddedString16(pub [CK_CHAR; 16]);
-    }
-    packed_clone! {BlankPaddedString16}
+    /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
+    #[derive(Copy, Clone)]
+    #[repr(transparent)]
+    pub struct BlankPaddedString16(pub [CK_CHAR; 16]);
 
     impl std::convert::From<BlankPaddedString16> for String {
         fn from(field: BlankPaddedString16) -> String {
@@ -142,12 +140,10 @@ pub mod padding {
         }
     }
 
-    cryptoki_aligned! {
-      /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
-      #[derive(Copy)]
-      pub struct BlankPaddedUtf8String16(pub [CK_UTF8CHAR; 16]);
-    }
-    packed_clone! {BlankPaddedUtf8String16}
+    /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
+    #[derive(Copy, Clone)]
+    #[repr(transparent)]
+    pub struct BlankPaddedUtf8String16(pub [CK_UTF8CHAR; 16]);
 
     impl std::convert::From<BlankPaddedUtf8String16> for String {
         fn from(field: BlankPaddedUtf8String16) -> String {
@@ -173,12 +169,10 @@ pub mod padding {
         }
     }
 
-    cryptoki_aligned! {
-      /// Encapsulates a blank-padded 32-byte UTF-8 string for conversion purposes.
-      #[derive(Copy)]
-      pub struct BlankPaddedUtf8String32(pub [CK_UTF8CHAR; 32]);
-    }
-    packed_clone! {BlankPaddedUtf8String32}
+    /// Encapsulates a blank-padded 32-byte UTF-8 string for conversion purposes.
+    #[derive(Copy, Clone)]
+    #[repr(transparent)]
+    pub struct BlankPaddedUtf8String32(pub [CK_UTF8CHAR; 32]);
 
     impl std::convert::From<BlankPaddedUtf8String32> for String {
         fn from(field: BlankPaddedUtf8String32) -> String {
@@ -204,12 +198,10 @@ pub mod padding {
         }
     }
 
-    cryptoki_aligned! {
-      /// Encapsulates a blank-padded 64-byte UTF-8 string for conversion purposes.
-      #[derive(Copy)]
-      pub struct BlankPaddedUtf8String64(pub [CK_UTF8CHAR; 64]);
-    }
-    packed_clone! {BlankPaddedUtf8String64}
+    /// Encapsulates a blank-padded 64-byte UTF-8 string for conversion purposes.
+    #[derive(Copy, Clone)]
+    #[repr(transparent)]
+    pub struct BlankPaddedUtf8String64(pub [CK_UTF8CHAR; 64]);
 
     impl std::convert::From<BlankPaddedUtf8String64> for String {
         fn from(field: BlankPaddedUtf8String64) -> String {
