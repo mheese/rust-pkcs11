@@ -15,13 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
-      run: |
-        choco install -f softhsm
-        ls -l $PKCS11_SOFTHSM2_MODULE
-        ls -l C:\\SoftHSM2
-        cat $SOFTHSM2_CONF
-      # -rwxr-xr-x 1 runneradmin 197121 2786080 Nov  6  2018 C:\SoftHSM2\lib\softhsm2-x64.dll
-      shell: bash
+      run: choco install -f softhsm
     - name: build
       run: cargo build --verbose
     - name: test
