@@ -30,5 +30,6 @@ jobs:
           'cargo test --verbose'
     - name: coverage
       run: |
-        cargo tarpaulin --out Xml
+        sg softhsm -c \
+          'cargo tarpaulin --out Xml'
         bash <(curl -s https://codecov.io/bash)
