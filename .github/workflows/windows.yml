@@ -17,6 +17,7 @@ jobs:
       run: |
         choco install -f softhsm
         ls -l $PKCS11_SOFTHSM2_MODULE
+      shell: bash
     - name: build
       run: cargo build --verbose
     - name: test
