@@ -104,36 +104,130 @@ pub const CK_INVALID_HANDLE: CK_ULONG = 0;
  * for const N, once Rust stablizes the constant generics feature.
  */
 pub mod padding {
-  use types::CK_UTF8CHAR;
+  use types::{CK_CHAR, CK_UTF8CHAR};
   use ::str_from_blank_padded;
 
-  /// Encapsulates a blank-padded 16-byte string for conversion purposes.
-  #[derive(Debug, Copy, Clone, Default)]
-  pub struct PaddedString16(pub [CK_UTF8CHAR; 16]);
+  cryptoki_aligned!{
+    /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
+    #[derive(Copy)]
+    pub struct BlankPaddedString16(pub [CK_CHAR; 16]);
+  }
+  packed_clone!{BlankPaddedString16}
 
-  impl std::convert::From<PaddedString16> for String {
-    fn from(field: PaddedString16) -> String {
+  impl std::convert::From<BlankPaddedString16> for String {
+    fn from(field: BlankPaddedString16) -> String {
       str_from_blank_padded(&field.0)
     }
   }
 
-  /// Encapsulates a blank-padded 32-byte string for conversion purposes.
-  #[derive(Debug, Copy, Clone, Default)]
-  pub struct PaddedString32(pub [CK_UTF8CHAR; 32]);
+  impl Default for BlankPaddedString16 {
+    fn default() -> Self {
+      Self { 0: [32; 16] }
+    }
+  }
 
-  impl std::convert::From<PaddedString32> for String {
-    fn from(field: PaddedString32) -> String {
+  impl std::fmt::Display for BlankPaddedString16 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "{}", String::from(*self))
+    }
+  }
+
+  impl std::fmt::Debug for BlankPaddedString16 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "CK_CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    }
+  }
+  
+  cryptoki_aligned!{
+    /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
+    #[derive(Copy)]
+    pub struct BlankPaddedUtf8String16(pub [CK_UTF8CHAR; 16]);
+  }
+  packed_clone!{BlankPaddedUtf8String16}
+
+  impl std::convert::From<BlankPaddedUtf8String16> for String {
+    fn from(field: BlankPaddedUtf8String16) -> String {
       str_from_blank_padded(&field.0)
     }
   }
 
-  /// Encapsulates a blank-padded 64-byte string for conversion purposes.
-  #[derive(Copy, Clone)]
-  pub struct PaddedString64(pub [CK_UTF8CHAR; 64]);
+  impl Default for BlankPaddedUtf8String16 {
+    fn default() -> Self {
+      Self { 0: [32; 16] }
+    }
+  }
 
-  impl std::convert::From<PaddedString64> for String {
-    fn from(field: PaddedString64) -> String {
+  impl std::fmt::Display for BlankPaddedUtf8String16 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "{}", String::from(*self))
+    }
+  }
+
+  impl std::fmt::Debug for BlankPaddedUtf8String16 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    }
+  }
+
+  cryptoki_aligned!{
+    /// Encapsulates a blank-padded 32-byte UTF-8 string for conversion purposes.
+    #[derive(Copy)]
+    pub struct BlankPaddedUtf8String32(pub [CK_UTF8CHAR; 32]);
+  }
+  packed_clone!{BlankPaddedUtf8String32}
+
+  impl std::convert::From<BlankPaddedUtf8String32> for String {
+    fn from(field: BlankPaddedUtf8String32) -> String {
       str_from_blank_padded(&field.0)
+    }
+  }
+
+  impl Default for BlankPaddedUtf8String32 {
+    fn default() -> Self {
+      Self { 0: [32; 32] }
+    }
+  }
+
+  impl std::fmt::Display for BlankPaddedUtf8String32 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "{}", String::from(*self))
+    }
+  }
+
+  impl std::fmt::Debug for BlankPaddedUtf8String32 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
+    }
+  }
+
+  cryptoki_aligned!{
+    /// Encapsulates a blank-padded 64-byte UTF-8 string for conversion purposes.
+    #[derive(Copy)]
+    pub struct BlankPaddedUtf8String64(pub [CK_UTF8CHAR; 64]);
+  }
+  packed_clone!{BlankPaddedUtf8String64}
+
+  impl std::convert::From<BlankPaddedUtf8String64> for String {
+    fn from(field: BlankPaddedUtf8String64) -> String {
+      str_from_blank_padded(&field.0)
+    }
+  }
+
+  impl Default for BlankPaddedUtf8String64 {
+    fn default() -> Self {
+      Self { 0: [32; 64] }
+    }
+  }
+
+  impl std::fmt::Display for BlankPaddedUtf8String64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "{}", String::from(*self))
+    }
+  }
+
+  impl std::fmt::Debug for BlankPaddedUtf8String64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+      write!(f, "CK_UTF8CHAR \"{}\"", String::from_utf8_lossy(&self.0))
     }
   }
 }
@@ -161,9 +255,9 @@ cryptoki_aligned! {
     /* manufacturerID and libraryDecription have been changed from
     * CK_CHAR to CK_UTF8CHAR for v2.10 */
     pub cryptokiVersion: CK_VERSION,           /* Cryptoki interface ver */
-    pub manufacturerID: PaddedString32,        /* blank padded */
+    pub manufacturerID: BlankPaddedUtf8String32,        /* blank padded */
     pub flags: CK_FLAGS,                       /* must be zero */
-    pub libraryDescription: PaddedString32,    /* blank padded */
+    pub libraryDescription: BlankPaddedUtf8String32,    /* blank padded */
     pub libraryVersion: CK_VERSION,            /* version of library */
   }
 }
@@ -173,9 +267,9 @@ impl CK_INFO {
   pub fn new() -> CK_INFO {
     CK_INFO {
       cryptokiVersion: Default::default(),
-      manufacturerID: PaddedString32 { 0: [32; 32] },
+      manufacturerID: Default::default(),
       flags: 0,
-      libraryDescription: PaddedString32 { 0: [32; 32] },
+      libraryDescription: Default::default(),
       libraryVersion: Default::default(),
     }
   }
@@ -195,11 +289,12 @@ pub type CK_SLOT_ID_PTR = *mut CK_SLOT_ID;
 
 cryptoki_aligned! {
   /// CK_SLOT_INFO provides information about a slot
+  #[derive(Default, Debug, Copy)]
   pub struct CK_SLOT_INFO {
     /// slotDescription and manufacturerID have been changed from
     /// CK_CHAR to CK_UTF8CHAR for v2.10
-    pub slotDescription: PaddedString64, /* blank padded */
-    pub manufacturerID: PaddedString32,  /* blank padded */
+    pub slotDescription: BlankPaddedUtf8String64, /* blank padded */
+    pub manufacturerID: BlankPaddedUtf8String32,  /* blank padded */
     pub flags: CK_FLAGS,
 
     /// version of hardware
@@ -208,32 +303,7 @@ cryptoki_aligned! {
     pub firmwareVersion: CK_VERSION, /* version of firmware */
   }
 }
-
-impl Default for CK_SLOT_INFO {
-  fn default() -> CK_SLOT_INFO {
-    CK_SLOT_INFO {
-      slotDescription: PaddedString64 { 0: [32; 64] },
-      manufacturerID: PaddedString32 { 0: [32; 32] },
-      flags: 0,
-      hardwareVersion: Default::default(),
-      firmwareVersion: Default::default(),
-    }
-  }
-}
-
-impl std::fmt::Debug for CK_SLOT_INFO {
-  fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let sd = self.slotDescription.0.to_vec();
-    fmt
-      .debug_struct("CK_SLOT_INFO")
-      .field("slotDescription", &sd)
-      .field("manufacturerID", &self.manufacturerID)
-      .field("flags", &{self.flags})
-      .field("hardwareVersion", &self.hardwareVersion)
-      .field("firmwareVersion", &self.firmwareVersion)
-      .finish()
-  }
-}
+packed_clone!{CK_SLOT_INFO}
 
 /// a token is there
 pub const CKF_TOKEN_PRESENT: CK_FLAGS = 0x00000001;
@@ -245,14 +315,14 @@ pub const CKF_HW_SLOT: CK_FLAGS = 0x00000004;
 pub type CK_SLOT_INFO_PTR = *mut CK_SLOT_INFO;
 
 cryptoki_aligned! {
-  #[derive(Debug, Copy)]
+  #[derive(Default, Debug, Copy)]
   pub struct CK_TOKEN_INFO {
     /* label, manufacturerID, and model have been changed from
     * CK_CHAR to CK_UTF8CHAR for v2.10 */
-    pub label: PaddedString32,             /* blank padded */
-    pub manufacturerID: PaddedString32,    /* blank padded */
-    pub model: PaddedString16,             /* blank padded */
-    pub serialNumber: PaddedString16,      /* blank padded */
+    pub label: BlankPaddedUtf8String32,             /* blank padded */
+    pub manufacturerID: BlankPaddedUtf8String32,    /* blank padded */
+    pub model: BlankPaddedUtf8String16,             /* blank padded */
+    pub serialNumber: BlankPaddedString16,      /* blank padded */
     pub flags: CK_FLAGS,                   /* see below */
     pub ulMaxSessionCount: CK_ULONG,       /* max open sessions */
     pub ulSessionCount: CK_ULONG,          /* sess. now open */
@@ -270,31 +340,6 @@ cryptoki_aligned! {
   }
 }
 packed_clone!(CK_TOKEN_INFO);
-
-impl Default for CK_TOKEN_INFO {
-  fn default() -> CK_TOKEN_INFO {
-    CK_TOKEN_INFO {
-      label: PaddedString32 { 0: [32; 32] },
-      manufacturerID: PaddedString32 { 0: [32; 32] },
-      model: PaddedString16 { 0: [32; 16] },
-      serialNumber: PaddedString16 { 0: [32; 16] },
-      flags: 0,
-      ulMaxSessionCount: 0,
-      ulSessionCount: 0,
-      ulMaxRwSessionCount: 0,
-      ulRwSessionCount: 0,
-      ulMaxPinLen: 0,
-      ulMinPinLen: 0,
-      ulTotalPublicMemory: 0,
-      ulFreePublicMemory: 0,
-      ulTotalPrivateMemory: 0,
-      ulFreePrivateMemory: 0,
-      hardwareVersion: Default::default(),
-      firmwareVersion: Default::default(),
-      utcTime: [0; 16],
-    }
-  }
-}
 
 /// has random # generator
 pub const CKF_RNG: CK_FLAGS = 0x00000001;
