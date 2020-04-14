@@ -1388,6 +1388,445 @@ fn ctx_unwrap_key() {
 
 #[test]
 #[serial]
+fn ctx_encrypt_init() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_encrypt() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext = String::from("encrypt me      ").into_bytes();
+    let res = ctx.encrypt(sh, &plaintext);
+    assert!(
+        res.is_ok(),
+        "failed to call C_Encrypt({}, {:?}): {}",
+        sh,
+        &plaintext,
+        res.unwrap_err()
+    );
+    let res = res.unwrap();
+    println!("Ciphertext after single call to C_Encrypt: {:?}", res);
+}
+
+#[test]
+#[serial]
+fn ctx_encrypt_update() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext = String::from("encrypt me      ").into_bytes();
+    let ciphertext = ctx.encrypt_update(sh, &plaintext);
+    assert!(
+        ciphertext.is_ok(),
+        "failed to call C_EncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext,
+        ciphertext.unwrap_err()
+    );
+    let ciphertext = ciphertext.unwrap();
+    println!("Ciphertext after first call to C_EncryptUpdate: {:?}", ciphertext);
+}
+
+#[test]
+#[serial]
+fn ctx_encrypt_final() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext1 = String::from("encrypt me 1    ").into_bytes();
+    let plaintext2 = String::from("encrypt me 2    ").into_bytes();
+
+    let ciphertext1 = ctx.encrypt_update(sh, &plaintext1);
+    assert!(
+        ciphertext1.is_ok(),
+        "failed to call C_EncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext1,
+        ciphertext1.unwrap_err()
+    );
+    let ciphertext1 = ciphertext1.unwrap();
+    println!("Ciphertext after first call to C_EncryptUpdate: {:?}", ciphertext1);
+
+    let ciphertext2 = ctx.encrypt_update(sh, &plaintext2);
+    assert!(
+        ciphertext2.is_ok(),
+        "failed to call C_EncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext2,
+        ciphertext2.unwrap_err()
+    );
+    let ciphertext2 = ciphertext2.unwrap();
+    println!("Ciphertext after second call to C_EncryptUpdate: {:?}", ciphertext2);
+
+    let ciphertext3 = ctx.encrypt_final(sh);
+    assert!(
+        ciphertext3.is_ok(),
+        "failed to call C_EncryptFinal({}): {}",
+        sh,
+        ciphertext3.unwrap_err()
+    );
+    let ciphertext3 = ciphertext3.unwrap();
+    println!("Ciphertext after call to C_EncryptFinal: {:?}", ciphertext3);
+}
+
+#[test]
+#[serial]
+fn ctx_decrypt_init() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.decrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_decrypt() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    // 1. encrypt some plaintext
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext = String::from("encrypt me      ").into_bytes();
+    println!("Plaintext: {:?}", &plaintext);
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let ciphertext = ctx.encrypt(sh, &plaintext);
+    assert!(
+        ciphertext.is_ok(),
+        "failed to call C_Encrypt({}, {:?}): {}",
+        sh,
+        &plaintext,
+        ciphertext.unwrap_err()
+    );
+    let ciphertext = ciphertext.unwrap();
+    println!("Ciphertext after single call to C_Encrypt: {:?}", ciphertext);
+
+    // 2. decrypt ciphertext
+    let res = ctx.decrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let decrypted_ciphertext = ctx.decrypt(sh, &ciphertext);
+    assert!(
+        decrypted_ciphertext.is_ok(),
+        "failed to call C_Decrypt({}, {:?}): {}",
+        sh,
+        &ciphertext,
+        decrypted_ciphertext.unwrap_err()
+    );
+    let decrypted_ciphertext = decrypted_ciphertext.unwrap();
+    println!("Decrypted ciphertext after call to C_Decrypt: {:?}", &decrypted_ciphertext);
+
+    // 3. match decrypted ciphertext against plaintext
+    assert_eq!(
+        plaintext,
+        decrypted_ciphertext
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_decrypt_update() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    // 1. encrypt some plaintext
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext = String::from("encrypt me      ").into_bytes();
+    println!("Plaintext: {:?}", &plaintext);
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let ciphertext = ctx.encrypt(sh, &plaintext);
+    assert!(
+        ciphertext.is_ok(),
+        "failed to call C_Encrypt({}, {:?}): {}",
+        sh,
+        &plaintext,
+        ciphertext.unwrap_err()
+    );
+    let ciphertext = ciphertext.unwrap();
+    println!("Ciphertext after single call to C_Encrypt: {:?}", ciphertext);
+
+    // 2. start to decrypt ciphertext
+    let res = ctx.decrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let decrypted_ciphertext = ctx.decrypt_update(sh, &ciphertext);
+    assert!(
+        decrypted_ciphertext.is_ok(),
+        "failed to call C_DecryptUpdate({}, {:?}): {}",
+        sh,
+        &ciphertext,
+        decrypted_ciphertext.unwrap_err()
+    );
+    let decrypted_ciphertext = decrypted_ciphertext.unwrap();
+    println!("Decrypted ciphertext after call to C_DecryptUpdate: {:?}", &decrypted_ciphertext);
+}
+
+#[test]
+#[serial]
+fn ctx_decrypt_final() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using AES ECB just because it is the simplest to test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    // 1. encrypt some plaintext
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext1 = String::from("encrypt me 1    ").into_bytes();
+    let plaintext2 = String::from("encrypt me 2    ").into_bytes();
+    println!("Plaintext: {:?}", &plaintext1);
+
+    let res = ctx.encrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let ciphertext1 = ctx.encrypt_update(sh, &plaintext1);
+    assert!(
+        ciphertext1.is_ok(),
+        "failed to call C_EncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext1,
+        ciphertext1.unwrap_err()
+    );
+    let ciphertext1 = ciphertext1.unwrap();
+    println!("Ciphertext after first call to C_EncryptUpdate: {:?}", ciphertext1);
+
+    let ciphertext2 = ctx.encrypt_update(sh, &plaintext2);
+    assert!(
+        ciphertext2.is_ok(),
+        "failed to call C_EncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext2,
+        ciphertext2.unwrap_err()
+    );
+    let ciphertext2 = ciphertext2.unwrap();
+    println!("Ciphertext after second call to C_EncryptUpdate: {:?}", ciphertext2);
+
+    let res = ctx.encrypt_final(sh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptFinal({}): {}",
+        sh,
+        res.unwrap_err()
+    );
+    let res = res.unwrap();
+    assert!(
+        res.is_empty(),
+        "call to C_EncryptFinal revealed ciphertext {:?} but selected cipher should not have returned any more ciphertext",
+        &res
+    );
+    println!("Encryption operations finished");
+
+    // 2. start to decrypt ciphertext
+    let res = ctx.decrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let decrypted_ciphertext1 = ctx.decrypt_update(sh, &ciphertext1);
+    assert!(
+        decrypted_ciphertext1.is_ok(),
+        "failed to call C_Decrypt({}, {:?}): {}",
+        sh,
+        &ciphertext1,
+        decrypted_ciphertext1.unwrap_err()
+    );
+    let decrypted_ciphertext1 = decrypted_ciphertext1.unwrap();
+    println!("Decrypted ciphertext after first call to C_DecryptUpdate: {:?}", &decrypted_ciphertext1);
+
+    let decrypted_ciphertext2 = ctx.decrypt_update(sh, &ciphertext2);
+    assert!(
+        decrypted_ciphertext2.is_ok(),
+        "failed to call C_Decrypt({}, {:?}): {}",
+        sh,
+        &ciphertext2,
+        decrypted_ciphertext2.unwrap_err()
+    );
+    let decrypted_ciphertext2 = decrypted_ciphertext2.unwrap();
+    println!("Decrypted ciphertext after second call to C_DecryptUpdate: {:?}", &decrypted_ciphertext2);
+
+    let res = ctx.decrypt_final(sh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptFinal({}): {}",
+        sh,
+        res.unwrap_err()
+    );
+    let res = res.unwrap();
+    assert!(
+        res.is_empty(),
+        "call to C_DecryptFinal revealed plaintext {:?} but selected cipher should not have returned any more plaintext",
+        &res
+    );
+
+    // 3. match decrypted ciphertexts against plaintexts
+    assert_eq!(
+        plaintext1,
+        decrypted_ciphertext1
+    );
+    assert_eq!(
+        plaintext2,
+        decrypted_ciphertext2
+    );
+
+    // 4. ensure we can start another operation without getting blasted by CKR_OPERATION_ACTIVE
+    let res = ctx.decrypt_init(sh, &mechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &mechanism,
+        secOh,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
 fn ctx_derive_key() {
     let (ctx, sh) = fixture_token().unwrap();
 
