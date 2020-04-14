@@ -1042,29 +1042,25 @@ impl Ctx {
         }
     }
 
-    pub fn encrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Option<Vec<CK_BYTE>>, Error> {
+    pub fn encrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
         self.initialized()?;
         let mut lastEncryptedPartLen: CK_ULONG = 0;
         match (self.C_EncryptFinal)(session, ptr::null_mut(), &mut lastEncryptedPartLen) {
             CKR_OK => {
-                if lastEncryptedPartLen == 0 {
-                    Ok(None)
-                } else {
-                    let mut lastEncryptedPart: Vec<CK_BYTE> =
-                        Vec::with_capacity(lastEncryptedPartLen as usize);
-                    match (self.C_EncryptFinal)(
-                        session,
-                        lastEncryptedPart.as_mut_ptr(),
-                        &mut lastEncryptedPartLen,
-                    ) {
-                        CKR_OK => {
-                            unsafe {
-                                lastEncryptedPart.set_len(lastEncryptedPartLen as usize);
-                            }
-                            Ok(Some(lastEncryptedPart))
+                let mut lastEncryptedPart: Vec<CK_BYTE> =
+                    Vec::with_capacity(lastEncryptedPartLen as usize);
+                match (self.C_EncryptFinal)(
+                    session,
+                    lastEncryptedPart.as_mut_ptr(),
+                    &mut lastEncryptedPartLen,
+                ) {
+                    CKR_OK => {
+                        unsafe {
+                            lastEncryptedPart.set_len(lastEncryptedPartLen as usize);
                         }
-                        err => Err(Error::Pkcs11(err)),
+                        Ok(lastEncryptedPart)
                     }
+                    err => Err(Error::Pkcs11(err)),
                 }
             }
             err => Err(Error::Pkcs11(err)),
@@ -1159,24 +1155,20 @@ impl Ctx {
         }
     }
 
-    pub fn decrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Option<Vec<CK_BYTE>>, Error> {
+    pub fn decrypt_final(&self, session: CK_SESSION_HANDLE) -> Result<Vec<CK_BYTE>, Error> {
         self.initialized()?;
         let mut lastPartLen: CK_ULONG = 0;
         match (self.C_DecryptFinal)(session, ptr::null_mut(), &mut lastPartLen) {
             CKR_OK => {
-                if lastPartLen == 0 {
-                    Ok(None)
-                } else {
-                    let mut lastPart: Vec<CK_BYTE> = Vec::with_capacity(lastPartLen as usize);
-                    match (self.C_DecryptFinal)(session, lastPart.as_mut_ptr(), &mut lastPartLen) {
-                        CKR_OK => {
-                            unsafe {
-                                lastPart.set_len(lastPartLen as usize);
-                            }
-                            Ok(Some(lastPart))
+                let mut lastPart: Vec<CK_BYTE> = Vec::with_capacity(lastPartLen as usize);
+                match (self.C_DecryptFinal)(session, lastPart.as_mut_ptr(), &mut lastPartLen) {
+                    CKR_OK => {
+                        unsafe {
+                            lastPart.set_len(lastPartLen as usize);
                         }
-                        err => Err(Error::Pkcs11(err)),
+                        Ok(lastPart)
                     }
+                    err => Err(Error::Pkcs11(err)),
                 }
             }
             err => Err(Error::Pkcs11(err)),
