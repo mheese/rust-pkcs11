@@ -1478,7 +1478,10 @@ fn ctx_encrypt_update() {
         ciphertext.unwrap_err()
     );
     let ciphertext = ciphertext.unwrap();
-    println!("Ciphertext after first call to C_EncryptUpdate: {:?}", ciphertext);
+    println!(
+        "Ciphertext after first call to C_EncryptUpdate: {:?}",
+        ciphertext
+    );
 }
 
 #[test]
@@ -1516,7 +1519,10 @@ fn ctx_encrypt_final() {
         ciphertext1.unwrap_err()
     );
     let ciphertext1 = ciphertext1.unwrap();
-    println!("Ciphertext after first call to C_EncryptUpdate: {:?}", ciphertext1);
+    println!(
+        "Ciphertext after first call to C_EncryptUpdate: {:?}",
+        ciphertext1
+    );
 
     let ciphertext2 = ctx.encrypt_update(sh, &plaintext2);
     assert!(
@@ -1527,7 +1533,10 @@ fn ctx_encrypt_final() {
         ciphertext2.unwrap_err()
     );
     let ciphertext2 = ciphertext2.unwrap();
-    println!("Ciphertext after second call to C_EncryptUpdate: {:?}", ciphertext2);
+    println!(
+        "Ciphertext after second call to C_EncryptUpdate: {:?}",
+        ciphertext2
+    );
 
     let ciphertext3 = ctx.encrypt_final(sh);
     assert!(
@@ -1599,7 +1608,10 @@ fn ctx_decrypt() {
         ciphertext.unwrap_err()
     );
     let ciphertext = ciphertext.unwrap();
-    println!("Ciphertext after single call to C_Encrypt: {:?}", ciphertext);
+    println!(
+        "Ciphertext after single call to C_Encrypt: {:?}",
+        ciphertext
+    );
 
     // 2. decrypt ciphertext
     let res = ctx.decrypt_init(sh, &mechanism, secOh);
@@ -1621,13 +1633,13 @@ fn ctx_decrypt() {
         decrypted_ciphertext.unwrap_err()
     );
     let decrypted_ciphertext = decrypted_ciphertext.unwrap();
-    println!("Decrypted ciphertext after call to C_Decrypt: {:?}", &decrypted_ciphertext);
+    println!(
+        "Decrypted ciphertext after call to C_Decrypt: {:?}",
+        &decrypted_ciphertext
+    );
 
     // 3. match decrypted ciphertext against plaintext
-    assert_eq!(
-        plaintext,
-        decrypted_ciphertext
-    );
+    assert_eq!(plaintext, decrypted_ciphertext);
 }
 
 #[test]
@@ -1666,7 +1678,10 @@ fn ctx_decrypt_update() {
         ciphertext.unwrap_err()
     );
     let ciphertext = ciphertext.unwrap();
-    println!("Ciphertext after single call to C_Encrypt: {:?}", ciphertext);
+    println!(
+        "Ciphertext after single call to C_Encrypt: {:?}",
+        ciphertext
+    );
 
     // 2. start to decrypt ciphertext
     let res = ctx.decrypt_init(sh, &mechanism, secOh);
@@ -1688,7 +1703,10 @@ fn ctx_decrypt_update() {
         decrypted_ciphertext.unwrap_err()
     );
     let decrypted_ciphertext = decrypted_ciphertext.unwrap();
-    println!("Decrypted ciphertext after call to C_DecryptUpdate: {:?}", &decrypted_ciphertext);
+    println!(
+        "Decrypted ciphertext after call to C_DecryptUpdate: {:?}",
+        &decrypted_ciphertext
+    );
 }
 
 #[test]
@@ -1728,7 +1746,10 @@ fn ctx_decrypt_final() {
         ciphertext1.unwrap_err()
     );
     let ciphertext1 = ciphertext1.unwrap();
-    println!("Ciphertext after first call to C_EncryptUpdate: {:?}", ciphertext1);
+    println!(
+        "Ciphertext after first call to C_EncryptUpdate: {:?}",
+        ciphertext1
+    );
 
     let ciphertext2 = ctx.encrypt_update(sh, &plaintext2);
     assert!(
@@ -1739,7 +1760,10 @@ fn ctx_decrypt_final() {
         ciphertext2.unwrap_err()
     );
     let ciphertext2 = ciphertext2.unwrap();
-    println!("Ciphertext after second call to C_EncryptUpdate: {:?}", ciphertext2);
+    println!(
+        "Ciphertext after second call to C_EncryptUpdate: {:?}",
+        ciphertext2
+    );
 
     let res = ctx.encrypt_final(sh);
     assert!(
@@ -1776,7 +1800,10 @@ fn ctx_decrypt_final() {
         decrypted_ciphertext1.unwrap_err()
     );
     let decrypted_ciphertext1 = decrypted_ciphertext1.unwrap();
-    println!("Decrypted ciphertext after first call to C_DecryptUpdate: {:?}", &decrypted_ciphertext1);
+    println!(
+        "Decrypted ciphertext after first call to C_DecryptUpdate: {:?}",
+        &decrypted_ciphertext1
+    );
 
     let decrypted_ciphertext2 = ctx.decrypt_update(sh, &ciphertext2);
     assert!(
@@ -1787,7 +1814,10 @@ fn ctx_decrypt_final() {
         decrypted_ciphertext2.unwrap_err()
     );
     let decrypted_ciphertext2 = decrypted_ciphertext2.unwrap();
-    println!("Decrypted ciphertext after second call to C_DecryptUpdate: {:?}", &decrypted_ciphertext2);
+    println!(
+        "Decrypted ciphertext after second call to C_DecryptUpdate: {:?}",
+        &decrypted_ciphertext2
+    );
 
     let res = ctx.decrypt_final(sh);
     assert!(
@@ -1804,14 +1834,8 @@ fn ctx_decrypt_final() {
     );
 
     // 3. match decrypted ciphertexts against plaintexts
-    assert_eq!(
-        plaintext1,
-        decrypted_ciphertext1
-    );
-    assert_eq!(
-        plaintext2,
-        decrypted_ciphertext2
-    );
+    assert_eq!(plaintext1, decrypted_ciphertext1);
+    assert_eq!(plaintext2, decrypted_ciphertext2);
 
     // 4. ensure we can start another operation without getting blasted by CKR_OPERATION_ACTIVE
     let res = ctx.decrypt_init(sh, &mechanism, secOh);
