@@ -25,6 +25,6 @@ jobs:
     - name: coverage
       run: |
         sg softhsm -c \
-          'cargo tarpaulin --verbose --out Xml --exclude-files src/tests.rs'
+          'cargo tarpaulin --verbose --out Xml'
     - name: codecov
       run: bash <(curl -s https://codecov.io/bash)
