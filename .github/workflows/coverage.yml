@@ -1,4 +1,4 @@
-name: coverage
+name: Coverage
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-test:
+  tarpaulin:
     runs-on: ubuntu-latest
     env:
       PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
       run: |
-        sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ disco universe"
+        sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ eoan universe"
         sudo apt-get install -f libsofthsm2
         sudo usermod -a -G softhsm $USER
     - name: tarpaulin installation
