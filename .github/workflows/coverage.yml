@@ -18,13 +18,13 @@ jobs:
         sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ disco universe"
         sudo apt-get install -f libsofthsm2
         sudo usermod -a -G softhsm $USER
-    - name: build
-      run: cargo build --verbose
-    - name: test
+    - name: tarpaulin installation
+      run: |
+        sudo apt-get install -f libssl-dev
+        cargo install cargo-tarpaulin
+    - name: coverage
       run: |
         sg softhsm -c \
-          'cargo test --verbose'
-    - name: rustfmt
-      run: cargo fmt -- --check
-    - name: clippy 
-      run: cargo clippy --all-targets --all-features -- -D warnings
+          'cargo tarpaulin --verbose --out Xml --exclude-files src/tests.rs'
+    - name: codecov
+      run: bash <(curl -s https://codecov.io/bash)

@@ -1,0 +1,17 @@
+name: Linux
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: audit installation
+      run: cargo install cargo-audit
+    - name: audit
+      run: cargo audit
