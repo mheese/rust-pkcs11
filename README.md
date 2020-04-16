@@ -38,7 +38,7 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Implementing Object Management functions
 - [x] Implementing Key Management functions
 - [x] Implementing Encryption/Decryption functions
-- [x] Implementing Message Digest functions (TODO: tests still missing)
+- [x] Implementing Message Digest functions
 - [x] Implementing Signing and MACing (TODO: tests still missing)
 - [x] Implementing Verifying of signatures and MACs (TODO: tests still missing)
 - [x] Implementing Dual-function cryptographic operations (TODO: tests still missing)

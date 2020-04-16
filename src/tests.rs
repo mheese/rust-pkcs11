@@ -1851,6 +1851,263 @@ fn ctx_decrypt_final() {
 
 #[test]
 #[serial]
+fn ctx_digest_init() {
+    let (ctx, sh) = fixture_token().unwrap();
+
+    // using a simple SHA256 for the test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &mechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &mechanism,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_digest() {
+    let (ctx, sh) = fixture_token().unwrap();
+
+    // using a simple SHA256 for the test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &mechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &mechanism,
+        res.unwrap_err()
+    );
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let digest = ctx.digest(sh, &data);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_Digest({}, {:?}): {}",
+        sh,
+        &data,
+        digest.unwrap_err()
+    );
+    let digest = digest.unwrap();
+
+    // tools like shasum are always printing lower-cased hex strings
+    // so let's create one of these
+    let hexString = digest
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
+    println!("Calculated SHA-256 Digest is: {}", hexString);
+
+    // now let's compare! created with:
+    // echo -n "Lorem ipsum tralala" | shasum -a 256 -p | awk '{ print $1 }'
+    // c4b0c693eb7c30dffc5b8c037342850b95746687a636dc95ecd9d75129277002
+    assert_eq!(
+        hexString,
+        "c4b0c693eb7c30dffc5b8c037342850b95746687a636dc95ecd9d75129277002"
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_digest_key() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // using a simple SHA256 for the test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &mechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &mechanism,
+        res.unwrap_err()
+    );
+
+    let ret = ctx.digest_key(sh, secOh);
+    assert!(
+        ret.is_ok(),
+        "failed to call C_DigestKey({}, {}): {}",
+        sh,
+        secOh,
+        ret.unwrap_err()
+    );
+
+    let digest = ctx.digest_final(sh);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_DigestFinal({}): {}",
+        sh,
+        digest.unwrap_err()
+    );
+    let digest = digest.unwrap();
+
+    // tools like shasum are always printing lower-cased hex strings
+    // so let's create one of these
+    let hexString = digest
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
+    println!(
+        "Calculated SHA-256 Digest for generated key is: {}",
+        hexString
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_digest_update() {
+    let (ctx, sh) = fixture_token().unwrap();
+
+    // using a simple SHA256 for the test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &mechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &mechanism,
+        res.unwrap_err()
+    );
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let ret = ctx.digest_update(sh, &data);
+    assert!(
+        ret.is_ok(),
+        "failed to call C_DigestUpdate({}, {:?}): {}",
+        sh,
+        &data,
+        ret.unwrap_err()
+    );
+
+    let digest = ctx.digest_final(sh);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_DigestFinal({}): {}",
+        sh,
+        digest.unwrap_err()
+    );
+    let digest = digest.unwrap();
+
+    // tools like shasum are always printing lower-cased hex strings
+    // so let's create one of these
+    let hexString = digest
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
+    println!("Calculated SHA-256 Digest is: {}", hexString);
+
+    // now let's compare! created with:
+    // echo -n "Lorem ipsum tralala" | shasum -a 256 -p | awk '{ print $1 }'
+    // c4b0c693eb7c30dffc5b8c037342850b95746687a636dc95ecd9d75129277002
+    assert_eq!(
+        hexString,
+        "c4b0c693eb7c30dffc5b8c037342850b95746687a636dc95ecd9d75129277002"
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_digest_final() {
+    let (ctx, sh) = fixture_token().unwrap();
+
+    // using a simple SHA256 for the test
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &mechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &mechanism,
+        res.unwrap_err()
+    );
+
+    let data1 = String::from("Lorem ipsum").into_bytes();
+    let data2 = String::from(" tralala").into_bytes();
+    let ret = ctx.digest_update(sh, &data1);
+    assert!(
+        ret.is_ok(),
+        "failed to call C_DigestUpdate({}, {:?}): {}",
+        sh,
+        &data1,
+        ret.unwrap_err()
+    );
+
+    let ret = ctx.digest_update(sh, &data2);
+    assert!(
+        ret.is_ok(),
+        "failed to call C_DigestUpdate({}, {:?}): {}",
+        sh,
+        &data2,
+        ret.unwrap_err()
+    );
+
+    let digest = ctx.digest_final(sh);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_DigestFinal({}): {}",
+        sh,
+        digest.unwrap_err()
+    );
+    let digest = digest.unwrap();
+
+    // tools like shasum are always printing lower-cased hex strings
+    // so let's create one of these
+    let hexString = digest
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
+    println!("Calculated SHA-256 Digest is: {}", hexString);
+
+    // now let's compare! created with:
+    // echo -n "Lorem ipsum tralala" | shasum -a 256 -p | awk '{ print $1 }'
+    // c4b0c693eb7c30dffc5b8c037342850b95746687a636dc95ecd9d75129277002
+    assert_eq!(
+        hexString,
+        "c4b0c693eb7c30dffc5b8c037342850b95746687a636dc95ecd9d75129277002"
+    );
+
+    // final should have completed the operation
+    // so we should be able to start another one
+    let res = ctx.digest_init(sh, &mechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &mechanism,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
 fn ctx_derive_key() {
     let (ctx, sh) = fixture_token().unwrap();
 
