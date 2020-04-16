@@ -33,7 +33,7 @@ jobs:
     - name: coverage
       run: |
         sg softhsm -c \
-          'cargo tarpaulin --out Xml'
+          'cargo tarpaulin --verbose --out Xml --exclude-files src/tests.rs'
         bash <(curl -s https://codecov.io/bash)
     - name: rustfmt
       run: cargo fmt -- --check
