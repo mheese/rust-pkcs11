@@ -1487,6 +1487,213 @@ fn ctx_sign_final() {
 
 #[test]
 #[serial]
+fn ctx_verify_init() {
+    let (ctx, sh, pubOh, _) = fixture_token_and_key_pair().unwrap();
+
+    let parameter = CK_RSA_PKCS_PSS_PARAMS {
+        hashAlg: CKM_SHA256,
+        mgf: CKG_MGF1_SHA256,
+        sLen: 32,
+    };
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256_RSA_PKCS_PSS,
+        pParameter: &parameter as *const _ as CK_VOID_PTR,
+        ulParameterLen: mem::size_of::<CK_RSA_PKCS_PSS_PARAMS>() as CK_ULONG,
+    };
+
+    let res = ctx.verify_init(sh, &mechanism, pubOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        pubOh,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_verify() {
+    let (ctx, sh, pubOh, privOh) = fixture_token_and_key_pair().unwrap();
+
+    let parameter = CK_RSA_PKCS_PSS_PARAMS {
+        hashAlg: CKM_SHA256,
+        mgf: CKG_MGF1_SHA256,
+        sLen: 32,
+    };
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256_RSA_PKCS_PSS,
+        pParameter: &parameter as *const _ as CK_VOID_PTR,
+        ulParameterLen: mem::size_of::<CK_RSA_PKCS_PSS_PARAMS>() as CK_ULONG,
+    };
+
+    let res = ctx.sign_init(sh, &mechanism, privOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_SignInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        privOh,
+        res.unwrap_err()
+    );
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let signature = ctx.sign(sh, &data);
+    assert!(
+        signature.is_ok(),
+        "failed to call C_Sign({}, {:?}): {}",
+        sh,
+        &data,
+        signature.unwrap_err()
+    );
+    let signature = signature.unwrap();
+
+    let res = ctx.verify_init(sh, &mechanism, pubOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        pubOh,
+        res.unwrap_err()
+    );
+
+    let res = ctx.verify(sh, &data, &signature);
+    assert!(
+        res.is_ok(),
+        "failed to call C_Verify({}, {:?}, {:?}): {}",
+        sh,
+        &data,
+        &signature,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_verify_update() {
+    let (ctx, sh, pubOh, privOh) = fixture_token_and_key_pair().unwrap();
+
+    let parameter = CK_RSA_PKCS_PSS_PARAMS {
+        hashAlg: CKM_SHA256,
+        mgf: CKG_MGF1_SHA256,
+        sLen: 32,
+    };
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256_RSA_PKCS_PSS,
+        pParameter: &parameter as *const _ as CK_VOID_PTR,
+        ulParameterLen: mem::size_of::<CK_RSA_PKCS_PSS_PARAMS>() as CK_ULONG,
+    };
+
+    let res = ctx.sign_init(sh, &mechanism, privOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_SignInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        privOh,
+        res.unwrap_err()
+    );
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let signature = ctx.sign(sh, &data);
+    assert!(
+        signature.is_ok(),
+        "failed to call C_Sign({}, {:?}): {}",
+        sh,
+        &data,
+        signature.unwrap_err()
+    );
+
+    let res = ctx.verify_init(sh, &mechanism, pubOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        pubOh,
+        res.unwrap_err()
+    );
+
+    let res = ctx.verify_update(sh, &data);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyUpdate({}, {:?}): {}",
+        sh,
+        &data,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
+fn ctx_verify_final() {
+    let (ctx, sh, pubOh, privOh) = fixture_token_and_key_pair().unwrap();
+
+    let parameter = CK_RSA_PKCS_PSS_PARAMS {
+        hashAlg: CKM_SHA256,
+        mgf: CKG_MGF1_SHA256,
+        sLen: 32,
+    };
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256_RSA_PKCS_PSS,
+        pParameter: &parameter as *const _ as CK_VOID_PTR,
+        ulParameterLen: mem::size_of::<CK_RSA_PKCS_PSS_PARAMS>() as CK_ULONG,
+    };
+
+    let res = ctx.sign_init(sh, &mechanism, privOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_SignInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        privOh,
+        res.unwrap_err()
+    );
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let signature = ctx.sign(sh, &data);
+    assert!(
+        signature.is_ok(),
+        "failed to call C_Sign({}, {:?}): {}",
+        sh,
+        &data,
+        signature.unwrap_err()
+    );
+    let signature = signature.unwrap();
+
+    let res = ctx.verify_init(sh, &mechanism, pubOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyInit({}, {:?}, {}) with parameter: {}",
+        sh,
+        &mechanism,
+        pubOh,
+        res.unwrap_err()
+    );
+
+    let res = ctx.verify_update(sh, &data);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyUpdate({}, {:?}): {}",
+        sh,
+        &data,
+        res.unwrap_err()
+    );
+
+    let res = ctx.verify_final(sh, &signature);
+    assert!(
+        res.is_ok(),
+        "failed to call C_VerifyFinal({}, {:?}): {}",
+        sh,
+        &signature,
+        res.unwrap_err()
+    );
+}
+
+#[test]
+#[serial]
 fn ctx_wrap_key() {
     let (ctx, sh, wrapOh, secOh) = fixture_token_and_secret_keys().unwrap();
 
