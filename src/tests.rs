@@ -1723,7 +1723,7 @@ fn ctx_sign_recover_init() {
             Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
                 println!("as expected SoftHSM does not support this function");
             }
-            _ => panic!("TODO: SoftHSM supports this function now, complete tests"),
+            _ => panic!("TODO: SoftHSM supports C_SignRecoverInit now, complete tests"),
         }
     } else {
         assert!(
@@ -1739,8 +1739,23 @@ fn ctx_sign_recover_init() {
 
 #[test]
 #[serial]
+fn ctx_sign_recover() {
+    let (ctx, sh) = fixture_token().unwrap();
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let res = ctx.sign_recover(sh, &data);
+    assert!(res.is_err());
+    if let Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) = res.unwrap_err() {
+        println!("SoftHSM does not support C_SignRecover at the moment");
+        return;
+    }
+    panic!("TODO: SoftHSM supports C_SignRecover now, complete tests")
+}
+
+#[test]
+#[serial]
 fn ctx_verify_recover_init() {
-    let (ctx, sh, _, privOh) = fixture_token_and_key_pair().unwrap();
+    let (ctx, sh, pubOh, _) = fixture_token_and_key_pair().unwrap();
 
     let mechanism = CK_MECHANISM {
         mechanism: CKM_RSA_PKCS,
@@ -1748,7 +1763,7 @@ fn ctx_verify_recover_init() {
         ulParameterLen: 0,
     };
 
-    let res = ctx.verify_recover_init(sh, &mechanism, privOh);
+    let res = ctx.verify_recover_init(sh, &mechanism, pubOh);
     if res.is_err() {
         // SoftHSM does not support this function, so this is what we should compare against
         //assert_eq!(Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED), res.unwrap_err());
@@ -1756,18 +1771,33 @@ fn ctx_verify_recover_init() {
             Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
                 println!("as expected SoftHSM does not support this function");
             }
-            _ => panic!("TODO: SoftHSM supports this function now, complete tests"),
+            _ => panic!("TODO: SoftHSM supports C_VerifyRecoverInit now, complete tests"),
         }
     } else {
         assert!(
             res.is_ok(),
-            "failed to call C_SignRecoverInit({}, {:?}, {}) without parameter: {}",
+            "failed to call C_VerifyRecoverInit({}, {:?}, {}) without parameter: {}",
             sh,
             &mechanism,
-            privOh,
+            pubOh,
             res.unwrap_err()
         );
     }
+}
+
+#[test]
+#[serial]
+fn ctx_verify_recover() {
+    let (ctx, sh) = fixture_token().unwrap();
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+    let res = ctx.verify_recover(sh, &data);
+    assert!(res.is_err());
+    if let Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) = res.unwrap_err() {
+        println!("SoftHSM does not support C_VerifyRecover at the moment");
+        return;
+    }
+    panic!("TODO: SoftHSM supports C_VerifyRecover now, complete tests")
 }
 
 #[test]
@@ -2783,7 +2813,7 @@ fn ctx_decrypt_digest_update() {
     let decryptedPlaintext1 = decryptedPlaintext1.unwrap();
     let decryptedPlaintext1 = String::from_utf8_lossy(&decryptedPlaintext1);
 
-    let decryptedPlaintext2 = ctx.digest_encrypt_update(sh, &ciphertext2);
+    let decryptedPlaintext2 = ctx.decrypt_digest_update(sh, &ciphertext2);
     assert!(
         decryptedPlaintext2.is_ok(),
         "failed to call C_DecryptDigestUpdate({}, {:?}): {}",
@@ -2814,6 +2844,40 @@ fn ctx_decrypt_digest_update() {
 
     assert_eq!(decryptedPlaintext1.as_ref(), plaintext1Str);
     assert_eq!(decryptedPlaintext2.as_ref(), plaintext2Str);
+}
+
+#[test]
+#[serial]
+fn ctx_sign_encrypt_update() {
+    let (ctx, sh, _, _) = fixture_token_and_key_pair().unwrap();
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+
+    // check if this function is supported first
+    let res = ctx.sign_encrypt_update(sh, &data);
+    assert!(res.is_err());
+    if let Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) = res.unwrap_err() {
+        println!("SoftHSM does not support C_SignEncryptUpdate at the moment");
+        return;
+    }
+    panic!("TODO: SoftHSM supports C_SignEncryptUpdate now, complete tests")
+}
+
+#[test]
+#[serial]
+fn ctx_decrypt_verify_update() {
+    let (ctx, sh, _, _) = fixture_token_and_key_pair().unwrap();
+
+    let data = String::from("Lorem ipsum tralala").into_bytes();
+
+    // check if this function is supported first
+    let res = ctx.decrypt_verify_update(sh, data);
+    assert!(res.is_err());
+    if let Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) = res.unwrap_err() {
+        println!("SoftHSM does not support C_DecryptVerifyUpdate at the moment");
+        return;
+    }
+    panic!("TODO: SoftHSM supports C_DecryptVerifyUpdate now, complete tests")
 }
 
 #[test]
