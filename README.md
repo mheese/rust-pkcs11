@@ -39,15 +39,16 @@ Here is a list of the implementation status and plans on what to do next:
 - [x] Implementing Key Management functions
 - [x] Implementing Encryption/Decryption functions
 - [x] Implementing Message Digest functions
-- [x] Implementing Signing and MACing (TODO: tests still missing)
-- [x] Implementing Verifying of signatures and MACs (TODO: tests still missing)
-- [x] Implementing Dual-function cryptographic operations (TODO: tests still missing)
+- [x] Implementing Signing and MACing
+- [x] Implementing Verifying of signatures and MACs
+- [x] Implementing Dual-function cryptographic operations
 - [x] Implementing Legacy PKCS#11 functions
 - [x] Reorganize code of low-level API (too bloated, which we all know is what PKCS#11 is like)
 - [x] Import the rest of the C header `pkcs11t.h` types into rust
 - [x] Import the rest of the C header `pkcs11f.h` functions into rust
+- [x] Publish on crates.io (wow, that was easy)
 - [ ] C type constants to string converter functions, and the reverse (maybe part of the high-level API?)
 - [ ] Design and implement high-level API
-- [x] Publish on crates.io (wow, that was easy)
 - [ ] Write and Generate Documentation for Rust docs
 - [ ] Better Testing (lots of repetitive code + we need a testing framework and different SoftHSM versions for different platforms)
+- [ ] Suppport for PKCS#11 v3.00
