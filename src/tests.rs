@@ -2781,24 +2781,36 @@ fn ctx_cancel_function() {
 #[serial]
 fn ctx_wait_for_slot_event() {
     let (ctx, _) = fixture_token().unwrap();
-    let res = ctx.wait_for_slot_event(CKF_DONT_BLOCK);
-    if res.is_err() {
-        // SoftHSM does not support this function, so this is what we should compare against
-        //assert_eq!(Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED), res.unwrap_err());
-        match res.unwrap_err() {
-            Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
-                println!("as expected SoftHSM does not support this function");
-            }
-            _ => panic!("TODO: SoftHSM supports this function now, complete tests"),
-        }
+
+    // this is supported only starting from SoftHSM v2.6.0
+    let info = ctx.get_info();
+    assert!(
+        info.is_ok(),
+        "failed to call C_GetInfo: {}",
+        info.unwrap_err()
+    );
+    let info = info.unwrap();
+    if info.libraryVersion.major >= 2 && info.libraryVersion.minor >= 6 {
+        println!("SoftHSM >= 2.6.0: C_WaitForSlotEvent is supported");
     } else {
-        assert!(
-            res.is_ok(),
-            "failed to call C_WaitForSlotEvent({}): {}",
-            CKF_DONT_BLOCK,
-            res.unwrap_err()
-        );
+        return
     }
+    println!("Running C_WaitForSlotEvent...");
+
+    let slotID = ctx.wait_for_slot_event(CKF_DONT_BLOCK);
+    assert!(
+        slotID.is_ok(),
+        "failed to call C_WaitForSlotEvent({}): {}",
+        CKF_DONT_BLOCK,
+        slotID.unwrap_err()
+    );
+    let slotID = slotID.unwrap();
+    println!("Wait For Slot Event returned: {:?}", slotID);
+
+    // at this point we did not expect any event
+    assert_eq!(slotID, None);
+
+    // TODO: think about what the best way is to generate a slot event in SoftHSM
 }
 
 #[test]

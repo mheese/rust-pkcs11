@@ -1840,13 +1840,14 @@ impl Ctx {
         }
     }
 
-    pub fn wait_for_slot_event(&self, flags: CK_FLAGS) -> Result<CK_SLOT_ID, Error> {
+    pub fn wait_for_slot_event(&self, flags: CK_FLAGS) -> Result<Option<CK_SLOT_ID>, Error> {
         let mut slotID: CK_SLOT_ID = 0;
         let C_WaitForSlotEvent = self
             .C_WaitForSlotEvent
             .ok_or(Error::Module("C_WaitForSlotEvent function not found"))?;
         match C_WaitForSlotEvent(flags, &mut slotID, ptr::null_mut()) {
-            CKR_OK => Ok(slotID),
+            CKR_OK => Ok(Some(slotID)),
+            CKR_NO_EVENT => Ok(None),
             err => Err(Error::Pkcs11(err)),
         }
     }
