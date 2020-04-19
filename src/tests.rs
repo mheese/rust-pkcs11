@@ -1161,8 +1161,15 @@ fn fixture_token_and_secret_keys(
 fn fixture_token_and_key_pair(
 ) -> Result<(Ctx, CK_SESSION_HANDLE, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
     let (ctx, sh) = fixture_token()?;
-    let (pubOh, privOh) =
-        fixture_key_pair(&ctx, sh, "rsa-pub".into(), "rsa-priv".into(), true, true)?;
+    let (pubOh, privOh) = fixture_key_pair(
+        &ctx,
+        sh,
+        "rsa-pub".into(),
+        "rsa-priv".into(),
+        true,
+        true,
+        true,
+    )?;
     Ok((ctx, sh, pubOh, privOh))
 }
 
@@ -1173,6 +1180,7 @@ fn fixture_key_pair(
     privLabel: String,
     signVerify: bool,
     encryptDecrypt: bool,
+    recover: bool,
 ) -> Result<(CK_OBJECT_HANDLE, CK_OBJECT_HANDLE), Error> {
     let mechanism = CK_MECHANISM {
         mechanism: CKM_RSA_PKCS_KEY_PAIR_GEN,
@@ -1189,6 +1197,7 @@ fn fixture_key_pair(
     let privUnwrap = CK_FALSE;
     let privExtractable = CK_FALSE;
     let privSign = if signVerify { CK_TRUE } else { CK_FALSE };
+    let privSignRecover = if recover { CK_TRUE } else { CK_FALSE };
     let privDecrypt = if encryptDecrypt { CK_TRUE } else { CK_FALSE };
 
     let privTemplate = vec![
@@ -1201,6 +1210,7 @@ fn fixture_key_pair(
         CK_ATTRIBUTE::new(CKA_UNWRAP).with_bool(&privUnwrap),
         CK_ATTRIBUTE::new(CKA_EXTRACTABLE).with_bool(&privExtractable),
         CK_ATTRIBUTE::new(CKA_SIGN).with_bool(&privSign),
+        CK_ATTRIBUTE::new(CKA_SIGN_RECOVER).with_bool(&privSignRecover),
         CK_ATTRIBUTE::new(CKA_DECRYPT).with_bool(&privDecrypt),
     ];
 
@@ -1211,6 +1221,7 @@ fn fixture_key_pair(
     let pubPrivate = CK_TRUE;
     let pubWrap = CK_FALSE;
     let pubVerify = if signVerify { CK_TRUE } else { CK_FALSE };
+    let pubVerifyRecover = if recover { CK_TRUE } else { CK_FALSE };
     let pubEncrypt = if encryptDecrypt { CK_TRUE } else { CK_FALSE };
     let pubModulusBits: CK_ULONG = 4096;
     let pubPublicExponent = BigUint::from(65537u32);
@@ -1224,6 +1235,7 @@ fn fixture_key_pair(
         CK_ATTRIBUTE::new(CKA_PRIVATE).with_bool(&pubPrivate),
         CK_ATTRIBUTE::new(CKA_WRAP).with_bool(&pubWrap),
         CK_ATTRIBUTE::new(CKA_VERIFY).with_bool(&pubVerify),
+        CK_ATTRIBUTE::new(CKA_VERIFY_RECOVER).with_bool(&pubVerifyRecover),
         CK_ATTRIBUTE::new(CKA_ENCRYPT).with_bool(&pubEncrypt),
         CK_ATTRIBUTE::new(CKA_MODULUS_BITS).with_ck_ulong(&pubModulusBits),
         CK_ATTRIBUTE::new(CKA_PUBLIC_EXPONENT).with_biginteger(&pubPublicExponentSlice),
@@ -1690,6 +1702,72 @@ fn ctx_verify_final() {
         &signature,
         res.unwrap_err()
     );
+}
+
+#[test]
+#[serial]
+fn ctx_sign_recover_init() {
+    let (ctx, sh, _, privOh) = fixture_token_and_key_pair().unwrap();
+
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_RSA_PKCS,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.sign_recover_init(sh, &mechanism, privOh);
+    if res.is_err() {
+        // SoftHSM does not support this function, so this is what we should compare against
+        //assert_eq!(Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED), res.unwrap_err());
+        match res.unwrap_err() {
+            Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
+                println!("as expected SoftHSM does not support this function");
+            }
+            _ => panic!("TODO: SoftHSM supports this function now, complete tests"),
+        }
+    } else {
+        assert!(
+            res.is_ok(),
+            "failed to call C_SignRecoverInit({}, {:?}, {}) without parameter: {}",
+            sh,
+            &mechanism,
+            privOh,
+            res.unwrap_err()
+        );
+    }
+}
+
+#[test]
+#[serial]
+fn ctx_verify_recover_init() {
+    let (ctx, sh, _, privOh) = fixture_token_and_key_pair().unwrap();
+
+    let mechanism = CK_MECHANISM {
+        mechanism: CKM_RSA_PKCS,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.verify_recover_init(sh, &mechanism, privOh);
+    if res.is_err() {
+        // SoftHSM does not support this function, so this is what we should compare against
+        //assert_eq!(Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED), res.unwrap_err());
+        match res.unwrap_err() {
+            Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
+                println!("as expected SoftHSM does not support this function");
+            }
+            _ => panic!("TODO: SoftHSM supports this function now, complete tests"),
+        }
+    } else {
+        assert!(
+            res.is_ok(),
+            "failed to call C_SignRecoverInit({}, {:?}, {}) without parameter: {}",
+            sh,
+            &mechanism,
+            privOh,
+            res.unwrap_err()
+        );
+    }
 }
 
 #[test]
@@ -2711,7 +2789,7 @@ fn ctx_wait_for_slot_event() {
             Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) => {
                 println!("as expected SoftHSM does not support this function");
             }
-            _ => panic!("ahhh"),
+            _ => panic!("TODO: SoftHSM supports this function now, complete tests"),
         }
     } else {
         assert!(
