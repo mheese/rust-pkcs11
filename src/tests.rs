@@ -2577,6 +2577,247 @@ fn ctx_digest_final() {
 
 #[test]
 #[serial]
+fn ctx_digest_encrypt_update() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext1 = String::from("encrypt me 1    ").into_bytes();
+    let plaintext2 = String::from("encrypt me 2    ").into_bytes();
+
+    // check if this function is supported first
+    let res = ctx.digest_encrypt_update(sh, &plaintext1);
+    assert!(res.is_err());
+    if let Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) = res.unwrap_err() {
+        println!("SoftHSM does not support C_DigestEncryptUpdate at the moment");
+        return;
+    }
+
+    let encryptMechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.encrypt_init(sh, &encryptMechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &encryptMechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let digestMechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &digestMechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &digestMechanism,
+        res.unwrap_err()
+    );
+
+    let ciphertext1 = ctx.digest_encrypt_update(sh, &plaintext1);
+    assert!(
+        ciphertext1.is_ok(),
+        "failed to call C_DigestEncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext1,
+        ciphertext1.unwrap_err()
+    );
+    let ciphertext1 = ciphertext1.unwrap();
+
+    let ciphertext2 = ctx.digest_encrypt_update(sh, &plaintext2);
+    assert!(
+        ciphertext2.is_ok(),
+        "failed to call C_DigestEncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext2,
+        ciphertext2.unwrap_err()
+    );
+    let ciphertext2 = ciphertext2.unwrap();
+
+    let digest = ctx.digest_final(sh);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_DigestFinal({}): {}",
+        sh,
+        digest.unwrap_err()
+    );
+
+    let res = ctx.encrypt_final(sh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptFinal({}): {}",
+        sh,
+        res.unwrap_err()
+    );
+    let res = res.unwrap();
+    assert_eq!(res.len(), 0);
+    println!("Ciphertexts are: {:?}, {:?}", ciphertext1, ciphertext2);
+}
+
+#[test]
+#[serial]
+fn ctx_decrypt_digest_update() {
+    let (ctx, sh, _, secOh) = fixture_token_and_secret_keys().unwrap();
+
+    // plaintext is padded to one block of data: 16 bytes
+    let plaintext1Str = "encrypt me 1    ";
+    let plaintext2Str = "encrypt me 2    ";
+    let plaintext1 = String::from(plaintext1Str).into_bytes();
+    let plaintext2 = String::from(plaintext2Str).into_bytes();
+
+    // check if this function is supported first
+    let res = ctx.decrypt_digest_update(sh, &plaintext1);
+    assert!(res.is_err());
+    if let Error::Pkcs11(CKR_FUNCTION_NOT_SUPPORTED) = res.unwrap_err() {
+        println!("SoftHSM does not support C_DecryptDigestUpdate at the moment");
+        return;
+    }
+
+    let encryptMechanism = CK_MECHANISM {
+        mechanism: CKM_AES_ECB,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.encrypt_init(sh, &encryptMechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &encryptMechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let digestMechanism = CK_MECHANISM {
+        mechanism: CKM_SHA256,
+        pParameter: ptr::null_mut(),
+        ulParameterLen: 0,
+    };
+
+    let res = ctx.digest_init(sh, &digestMechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &digestMechanism,
+        res.unwrap_err()
+    );
+
+    let ciphertext1 = ctx.digest_encrypt_update(sh, &plaintext1);
+    assert!(
+        ciphertext1.is_ok(),
+        "failed to call C_DigestEncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext1,
+        ciphertext1.unwrap_err()
+    );
+    let ciphertext1 = ciphertext1.unwrap();
+
+    let ciphertext2 = ctx.digest_encrypt_update(sh, &plaintext2);
+    assert!(
+        ciphertext2.is_ok(),
+        "failed to call C_DigestEncryptUpdate({}, {:?}): {}",
+        sh,
+        &plaintext2,
+        ciphertext2.unwrap_err()
+    );
+    let ciphertext2 = ciphertext2.unwrap();
+
+    let digest = ctx.digest_final(sh);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_DigestFinal({}): {}",
+        sh,
+        digest.unwrap_err()
+    );
+
+    let res = ctx.encrypt_final(sh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_EncryptFinal({}): {}",
+        sh,
+        res.unwrap_err()
+    );
+    let res = res.unwrap();
+    assert_eq!(res.len(), 0);
+    println!("Ciphertexts are: {:?}, {:?}", ciphertext1, ciphertext2);
+
+    // NOW DECRYPT AND DIGEST
+    let res = ctx.decrypt_init(sh, &encryptMechanism, secOh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptInit({}, {:?}, {}) without parameter: {}",
+        sh,
+        &encryptMechanism,
+        secOh,
+        res.unwrap_err()
+    );
+
+    let res = ctx.digest_init(sh, &digestMechanism);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DigestInit({}, {:?}) without parameter: {}",
+        sh,
+        &digestMechanism,
+        res.unwrap_err()
+    );
+
+    let decryptedPlaintext1 = ctx.decrypt_digest_update(sh, &ciphertext1);
+    assert!(
+        decryptedPlaintext1.is_ok(),
+        "failed to call C_DecryptDigestUpdate({}, {:?}): {}",
+        sh,
+        &ciphertext1,
+        decryptedPlaintext1.unwrap_err()
+    );
+    let decryptedPlaintext1 = decryptedPlaintext1.unwrap();
+    let decryptedPlaintext1 = String::from_utf8_lossy(&decryptedPlaintext1);
+
+    let decryptedPlaintext2 = ctx.digest_encrypt_update(sh, &ciphertext2);
+    assert!(
+        decryptedPlaintext2.is_ok(),
+        "failed to call C_DecryptDigestUpdate({}, {:?}): {}",
+        sh,
+        &ciphertext2,
+        decryptedPlaintext2.unwrap_err()
+    );
+    let decryptedPlaintext2 = decryptedPlaintext2.unwrap();
+    let decryptedPlaintext2 = String::from_utf8_lossy(&decryptedPlaintext2);
+
+    let digest = ctx.digest_final(sh);
+    assert!(
+        digest.is_ok(),
+        "failed to call C_DigestFinal({}): {}",
+        sh,
+        digest.unwrap_err()
+    );
+
+    let res = ctx.decrypt_final(sh);
+    assert!(
+        res.is_ok(),
+        "failed to call C_DecryptFinal({}): {}",
+        sh,
+        res.unwrap_err()
+    );
+    let res = res.unwrap();
+    assert_eq!(res.len(), 0);
+
+    assert_eq!(decryptedPlaintext1.as_ref(), plaintext1Str);
+    assert_eq!(decryptedPlaintext2.as_ref(), plaintext2Str);
+}
+
+#[test]
+#[serial]
 fn ctx_derive_key() {
     let (ctx, sh) = fixture_token().unwrap();
 
@@ -2793,7 +3034,7 @@ fn ctx_wait_for_slot_event() {
     if info.libraryVersion.major >= 2 && info.libraryVersion.minor >= 6 {
         println!("SoftHSM >= 2.6.0: C_WaitForSlotEvent is supported");
     } else {
-        return
+        return;
     }
     println!("Running C_WaitForSlotEvent...");
 
