@@ -19,13 +19,20 @@ description = "Rust PKCS#11 Library"
 #documentation = "https://github.com/mheese/rust-pkcs11"
 homepage = "https://github.com/mheese/rust-pkcs11"
 repository = "https://github.com/mheese/rust-pkcs11"
-#readme = "..."
+readme = "README.md"
 keywords = ["pkcs11", "cryptoki"]
 categories = ["external-ffi-bindings", "cryptography", "hardware-support"]
 license = "Apache-2.0"
+license-file = "LICENSE"
 exclude = [
     "pkcs11-docs/**",
 ]
+
+[badges]
+maintenance = { status = "actively-developed" }
+codecov = { repository = "mheese/rust-pkcs11", branch = "master", service = "github" }
+is-it-maintained-issue-resolution = { repository = "mheese/rust-pkcs11" }
+is-it-maintained-open-issues = { repository = "mheese/rust-pkcs11" }
 
 [dependencies]
 libloading = "^0.5"
