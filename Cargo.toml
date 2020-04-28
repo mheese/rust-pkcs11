@@ -15,6 +15,7 @@
 name = "pkcs11"
 version = "0.6.0"
 authors = ["Marcus Heese <marcus.heese@gmail.com>"]
+edition = '2018'
 description = "Rust PKCS#11 Library"
 #documentation = "https://github.com/mheese/rust-pkcs11"
 homepage = "https://github.com/mheese/rust-pkcs11"

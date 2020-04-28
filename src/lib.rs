@@ -38,10 +38,9 @@ use std::ffi::CString;
 use std::mem;
 use std::path::Path;
 use std::ptr;
-//use libc::c_uchar;
 
 trait CkFrom<T> {
-    fn from(T) -> Self;
+    fn from(_: T) -> Self;
 }
 
 impl CkFrom<bool> for CK_BBOOL {

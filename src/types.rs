@@ -37,15 +37,14 @@ macro_rules! cryptoki_aligned {
 }
 
 use num_bigint::BigUint;
-use std;
 use std::mem;
 use std::ptr;
 use std::slice;
 
 use super::CkFrom;
-use errors::Error;
-use functions::*;
-use types::padding::*;
+use crate::errors::Error;
+use crate::functions::*;
+use crate::types::padding::*;
 
 pub const CK_TRUE: CK_BBOOL = 1;
 pub const CK_FALSE: CK_BBOOL = 0;
@@ -108,8 +107,8 @@ pub const CK_INVALID_HANDLE: CK_ULONG = 0;
  * for const N, once Rust stablizes the constant generics feature.
  */
 pub mod padding {
-    use str_from_blank_padded;
-    use types::{CK_CHAR, CK_UTF8CHAR};
+    use crate::str_from_blank_padded;
+    use super::{CK_CHAR, CK_UTF8CHAR};
 
     /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
     #[derive(Copy, Clone)]
