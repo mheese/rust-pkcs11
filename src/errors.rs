@@ -14,28 +14,46 @@
 
 use std;
 use types::*;
+use libloading;
 
 #[derive(Debug)]
 pub enum Error {
-    Io(std::io::Error),
+    /// Any error that happens during library loading of the PKCS#11 module is encompassed under
+    /// this error. It is a direct forward of the underlying error from libloading.
+    LibraryLoading { err: libloading::Error },
+    
+    /// If a PKCS11 library is not a compliant module, this error will be reporting on the details
+    /// of the problem.
     Module(&'static str),
+
+    /// This error is specific to all PIN-related functions: whenever a PKCS11 function has a PIN input,
+    /// and the PIN is invalid (for example contains a nul byte), this error will be returned.
     InvalidInput(&'static str),
+
+    /// All PKCS#11 functions that return non-zero translate to this error. Note though that only true
+    /// errors will be returned as such. Some functions that return non-zero values that are not errors
+    /// will not be returned as errors. The affected functions are:
+    /// `get_attribute_value`, `get_function_status`, `cancel_function` and `wait_for_slot_event`
     Pkcs11(CK_RV),
+
     /// This error happens when trying to get an attribute's value which is unavailable, because the
-    /// constant `CK_UNAVAILABLE_INFORMATION` is set in the `ulValueLen` attribute field
+    /// constant `CK_UNAVAILABLE_INFORMATION` is set in the `ulValueLen` attribute field.
+    /// Note that this error can only be returned if `get_attribute_value` was previously called,
+    /// and one tries to return the value of a `types::CK_ATTRIBUTE` with one of its associated
+    /// getter method (e.g. `get_bytes`).
     UnavailableInformation,
 }
 
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Error {
-        Error::Io(err)
+impl From<libloading::Error> for Error {
+    fn from(err: libloading::Error) -> Error {
+        Error::LibraryLoading { err }
     }
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            Error::Io(ref err) => write!(f, "IO: {}", err),
+            Error::LibraryLoading { ref err } => write!(f, "PKCS#11 Library Loading: {}", err),
             Error::Module(ref err) => write!(f, "PKCS#11 Module: {}", err),
             Error::InvalidInput(ref err) => write!(f, "PKCS#11 Invalid Input: {}", err),
             Error::Pkcs11(ref err) => write!(f, "PKCS#11: {} (0x{:x})", strerror(*err), err),
@@ -45,8 +63,8 @@ impl std::fmt::Display for Error {
 }
 
 impl std::error::Error for Error {
-    fn cause(&self) -> Option<&dyn std::error::Error> {
-        if let Error::Io(ref err) = self {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        if let Error::LibraryLoading { ref err } = self {
             Some(err)
         } else {
             None
