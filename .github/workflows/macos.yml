@@ -19,7 +19,10 @@ jobs:
       run: cargo build --verbose
     - name: test
       run: cargo test --verbose
-    - name: rustfmt
-      run: cargo fmt -- --check
-    - name: clippy 
-      run: cargo clippy --all-targets --all-features -- -D warnings
+    # TODO: these are currently not installed in the toolchain
+    #       of the GitHub action runners for macOS
+    #       reenable them again once they are, or install them
+    #- name: rustfmt
+    #  run: cargo fmt -- --check
+    #- name: clippy 
+    #  run: cargo clippy --all-targets --all-features -- -D warnings

@@ -37,15 +37,14 @@ macro_rules! cryptoki_aligned {
 }
 
 use num_bigint::BigUint;
-use std;
 use std::mem;
 use std::ptr;
 use std::slice;
 
 use super::CkFrom;
-use errors::Error;
-use functions::*;
-use types::padding::*;
+use crate::errors::Error;
+use crate::functions::*;
+use crate::types::padding::*;
 
 pub const CK_TRUE: CK_BBOOL = 1;
 pub const CK_FALSE: CK_BBOOL = 0;
@@ -108,8 +107,8 @@ pub const CK_INVALID_HANDLE: CK_ULONG = 0;
  * for const N, once Rust stablizes the constant generics feature.
  */
 pub mod padding {
-    use str_from_blank_padded;
-    use types::{CK_CHAR, CK_UTF8CHAR};
+    use super::{CK_CHAR, CK_UTF8CHAR};
+    use crate::str_from_blank_padded;
 
     /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
     #[derive(Copy, Clone)]
@@ -672,9 +671,9 @@ pub const CKA_AUTH_PIN_FLAGS: CK_ATTRIBUTE_TYPE = 0x00000201; /* Deprecated */
 pub const CKA_ALWAYS_AUTHENTICATE: CK_ATTRIBUTE_TYPE = 0x00000202;
 
 pub const CKA_WRAP_WITH_TRUSTED: CK_ATTRIBUTE_TYPE = 0x00000210;
-pub const CKA_WRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE | 0x00000211);
-pub const CKA_UNWRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE | 0x00000212);
-pub const CKA_DERIVE_TEMPLATE: CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE | 0x00000213);
+pub const CKA_WRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000211;
+pub const CKA_UNWRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000212;
+pub const CKA_DERIVE_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000213;
 
 pub const CKA_OTP_FORMAT: CK_ATTRIBUTE_TYPE = 0x00000220;
 pub const CKA_OTP_LENGTH: CK_ATTRIBUTE_TYPE = 0x00000221;
@@ -713,7 +712,7 @@ pub const CKA_MECHANISM_TYPE: CK_ATTRIBUTE_TYPE = 0x00000500;
 pub const CKA_REQUIRED_CMS_ATTRIBUTES: CK_ATTRIBUTE_TYPE = 0x00000501;
 pub const CKA_DEFAULT_CMS_ATTRIBUTES: CK_ATTRIBUTE_TYPE = 0x00000502;
 pub const CKA_SUPPORTED_CMS_ATTRIBUTES: CK_ATTRIBUTE_TYPE = 0x00000503;
-pub const CKA_ALLOWED_MECHANISMS: CK_ATTRIBUTE_TYPE = (CKF_ARRAY_ATTRIBUTE | 0x00000600);
+pub const CKA_ALLOWED_MECHANISMS: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000600;
 
 pub const CKA_VENDOR_DEFINED: CK_ATTRIBUTE_TYPE = 0x80000000;
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 #![allow(non_camel_case_types, non_snake_case)]
 
-use types::*;
+use crate::types::*;
 
 /// `C_Initialize` initializes the Cryptoki library.
 ///
