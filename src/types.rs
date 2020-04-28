@@ -107,8 +107,8 @@ pub const CK_INVALID_HANDLE: CK_ULONG = 0;
  * for const N, once Rust stablizes the constant generics feature.
  */
 pub mod padding {
-    use crate::str_from_blank_padded;
     use super::{CK_CHAR, CK_UTF8CHAR};
+    use crate::str_from_blank_padded;
 
     /// Encapsulates a blank-padded 16-byte UTF-8 string for conversion purposes.
     #[derive(Copy, Clone)]

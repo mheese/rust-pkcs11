@@ -19,7 +19,7 @@ pub enum Error {
     /// Any error that happens during library loading of the PKCS#11 module is encompassed under
     /// this error. It is a direct forward of the underlying error from libloading.
     LibraryLoading { err: libloading::Error },
-    
+
     /// If a PKCS11 library is not a compliant module, this error will be reporting on the details
     /// of the problem.
     Module(&'static str),
