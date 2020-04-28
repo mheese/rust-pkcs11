@@ -388,7 +388,9 @@ impl Ctx {
                 C_CancelFunction: (*list_ptr)
                     .C_CancelFunction
                     .ok_or(Error::Module("C_CancelFunction function not found"))?,
-                // Functions added in for Cryptoki Version 2.01 or later
+                // Functions added in for Cryptoki Version 2.01 or later:
+                // to be compatible with PKCS#11 2.00 we do not fail during initialization
+                // but when the function will be called.
                 C_WaitForSlotEvent: (*list_ptr).C_WaitForSlotEvent,
             })
         }
