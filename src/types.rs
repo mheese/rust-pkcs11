@@ -67,13 +67,22 @@ pub type CK_BBOOL = CK_BYTE;
 /// an unsigned value, at least 32 bits long
 #[cfg(windows)]
 pub type CK_ULONG = u32;
+
+#[cfg(all(target_os = "linux", target_arch = "arm"))]
+pub type CK_ULONG = u32;
+
 #[cfg(not(windows))]
 pub type CK_ULONG = u64;
+
 pub type CK_ULONG_PTR = *mut CK_ULONG;
 
 /// a signed value, the same size as a CK_ULONG
 #[cfg(windows)]
 pub type CK_LONG = i32;
+
+#[cfg(all(target_os = "linux", target_arch = "arm"))]
+pub type CK_LONG = i32;
+
 #[cfg(not(windows))]
 pub type CK_LONG = i64;
 
