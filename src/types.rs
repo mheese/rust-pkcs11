@@ -71,7 +71,7 @@ pub type CK_ULONG = u32;
 #[cfg(all(target_os = "linux", target_arch = "arm"))]
 pub type CK_ULONG = u32;
 
-#[cfg(not(windows))]
+#[cfg(all(not(windows), not(all(target_os = "linux", target_arch = "arm"))))]
 pub type CK_ULONG = u64;
 
 pub type CK_ULONG_PTR = *mut CK_ULONG;
@@ -83,7 +83,7 @@ pub type CK_LONG = i32;
 #[cfg(all(target_os = "linux", target_arch = "arm"))]
 pub type CK_LONG = i32;
 
-#[cfg(not(windows))]
+#[cfg(all(not(windows), not(all(target_os = "linux", target_arch = "arm"))))]
 pub type CK_LONG = i64;
 
 /// at least 32 bits; each bit is a Boolean flag
