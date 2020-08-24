@@ -54,7 +54,7 @@ impl std::fmt::Display for Error {
             Error::LibraryLoading { ref err } => write!(f, "PKCS#11 Library Loading: {}", err),
             Error::Module(ref err) => write!(f, "PKCS#11 Module: {}", err),
             Error::InvalidInput(ref err) => write!(f, "PKCS#11 Invalid Input: {}", err),
-            Error::Pkcs11(ref err) => write!(f, "PKCS#11: {} (0x{:x})", strerror(*err), err),
+            Error::Pkcs11(ref err) => write!(f, "PKCS#11: {} (0x{:x})", strerror(*err), *err),
             Error::UnavailableInformation => write!(f, "Attribute value is unavailable"),
         }
     }
