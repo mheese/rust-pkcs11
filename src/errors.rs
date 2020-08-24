@@ -173,6 +173,6 @@ fn strerror(err: CK_RV) -> &'static str {
             } else {
                 "unknown"
             }
-        },
+        }
     }
 }
