@@ -167,6 +167,12 @@ fn strerror(err: CK_RV) -> &'static str {
         CKR_PUBLIC_KEY_INVALID => "CKR_PUBLIC_KEY_INVALID",
         CKR_FUNCTION_REJECTED => "CKR_FUNCTION_REJECTED",
         CKR_VENDOR_DEFINED => "CKR_VENDOR_DEFINED",
-        _ => "unknown",
+        _ => {
+            if err > CKR_VENDOR_DEFINED {
+                "CKR_VENDOR_DEFINED"
+            } else {
+                "unknown"
+            }
+        }
     }
 }
