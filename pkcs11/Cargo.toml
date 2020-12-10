@@ -24,7 +24,6 @@ readme = "README.md"
 keywords = ["pkcs11", "cryptoki"]
 categories = ["external-ffi-bindings", "cryptography", "hardware-support"]
 license = "Apache-2.0"
-license-file = "LICENSE"
 exclude = [
     "pkcs11-docs/**",
 ]
@@ -38,10 +37,16 @@ is-it-maintained-open-issues = { repository = "mheese/rust-pkcs11" }
 [dependencies]
 libloading = "0.6.1"
 num-bigint = "0.2.6"
-#libc = "0.2.33"
+pkcs11-sys = { path = "../pkcs11-sys" }
+log = "0.4.11"
+secrecy = "0.7.0"
+psa-crypto = { git = "https://github.com/parallaxsecond/rust-psa-crypto", rev = "18dd4dda96d8b61d2e112b9e6ad83e90fe768d78", default-features = false, optional = true }
 
 [dev-dependencies]
 num-traits = "0.2.11"
 hex = "0.4.2"
 serial_test = "0.4.0"
 serial_test_derive = "0.4.0"
+
+[features]
+psa-crypto-conversions = ["psa-crypto"]
