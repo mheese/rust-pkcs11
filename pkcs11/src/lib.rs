@@ -27,6 +27,9 @@ mod tests;
 pub mod errors;
 /// This module is basically a full conversion of the `pkcs11f.h` C header file.
 pub mod functions;
+/// This module provides safe and idiomatic abstractions
+#[deny(missing_docs)]
+pub mod new;
 /// This module is basically a full conversion of the `pkcs11t.h` C header file.
 pub mod types;
 

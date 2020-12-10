@@ -1,0 +1,28 @@
+[package]
+name = "pkcs11-sys"
+version = "0.6.0"
+authors = ["Marcus Heese <marcus.heese@gmail.com>"]
+edition = "2018"
+homepage = "https://github.com/mheese/rust-pkcs11"
+repository = "https://github.com/mheese/rust-pkcs11"
+readme = "README.md"
+keywords = ["pkcs11", "cryptoki"]
+categories = ["external-ffi-bindings", "cryptography", "hardware-support"]
+license-file = "LICENSE"
+links = "pkcs11"
+build="build.rs"
+
+include = [
+  "README.md",
+  "Cargo.toml",
+  "build.rs",
+]
+
+[build-dependencies]
+bindgen = { version = "0.56.0", optional = true }
+
+[dependencies]
+libloading = "0.6.3"
+
+[features]
+generate-bindings = ["bindgen"]
