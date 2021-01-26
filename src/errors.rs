@@ -40,6 +40,9 @@ pub enum Error {
     /// and one tries to return the value of a `types::CK_ATTRIBUTE` with one of its associated
     /// getter method (e.g. `get_bytes`).
     UnavailableInformation,
+
+    /// This error happens when trying to use the function which is not supported in the PKCS#11 API.
+    UnavailableFunction(String),
 }
 
 impl From<libloading::Error> for Error {
@@ -56,6 +59,7 @@ impl std::fmt::Display for Error {
             Error::InvalidInput(ref err) => write!(f, "PKCS#11 Invalid Input: {}", err),
             Error::Pkcs11(ref err) => write!(f, "PKCS#11: {} (0x{:x})", strerror(*err), err),
             Error::UnavailableInformation => write!(f, "Attribute value is unavailable"),
+            Error::UnavailableFunction(ref name) => write!(f, "Function not available: {}", name),
         }
     }
 }
