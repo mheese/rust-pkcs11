@@ -42,7 +42,7 @@ pub enum Error {
     UnavailableInformation,
 
     /// This error happens when trying to use the function which is not supported in the PKCS#11 API.
-    UnavailableFunction(String),
+    UnavailableFunction(&'static str),
 }
 
 impl From<libloading::Error> for Error {
