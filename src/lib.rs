@@ -18,7 +18,7 @@ extern crate num_bigint;
 
 #[cfg(test)]
 #[macro_use]
-extern crate serial_test_derive;
+extern crate serial_test;
 
 #[cfg(test)]
 mod tests;
