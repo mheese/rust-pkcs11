@@ -580,11 +580,7 @@ impl Ctx {
         }
     }
 
-    pub fn init_pin(
-        &self,
-        session: CK_SESSION_HANDLE,
-        pin: Option<&str>,
-    ) -> Result<(), Error> {
+    pub fn init_pin(&self, session: CK_SESSION_HANDLE, pin: Option<&str>) -> Result<(), Error> {
         self.initialized()?;
         match pin {
             Some(pin) => {
