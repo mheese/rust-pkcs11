@@ -55,10 +55,7 @@ impl CkFrom<bool> for CK_BBOOL {
 
 impl CkFrom<CK_BBOOL> for bool {
     fn from(b: CK_BBOOL) -> bool {
-        match b {
-            0 => false,
-            _ => true,
-        }
+        !matches!(b, 0)
     }
 }
 
@@ -547,11 +544,11 @@ impl Ctx {
         }
     }
 
-    pub fn init_token<'a, 'b>(
+    pub fn init_token(
         &self,
         slot_id: CK_SLOT_ID,
-        pin: Option<&'a str>,
-        label: &'b str,
+        pin: Option<&str>,
+        label: &str,
     ) -> Result<(), Error> {
         self.initialized()?;
         let mut formatted_label = label_from_str(label).to_vec();
@@ -583,10 +580,10 @@ impl Ctx {
         }
     }
 
-    pub fn init_pin<'a>(
+    pub fn init_pin(
         &self,
         session: CK_SESSION_HANDLE,
-        pin: Option<&'a str>,
+        pin: Option<&str>,
     ) -> Result<(), Error> {
         self.initialized()?;
         match pin {
@@ -612,11 +609,11 @@ impl Ctx {
         }
     }
 
-    pub fn set_pin<'a, 'b>(
+    pub fn set_pin(
         &self,
         session: CK_SESSION_HANDLE,
-        old_pin: Option<&'a str>,
-        new_pin: Option<&'b str>,
+        old_pin: Option<&str>,
+        new_pin: Option<&str>,
     ) -> Result<(), Error> {
         self.initialized()?;
         if old_pin.is_none() && new_pin.is_none() {
@@ -738,11 +735,11 @@ impl Ctx {
         }
     }
 
-    pub fn login<'a>(
+    pub fn login(
         &self,
         session: CK_SESSION_HANDLE,
         user_type: CK_USER_TYPE,
-        pin: Option<&'a str>,
+        pin: Option<&str>,
     ) -> Result<(), Error> {
         self.initialized()?;
         match pin {
