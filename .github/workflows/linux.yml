@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: SoftHSM installation
       run: |
-        sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ eoan universe"
+        sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal universe"
         sudo apt-get install -f libsofthsm2
         sudo usermod -a -G softhsm $USER
     - name: build
