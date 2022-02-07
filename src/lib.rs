@@ -424,11 +424,11 @@ impl Ctx {
         }
     }
 
-    pub fn initialize(&mut self, init_args: Option<CK_C_INITIALIZE_ARGS>) -> Result<(), Error> {
+    pub fn initialize(&mut self, mut init_args: Option<CK_C_INITIALIZE_ARGS>) -> Result<(), Error> {
         self.not_initialized()?;
         // if no args are specified, library expects NULL
-        let init_args = match init_args {
-            Some(mut args) => &mut args,
+        let init_args = match &mut init_args {
+            Some(ref mut args) => args,
             None => ptr::null_mut(),
         };
         match (self.C_Initialize)(init_args) {
