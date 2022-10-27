@@ -16,6 +16,13 @@ limitations under the License.
 
 # Rust PKCS#11 Library
 
+**!!!!!**
+
+**NOTE:** The repository is unmaintained. Please switch to [cryptoki](https://github.com/parallaxsecond/rust-cryptoki)!
+
+**!!!!!**
+
+
 [![Latest version](https://img.shields.io/crates/v/pkcs11.svg)](https://crates.io/crates/pkcs11)
 [![Documentation](https://docs.rs/pkcs11/badge.svg)](https://docs.rs/pkcs11)
 ![Build status](https://github.com/mheese/rust-pkcs11/workflows/Linux/badge.svg)
