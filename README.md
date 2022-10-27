@@ -23,6 +23,7 @@ limitations under the License.
 **!!!!!**
 
 
+![maintenance-status](https://img.shields.io/badge/maintenance-deprecated-red.svg)
 [![Latest version](https://img.shields.io/crates/v/pkcs11.svg)](https://crates.io/crates/pkcs11)
 [![Documentation](https://docs.rs/pkcs11/badge.svg)](https://docs.rs/pkcs11)
 ![Build status](https://github.com/mheese/rust-pkcs11/workflows/Linux/badge.svg)
