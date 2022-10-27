@@ -814,7 +814,8 @@ impl CK_ATTRIBUTE {
 
     pub fn get_ck_ulong(&self) -> Result<CK_ULONG, Error> {
         self.available_value()?;
-        Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+        let value: CK_ULONG = unsafe { (self.pValue as *const CK_ULONG).read_unaligned() };
+        Ok(value)
     }
 
     #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -834,7 +835,8 @@ impl CK_ATTRIBUTE {
 
     pub fn get_ck_long(&self) -> Result<CK_LONG, Error> {
         self.available_value()?;
-        Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+        let value: CK_LONG = unsafe { (self.pValue as *const CK_LONG).read_unaligned() };
+        Ok(value)
     }
 
     pub fn with_biginteger(mut self, val: &[u8]) -> Self {
@@ -914,7 +916,8 @@ impl CK_ATTRIBUTE {
 
     pub fn get_date(&self) -> Result<CK_DATE, Error> {
         self.available_value()?;
-        Ok(unsafe { mem::transmute_copy(&*self.pValue) })
+        let value: CK_DATE = unsafe { (self.pValue as *const CK_DATE).read_unaligned() };
+        Ok(value)
     }
 
     /// Check if the value contained by this attribute is invalid or unavailable.
