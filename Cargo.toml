@@ -30,7 +30,7 @@ exclude = [
 ]
 
 [badges]
-maintenance = { status = "actively-developed" }
+maintenance = { status = "deprecated" }
 codecov = { repository = "mheese/rust-pkcs11", branch = "master", service = "github" }
 is-it-maintained-issue-resolution = { repository = "mheese/rust-pkcs11" }
 is-it-maintained-open-issues = { repository = "mheese/rust-pkcs11" }
