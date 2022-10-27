@@ -18,7 +18,7 @@ limitations under the License.
 
 **!!!!!**
 
-**NOTE:** The repository is unmaintained. Please switch to [cryptoki](https://github.com/parallaxsecond/rust-cryptoki)!
+**NOTE:** The repository is unmaintained. Please switch to [cryptoki](https://github.com/parallaxsecond/rust-cryptoki)! Thanks again to everybody who has contributed in the past. Unfortunately, I simply don't have the bandwidth to maintain this in my spare/free time anymore.
 
 **!!!!!**
 
